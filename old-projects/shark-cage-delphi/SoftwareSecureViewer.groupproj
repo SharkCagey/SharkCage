@@ -1,0 +1,98 @@
+﻿	<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+		<PropertyGroup>
+			<ProjectGuid>{16593655-81ae-4248-8968-ff337a7d370d}</ProjectGuid>
+		</PropertyGroup>
+		<ItemGroup>
+			<Projects Include="SDSecureDisplaySvc.dproj">
+				<Dependencies/>
+			</Projects>
+			<Projects Include="SDUserSessionManager.dproj">
+				<Dependencies/>
+			</Projects>
+			<Projects Include="SDAppInfo.dproj">
+				<Dependencies/>
+			</Projects>
+			<Projects Include="SDDumpDesktopACL.dproj">
+				<Dependencies/>
+			</Projects>
+			<Projects Include="SDControlSecureDisplaySvc.dproj">
+				<Dependencies/>
+			</Projects>
+			<Projects Include="SDPrepareSwitch.dproj">
+				<Dependencies/>
+			</Projects>
+		</ItemGroup>
+		<ProjectExtensions>
+			<Borland.Personality>Default.Personality.12</Borland.Personality>
+			<Borland.ProjectType/>
+			<BorlandProject>
+				<BorlandProject>
+					<Default.Personality/>
+				</BorlandProject>
+			</BorlandProject>
+		</ProjectExtensions>
+		<Target Name="SDSecureDisplaySvc">
+			<MSBuild Projects="SDSecureDisplaySvc.dproj"/>
+		</Target>
+		<Target Name="SDSecureDisplaySvc:Clean">
+			<MSBuild Projects="SDSecureDisplaySvc.dproj" Targets="Clean"/>
+		</Target>
+		<Target Name="SDSecureDisplaySvc:Make">
+			<MSBuild Projects="SDSecureDisplaySvc.dproj" Targets="Make"/>
+		</Target>
+		<Target Name="SDUserSessionManager">
+			<MSBuild Projects="SDUserSessionManager.dproj"/>
+		</Target>
+		<Target Name="SDUserSessionManager:Clean">
+			<MSBuild Projects="SDUserSessionManager.dproj" Targets="Clean"/>
+		</Target>
+		<Target Name="SDUserSessionManager:Make">
+			<MSBuild Projects="SDUserSessionManager.dproj" Targets="Make"/>
+		</Target>
+		<Target Name="SDAppInfo">
+			<MSBuild Projects="SDAppInfo.dproj"/>
+		</Target>
+		<Target Name="SDAppInfo:Clean">
+			<MSBuild Projects="SDAppInfo.dproj" Targets="Clean"/>
+		</Target>
+		<Target Name="SDAppInfo:Make">
+			<MSBuild Projects="SDAppInfo.dproj" Targets="Make"/>
+		</Target>
+		<Target Name="SDDumpDesktopACL">
+			<MSBuild Projects="SDDumpDesktopACL.dproj"/>
+		</Target>
+		<Target Name="SDDumpDesktopACL:Clean">
+			<MSBuild Projects="SDDumpDesktopACL.dproj" Targets="Clean"/>
+		</Target>
+		<Target Name="SDDumpDesktopACL:Make">
+			<MSBuild Projects="SDDumpDesktopACL.dproj" Targets="Make"/>
+		</Target>
+		<Target Name="SDControlSecureDisplaySvc">
+			<MSBuild Projects="SDControlSecureDisplaySvc.dproj"/>
+		</Target>
+		<Target Name="SDControlSecureDisplaySvc:Clean">
+			<MSBuild Projects="SDControlSecureDisplaySvc.dproj" Targets="Clean"/>
+		</Target>
+		<Target Name="SDControlSecureDisplaySvc:Make">
+			<MSBuild Projects="SDControlSecureDisplaySvc.dproj" Targets="Make"/>
+		</Target>
+		<Target Name="SDPrepareSwitch">
+			<MSBuild Projects="SDPrepareSwitch.dproj"/>
+		</Target>
+		<Target Name="SDPrepareSwitch:Clean">
+			<MSBuild Projects="SDPrepareSwitch.dproj" Targets="Clean"/>
+		</Target>
+		<Target Name="SDPrepareSwitch:Make">
+			<MSBuild Projects="SDPrepareSwitch.dproj" Targets="Make"/>
+		</Target>
+		<Target Name="Build">
+			<CallTarget Targets="SDSecureDisplaySvc;SDUserSessionManager;SDAppInfo;SDDumpDesktopACL;SDControlSecureDisplaySvc;SDPrepareSwitch"/>
+		</Target>
+		<Target Name="Clean">
+			<CallTarget Targets="SDSecureDisplaySvc:Clean;SDUserSessionManager:Clean;SDAppInfo:Clean;SDDumpDesktopACL:Clean;SDControlSecureDisplaySvc:Clean;SDPrepareSwitch:Clean"/>
+		</Target>
+		<Target Name="Make">
+			<CallTarget Targets="SDSecureDisplaySvc:Make;SDUserSessionManager:Make;SDAppInfo:Make;SDDumpDesktopACL:Make;SDControlSecureDisplaySvc:Make;SDPrepareSwitch:Make"/>
+		</Target>
+		<Import Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')" Project="$(BDS)\Bin\CodeGear.Group.Targets"/>
+	</Project>
