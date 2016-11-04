@@ -1,9 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.23107.0
+VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Shark Cage", "Shark Cage\Shark Cage.vcxproj", "{8493FADB-8AF1-45B6-9378-D4140C9D6820}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Cage service", "Cage service\Cage service.vcxproj", "{569449B5-18D8-43F0-A6A0-7E754EFEBC25}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,14 @@ Global
 		{8493FADB-8AF1-45B6-9378-D4140C9D6820}.Release|x64.Build.0 = Release|x64
 		{8493FADB-8AF1-45B6-9378-D4140C9D6820}.Release|x86.ActiveCfg = Release|Win32
 		{8493FADB-8AF1-45B6-9378-D4140C9D6820}.Release|x86.Build.0 = Release|Win32
+		{569449B5-18D8-43F0-A6A0-7E754EFEBC25}.Debug|x64.ActiveCfg = Debug|x64
+		{569449B5-18D8-43F0-A6A0-7E754EFEBC25}.Debug|x64.Build.0 = Debug|x64
+		{569449B5-18D8-43F0-A6A0-7E754EFEBC25}.Debug|x86.ActiveCfg = Debug|Win32
+		{569449B5-18D8-43F0-A6A0-7E754EFEBC25}.Debug|x86.Build.0 = Debug|Win32
+		{569449B5-18D8-43F0-A6A0-7E754EFEBC25}.Release|x64.ActiveCfg = Release|x64
+		{569449B5-18D8-43F0-A6A0-7E754EFEBC25}.Release|x64.Build.0 = Release|x64
+		{569449B5-18D8-43F0-A6A0-7E754EFEBC25}.Release|x86.ActiveCfg = Release|Win32
+		{569449B5-18D8-43F0-A6A0-7E754EFEBC25}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
