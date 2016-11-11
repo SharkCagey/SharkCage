@@ -14,13 +14,16 @@
 #include "stdafx.h"
 #include <Windows.h>
 #include <tchar.h> //for UNICODE characters
+#include "StatusManager.h" //for StatusManager class
+ 
+StatusManager statusManager; //holds the current status of Shark Cage Service
 
 SERVICE_STATUS        g_ServiceStatus = { 0 };
 
 SERVICE_STATUS_HANDLE g_StatusHandle = NULL;
 
-SERVICE_STATUS        g_ServiceStatus = { 0 };
-SERVICE_STATUS_HANDLE g_StatusHandle = NULL;
+//SERVICE_STATUS        g_ServiceStatus = { 0 };
+//SERVICE_STATUS_HANDLE g_StatusHandle = NULL;
 HANDLE                g_ServiceStopEvent = INVALID_HANDLE_VALUE;
 
 VOID WINAPI ServiceMain(DWORD argc, LPTSTR *argv);
@@ -168,7 +171,7 @@ VOID WINAPI ServiceCtrlHandler(DWORD CtrlCode)
 	default:
 		break;
 	}
-
+}
 	DWORD WINAPI ServiceWorkerThread(LPVOID lpParam)
 	{
 		//  Periodically check if the service has been requested to stop
@@ -184,5 +187,4 @@ VOID WINAPI ServiceCtrlHandler(DWORD CtrlCode)
 
 		return ERROR_SUCCESS;
 	}
-}
 
