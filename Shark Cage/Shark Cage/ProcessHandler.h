@@ -8,6 +8,6 @@ public:
 	/*
 	 * Creates and starts a new process.
 	 */
-	void createProcess();	// Add argument to specify programm to be started
+	void createProcess(LPTSTR desktopName/*SECURITY_DESCRIPTOR *sd*/);	// Add argument to specify programm to be started
 };
 

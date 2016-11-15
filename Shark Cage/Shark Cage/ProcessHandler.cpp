@@ -14,17 +14,25 @@ ProcessHandler::~ProcessHandler()
 {
 }
 
-void ProcessHandler::createProcess() {
+void ProcessHandler::createProcess(LPTSTR desktopName/*SECURITY_DESCRIPTOR *sd*/) {
 	// Create Process
 	LPTSTR szCmdline = _tcsdup(TEXT("C:\\Windows\\System32\\calc.exe"));
-	LPTSTR param = L"";	// This does not work
 	STARTUPINFO si = { sizeof si };
+	si.lpDesktop = desktopName;
 	PROCESS_INFORMATION pi;
+	/*
+	SECURITY_ATTRIBUTES sa = {
+		sizeof SECURITY_ATTRIBUTES,
+		sd,
+		FALSE // Does not inherit the handle
+	};*/
 
 	bool success = CreateProcess(NULL, szCmdline, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi);
 
-	if (success)
-		std::cout << "success \n";
-	else
-		std::cout << "failure \n";
+	// Wait until child process exits.
+	//WaitForSingleObject(pi.hProcess, INFINITE);
+
+	// Close process and thread handles. 
+	//CloseHandle(pi.hProcess);
+	//CloseHandle(pi.hThread);
 }
