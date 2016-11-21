@@ -6,3 +6,4 @@ Debug/
 *.VC.db
 *.VC.opendb
 *.suo
+ipch/
