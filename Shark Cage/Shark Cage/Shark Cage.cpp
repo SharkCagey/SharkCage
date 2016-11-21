@@ -6,7 +6,7 @@
 #include "ProcessHandler.h"
 
 
-int main() {
+int main(int argc, char* argv[]) {
     // Save the current desktop
     HDESK currentDesktop = GetThreadDesktop(GetCurrentThreadId());
 

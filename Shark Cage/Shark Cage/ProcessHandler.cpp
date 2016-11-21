@@ -10,13 +10,14 @@ ProcessHandler::ProcessHandler()
 }
 
 
-ProcessHandler::~ProcessHandler()
-{
+ProcessHandler::~ProcessHandler() {
 }
 
 void ProcessHandler::createProcess(LPTSTR desktopName/*SECURITY_DESCRIPTOR *sd*/) {
+    // Create process in the windowstation of the user
+
 	// Create Process
-	LPTSTR szCmdline = _tcsdup(TEXT("C:\\Program Files (x86)\\Notepad++\\notepad++.exe"));
+	LPTSTR szCmdline = _tcsdup(TEXT("C:\\Program Files (x86)\\Mozilla Firefox\\firefox.exe"));
 	STARTUPINFO si = { sizeof si };
 	si.lpDesktop = desktopName;
 	PROCESS_INFORMATION pi;

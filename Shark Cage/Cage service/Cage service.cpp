@@ -188,3 +188,35 @@ VOID WINAPI ServiceCtrlHandler(DWORD CtrlCode)
 		return ERROR_SUCCESS;
 	}
 
+    void startCageManager(LPCTSTR appName, LPTSTR desktopName, DWORD sessionId) {
+        PHANDLE tokenHandle = nullptr; // Handle for the created access token
+        HANDLE hServiceToken = nullptr;
+        PHANDLE hUserSessionToken = nullptr;
+        
+        STARTUPINFO si = { sizeof si };
+        si.lpDesktop = desktopName;
+        PROCESS_INFORMATION pi;
+
+        if (ImpersonateSelf(SecurityImpersonation)) {
+            if (OpenThreadToken(GetCurrentThread, TOKEN_ALL_ACCESS, false, tokenHandle)) {
+                if (DuplicateTokenEx(hServiceToken, MAXIMUM_ALLOWED, NULL, SecurityImpersonation, TokenPrimary, hUserSessionToken)) {
+                    if (SetTokenInformation(hUserSessionToken, TokenSessionId, &sessionId, sizeof DWORD)) {
+                        if (CreateProcessAsUser(hUserSessionToken,
+                                                appName,
+                                                NULL,
+                                                NULL,  // <- Process Attributes
+                                                NULL,  // Thread Attributes
+                                                false, // Inheritaion flags
+                                                0,     // Creation flags
+                                                NULL,  // Environment
+                                                NULL,  // Current directory
+                                                &si,   // Startup Info
+                                                &pi)) {
+                            CloseHandle(&si);
+                            CloseHandle(&pi);
+                        }
+                    }
+                }
+            }
+        }
+    }
