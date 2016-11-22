@@ -14,6 +14,7 @@
 #include "stdafx.h"
 #include <Windows.h>
 #include <tchar.h> //for UNICODE characters
+#include <iostream>
 #include "StatusManager.h" //for StatusManager class
  
 StatusManager statusManager; //holds the current status of Shark Cage Service
@@ -198,9 +199,13 @@ VOID WINAPI ServiceCtrlHandler(DWORD CtrlCode)
         PROCESS_INFORMATION pi;
 
         if (ImpersonateSelf(SecurityImpersonation)) {
+            std::cout << "ImpersonateSelf was successful\n";
             if (OpenThreadToken(GetCurrentThread, TOKEN_ALL_ACCESS, false, tokenHandle)) {
+                std::cout << "OpenThreadToken was successful\n";
                 if (DuplicateTokenEx(hServiceToken, MAXIMUM_ALLOWED, NULL, SecurityImpersonation, TokenPrimary, hUserSessionToken)) {
+                    std::cout << "DuplicateTokenEx was successful\n";
                     if (SetTokenInformation(hUserSessionToken, TokenSessionId, &sessionId, sizeof DWORD)) {
+                        std::cout << "SetTokenInformation was successful\n";
                         if (CreateProcessAsUser(hUserSessionToken,
                                                 appName,
                                                 NULL,
@@ -212,11 +217,19 @@ VOID WINAPI ServiceCtrlHandler(DWORD CtrlCode)
                                                 NULL,  // Current directory
                                                 &si,   // Startup Info
                                                 &pi)) {
+                            std::cout << "CreateProcess (" << appName << ") was succesful\n";
                             CloseHandle(&si);
                             CloseHandle(&pi);
+                        } else {
+                            std::cout << "CreateProcess (" << appName << ") failed\n";
                         }
+                    } else {
+                        std::cout << "SetTokenInformation failed\n";
                     }
-                }
-            }
-        }
+                } else
+                    std::cout << "DuplicateTokenEx failed\n";
+            } else
+                std::cout << "OpenThreadToken failed\n";
+        } else
+            std::cout << "ImpersonateSelf failed\n";
     }
