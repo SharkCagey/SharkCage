@@ -1,6 +1,7 @@
 
 #include "stdafx.h"
 #include "windows.h"
+#include <string>
 #include <iostream>
 #include "ProcessHandler.h"
 
@@ -38,10 +39,25 @@ void ProcessHandler::createProcess(LPTSTR desktopName/*SECURITY_DESCRIPTOR *sd*/
 	//CloseHandle(pi.hThread);
 }
 
+
+std::string GetLastErrorAsString(DWORD errorID)
+{
+    //Get the error message, if any.
+    LPSTR messageBuffer = nullptr;
+    size_t size = FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+        NULL, errorID, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR)&messageBuffer, 0, NULL);
+
+    std::string message(messageBuffer, size);
+
+    //Free the buffer.
+    LocalFree(messageBuffer);
+
+    return message;
+}
+
 void ProcessHandler::startCageManager(LPCTSTR appName, LPTSTR desktopName, DWORD sessionId) {
-    PHANDLE tokenHandle = nullptr; // Handle for the created access token
-    HANDLE hServiceToken = nullptr;
-    PHANDLE hUserSessionToken = nullptr;
+    HANDLE hServiceToken;
+    HANDLE hUserSessionToken;
 
     STARTUPINFO si = { sizeof si };
     si.lpDesktop = desktopName;
@@ -49,9 +65,9 @@ void ProcessHandler::startCageManager(LPCTSTR appName, LPTSTR desktopName, DWORD
 
     if (ImpersonateSelf(SecurityImpersonation)) {
         std::cout << "ImpersonateSelf was successful\n";
-        if (OpenThreadToken(GetCurrentThread, TOKEN_ALL_ACCESS, false, tokenHandle)) {
+        if (OpenThreadToken(GetCurrentThread(), TOKEN_ALL_ACCESS, false, &hServiceToken)) {
             std::cout << "OpenThreadToken was successful\n";
-            if (DuplicateTokenEx(hServiceToken, MAXIMUM_ALLOWED, NULL, SecurityImpersonation, TokenPrimary, hUserSessionToken)) {
+            if (DuplicateTokenEx(hServiceToken, MAXIMUM_ALLOWED, NULL, SecurityImpersonation, TokenPrimary, &hUserSessionToken)) {
                 std::cout << "DuplicateTokenEx was successful\n";
                 if (SetTokenInformation(hUserSessionToken, TokenSessionId, &sessionId, sizeof DWORD)) {
                     std::cout << "SetTokenInformation was successful\n";
@@ -69,21 +85,19 @@ void ProcessHandler::startCageManager(LPCTSTR appName, LPTSTR desktopName, DWORD
                         std::cout << "CreateProcess (" << appName << ") was succesful\n";
                         CloseHandle(&si);
                         CloseHandle(&pi);
+                    } else {
+                        std::cout << "CreateProcess (" << appName << ") failed: " << GetLastErrorAsString(GetLastError());
                     }
-                    else {
-                        std::cout << "CreateProcess (" << appName << ") failed\n";
-                    }
+                } else {
+                    std::cout << "SetTokenInformation failed: " << GetLastErrorAsString(GetLastError());
                 }
-                else {
-                    std::cout << "SetTokenInformation failed\n";
-                }
+            } else {
+                std::cout << "DuplicateTokenEx failed: " << GetLastErrorAsString(GetLastError());
             }
-            else
-                std::cout << "DuplicateTokenEx failed\n";
+        } else {
+            std::cout << "OpenThreadToken failed: " << GetLastErrorAsString(GetLastError());
         }
-        else
-            std::cout << "OpenThreadToken failed\n";
+    } else {
+        std::cout << "ImpersonateSelf failed: " << GetLastErrorAsString(GetLastError());
     }
-    else
-        std::cout << "ImpersonateSelf failed\n";
 }
