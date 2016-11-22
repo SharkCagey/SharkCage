@@ -45,7 +45,7 @@ std::string GetLastErrorAsString(DWORD errorID)
     //Get the error message, if any.
     LPSTR messageBuffer = nullptr;
     size_t size = FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-        NULL, errorID, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR)&messageBuffer, 0, NULL);
+                                 NULL, errorID, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR)&messageBuffer, 0, NULL);
 
     std::string message(messageBuffer, size);
 
@@ -72,32 +72,32 @@ void ProcessHandler::startCageManager(LPCTSTR appName, LPTSTR desktopName, DWORD
                 if (SetTokenInformation(hUserSessionToken, TokenSessionId, &sessionId, sizeof DWORD)) {
                     std::cout << "SetTokenInformation was successful\n";
                     if (CreateProcessAsUser(hUserSessionToken,
-                        appName,
-                        NULL,
-                        NULL,  // <- Process Attributes
-                        NULL,  // Thread Attributes
-                        false, // Inheritaion flags
-                        0,     // Creation flags
-                        NULL,  // Environment
-                        NULL,  // Current directory
-                        &si,   // Startup Info
-                        &pi)) {
+                                            appName,
+                                            NULL,
+                                            NULL,  // <- Process Attributes
+                                            NULL,  // Thread Attributes
+                                            false, // Inheritaion flags
+                                            0,     // Creation flags
+                                            NULL,  // Environment
+                                            NULL,  // Current directory
+                                            &si,   // Startup Info
+                                            &pi)) {
                         std::cout << "CreateProcess (" << appName << ") was succesful\n";
                         CloseHandle(&si);
                         CloseHandle(&pi);
                     } else {
-                        std::cout << "CreateProcess (" << appName << ") failed: " << GetLastErrorAsString(GetLastError());
+                        std::cout << "CreateProcess (" << appName << ") failed (" << GetLastError() << "): " << GetLastErrorAsString(GetLastError());
                     }
                 } else {
-                    std::cout << "SetTokenInformation failed: " << GetLastErrorAsString(GetLastError());
+                    std::cout << "SetTokenInformation failed (" << GetLastError() << "): " << GetLastErrorAsString(GetLastError());
                 }
             } else {
-                std::cout << "DuplicateTokenEx failed: " << GetLastErrorAsString(GetLastError());
+                std::cout << "DuplicateTokenEx failed (" << GetLastError() << "): " << GetLastErrorAsString(GetLastError());
             }
         } else {
-            std::cout << "OpenThreadToken failed: " << GetLastErrorAsString(GetLastError());
+            std::cout << "OpenThreadToken failed (" << GetLastError() << "): " << GetLastErrorAsString(GetLastError());
         }
     } else {
-        std::cout << "ImpersonateSelf failed: " << GetLastErrorAsString(GetLastError());
+        std::cout << "ImpersonateSelf failed (" << GetLastError() << "): " << GetLastErrorAsString(GetLastError());
     }
 }
