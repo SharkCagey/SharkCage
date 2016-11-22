@@ -9,5 +9,7 @@ public:
 	 * Creates and starts a new process.
 	 */
 	void createProcess(LPTSTR desktopName/*SECURITY_DESCRIPTOR *sd*/);	// Add argument to specify programm to be started
+
+    void startCageManager(LPCTSTR appName, LPTSTR desktopName, DWORD sessionId);
 };
 
