@@ -27,12 +27,18 @@
     <ClInclude Include="StatusManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="CageService.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Cage service.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CageService.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
