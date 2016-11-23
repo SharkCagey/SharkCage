@@ -55,6 +55,7 @@ std::string GetLastErrorAsString(DWORD errorID)
     return message;
 }
 
+// Must be part of the service
 void ProcessHandler::startCageManager(LPCTSTR appName, LPTSTR desktopName, DWORD sessionId) {
     HANDLE hServiceToken;
     HANDLE hUserSessionToken;

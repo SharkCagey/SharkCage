@@ -5,7 +5,7 @@
 #include <iostream>
 #include "ProcessHandler.h"
 
-
+// Start as LocalSystem
 int main(int argc, char* argv[]) {
     // Create CageService
     ProcessHandler pc;
