@@ -15,7 +15,7 @@ int main(int argc, char* argv[]) {
     DWORD sessionId;
     if (ProcessIdToSessionId(processId, &sessionId)) {
         // CageService starts CageManager
-        pc.startCageManager(appName, desktopName, sessionId);
+        //pc.startCageManager(appName, desktopName, sessionId);
     } else {
         std::cout << "Unable to get sessionID\n";
         return -1;
