@@ -155,7 +155,7 @@
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Cage service.cpp" />
+    <ClCompile Include="CageServiceMain.cpp" />
     <ClCompile Include="CageService.cpp" />
     <ClCompile Include="stdafx.cpp" />
   </ItemGroup>
