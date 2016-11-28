@@ -183,7 +183,7 @@ VOID WINAPI ServiceCtrlHandler(DWORD CtrlCode)
         // Get session id
 
         CageService cs;
-        cs.startCageManager(szCmdline, , );
+        //cs.startCageManager(szCmdline, , );
 		//  Periodically check if the service has been requested to stop
 		while (WaitForSingleObject(g_ServiceStopEvent, 0) != WAIT_OBJECT_0)
 		{
