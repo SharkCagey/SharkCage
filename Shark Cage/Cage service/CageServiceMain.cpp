@@ -34,31 +34,27 @@ DWORD WINAPI ServiceWorkerThread(LPVOID lpParam);
 
 #define SERVICE_NAME _T("My Sample Service")
 
-int _tmain(int argc, TCHAR *argv[])
-{
+int _tmain(int argc, TCHAR *argv[]) {
 	SERVICE_TABLE_ENTRY ServiceTable[] =
 	{
 		{ SERVICE_NAME, (LPSERVICE_MAIN_FUNCTION)ServiceMain },
 		{ NULL, NULL }
 	};
 
-	if (StartServiceCtrlDispatcher(ServiceTable) == FALSE)
-	{
+	if (StartServiceCtrlDispatcher(ServiceTable) == FALSE) {
 		return GetLastError();
 	}
 
 	return 0;
 }
 
-VOID WINAPI ServiceMain(DWORD argc, LPTSTR *argv)
-{
+VOID WINAPI ServiceMain(DWORD argc, LPTSTR *argv) {
 	DWORD Status = E_FAIL;
 
 	// Register our service control handler with the SCM
 	g_StatusHandle = RegisterServiceCtrlHandler(SERVICE_NAME, ServiceCtrlHandler);
 
-	if (g_StatusHandle == NULL)
-	{
+	if (g_StatusHandle == NULL) {
 		goto EXIT;
 	}
 
@@ -71,8 +67,7 @@ VOID WINAPI ServiceMain(DWORD argc, LPTSTR *argv)
 	g_ServiceStatus.dwServiceSpecificExitCode = 0;
 	g_ServiceStatus.dwCheckPoint = 0;
 
-	if (SetServiceStatus(g_StatusHandle, &g_ServiceStatus) == FALSE)
-	{
+	if (SetServiceStatus(g_StatusHandle, &g_ServiceStatus) == FALSE) {
 		OutputDebugString(_T(
 			"My Sample Service: ServiceMain: SetServiceStatus returned error"));
 	}
@@ -83,8 +78,7 @@ VOID WINAPI ServiceMain(DWORD argc, LPTSTR *argv)
 
 	// Create a service stop event to wait on later
 	g_ServiceStopEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
-	if (g_ServiceStopEvent == NULL)
-	{
+	if (g_ServiceStopEvent == NULL) {
 		// Error creating event
 		// Tell service controller we are stopped and exit
 		g_ServiceStatus.dwControlsAccepted = 0;
@@ -106,8 +100,7 @@ VOID WINAPI ServiceMain(DWORD argc, LPTSTR *argv)
 	g_ServiceStatus.dwWin32ExitCode = 0;
 	g_ServiceStatus.dwCheckPoint = 0;
 
-	if (SetServiceStatus(g_StatusHandle, &g_ServiceStatus) == FALSE)
-	{
+	if (SetServiceStatus(g_StatusHandle, &g_ServiceStatus) == FALSE) {
 		OutputDebugString(_T(
 			"My Sample Service: ServiceMain: SetServiceStatus returned error"));
 	}
@@ -131,8 +124,7 @@ VOID WINAPI ServiceMain(DWORD argc, LPTSTR *argv)
 	g_ServiceStatus.dwWin32ExitCode = 0;
 	g_ServiceStatus.dwCheckPoint = 3;
 
-	if (SetServiceStatus(g_StatusHandle, &g_ServiceStatus) == FALSE)
-	{
+	if (SetServiceStatus(g_StatusHandle, &g_ServiceStatus) == FALSE) {
 		OutputDebugString(_T(
 			"My Sample Service: ServiceMain: SetServiceStatus returned error"));
 	}
@@ -141,8 +133,7 @@ EXIT:
 	return;
 }
 
-VOID WINAPI ServiceCtrlHandler(DWORD CtrlCode)
-{
+VOID WINAPI ServiceCtrlHandler(DWORD CtrlCode) {
 	switch (CtrlCode)
 	{
 	case SERVICE_CONTROL_STOP:
@@ -174,16 +165,33 @@ VOID WINAPI ServiceCtrlHandler(DWORD CtrlCode)
 		break;
 	}
 }
-	DWORD WINAPI ServiceWorkerThread(LPVOID lpParam)
-	{
-        LPTSTR szCmdline = _tcsdup(TEXT("C:\\sharkcage\\cageManager.exe"));
 
-        // Get desktop name
 
-        // Get session id
+BOOL startCageManager() {
+    LPTSTR szCmdline = _tcsdup(TEXT("C:\\sharkcage\\CageManager.exe"));
+    // Get desktop name
 
+    // Get session id
+    DWORD processId = GetCurrentProcessId();
+    DWORD sessionId;
+    BOOL success = ProcessIdToSessionId(processId, &sessionId);
+
+    if (success) {
         CageService cs;
-        //cs.startCageManager(szCmdline, , );
+        cs.startCageManager(szCmdline, sessionId);
+    }
+
+    return success;
+}
+
+	DWORD WINAPI ServiceWorkerThread(LPVOID lpParam) {
+
+        if (startCageManager()) {
+            std::cout << "Cage Manager started\n";
+        } else {
+            std::cout << "Cage Manager could not be started due to session ID\n";
+        }
+
 		//  Periodically check if the service has been requested to stop
 		while (WaitForSingleObject(g_ServiceStopEvent, 0) != WAIT_OBJECT_0)
 		{
@@ -197,3 +205,17 @@ VOID WINAPI ServiceCtrlHandler(DWORD CtrlCode)
 
 		return ERROR_SUCCESS;
 	}
+
+
+    // Function for messageReceive
+    /*
+    void onReceive(Object message) {
+        // Decode message
+        if(message instanceof someType) {
+            // Do this
+        } else if (message instanceof otherType) {
+            // do that
+        } else {
+            // Do nothing
+        }
+    }*/
