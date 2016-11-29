@@ -19,9 +19,7 @@
 StatusManager statusManager; //holds the current status of Shark Cage Service
 
 SERVICE_STATUS        g_ServiceStatus = { 0 };
-
 SERVICE_STATUS_HANDLE g_StatusHandle = NULL;
-
 HANDLE                g_ServiceStopEvent = INVALID_HANDLE_VALUE;
 
 VOID WINAPI ServiceMain(DWORD argc, LPTSTR *argv);
@@ -29,11 +27,11 @@ VOID WINAPI ServiceCtrlHandler(DWORD);
 DWORD WINAPI ServiceWorkerThread(LPVOID lpParam);
 BOOL startCageManager();
 
-#define SERVICE_NAME _T("My Sample Service")
+#define SERVICE_NAME _T("Cage Service")
 
 int _tmain(int argc, TCHAR *argv[]) {
 	SERVICE_TABLE_ENTRY ServiceTable[] = {
-		{ SERVICE_NAME, (LPSERVICE_MAIN_FUNCTION) ServiceMain },
+		{ SERVICE_NAME, (LPSERVICE_MAIN_FUNCTION) ServiceMain},
 		{ NULL, NULL }
 	};
 
@@ -51,7 +49,8 @@ VOID WINAPI ServiceMain(DWORD argc, LPTSTR *argv) {
 	g_StatusHandle = RegisterServiceCtrlHandler(SERVICE_NAME, ServiceCtrlHandler);
 
 	if (g_StatusHandle == NULL) {
-		goto EXIT;
+        OutputDebugString(_T("Cage Service: ServiceMain: Registering service returned error"));
+		return;
 	}
 
 	// Tell the service controller we are starting
@@ -84,7 +83,7 @@ VOID WINAPI ServiceMain(DWORD argc, LPTSTR *argv) {
 		if (SetServiceStatus(g_StatusHandle, &g_ServiceStatus) == FALSE) {
 			OutputDebugString(_T("My Sample Service: ServiceMain: SetServiceStatus returned error"));
 		}
-		goto EXIT;
+		return;
 	}
 
 	// Tell the service controller we are started
@@ -120,7 +119,6 @@ VOID WINAPI ServiceMain(DWORD argc, LPTSTR *argv) {
 		OutputDebugString(_T("My Sample Service: ServiceMain: SetServiceStatus returned error"));
 	}
 
-EXIT:
 	return;
 }
 
