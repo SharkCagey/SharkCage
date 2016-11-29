@@ -1,7 +1,7 @@
 #include <iostream>
 #include <string>
 #include "NetworkManager.h"
-
+/*
  int main(int argc, char const *argv[]) {
 
   NetworkManager man(UI);
@@ -21,3 +21,4 @@
 
   return 0;
 }
+*/
