@@ -1,8 +1,6 @@
 // Cage service.cpp : Defines the entry point for the console application.
-//
 
-
-//INFO FOR GUYS WORKING ON TASK 1.1 AND 1.2:
+// INFO FOR GUYS WORKING ON TASK 1.1 AND 1.2:
 // all actual work of service is performed in ServiceWorkerThread 
 // (right now there is only sleep() to simulate some work)
 // you might also want to look at ServiceMain (that is a place where startup initialization happens
@@ -24,13 +22,12 @@ SERVICE_STATUS        g_ServiceStatus = { 0 };
 
 SERVICE_STATUS_HANDLE g_StatusHandle = NULL;
 
-//SERVICE_STATUS        g_ServiceStatus = { 0 };
-//SERVICE_STATUS_HANDLE g_StatusHandle = NULL;
 HANDLE                g_ServiceStopEvent = INVALID_HANDLE_VALUE;
 
 VOID WINAPI ServiceMain(DWORD argc, LPTSTR *argv);
 VOID WINAPI ServiceCtrlHandler(DWORD);
 DWORD WINAPI ServiceWorkerThread(LPVOID lpParam);
+BOOL startCageManager();
 
 #define SERVICE_NAME _T("My Sample Service")
 
@@ -152,6 +149,28 @@ VOID WINAPI ServiceCtrlHandler(DWORD CtrlCode) {
 	}
 }
 
+DWORD WINAPI ServiceWorkerThread(LPVOID lpParam) {
+
+    if (startCageManager()) {
+        std::cout << "Cage Manager started\n";
+    } else {
+        std::cout << "Cage Manager could not be started due to session ID\n";
+    }
+
+    //  Periodically check if the service has been requested to stop
+    while (WaitForSingleObject(g_ServiceStopEvent, 0) != WAIT_OBJECT_0)
+    {
+        /*
+        * Perform main service function here
+        */
+
+        //  Simulate some work by sleeping
+        Sleep(3000);
+    }
+
+    return ERROR_SUCCESS;
+}
+
 
 BOOL startCageManager() {
     LPTSTR szCmdline = _tcsdup(TEXT("C:\\sharkcage\\CageManager.exe"));
@@ -169,28 +188,6 @@ BOOL startCageManager() {
 
     return success;
 }
-
-	DWORD WINAPI ServiceWorkerThread(LPVOID lpParam) {
-
-        if (startCageManager()) {
-            std::cout << "Cage Manager started\n";
-        } else {
-            std::cout << "Cage Manager could not be started due to session ID\n";
-        }
-
-		//  Periodically check if the service has been requested to stop
-		while (WaitForSingleObject(g_ServiceStopEvent, 0) != WAIT_OBJECT_0)
-		{
-			/*
-			* Perform main service function here
-			*/
-
-			//  Simulate some work by sleeping
-			Sleep(3000);
-		}
-
-		return ERROR_SUCCESS;
-	}
 
 
     // Function for messageReceive
