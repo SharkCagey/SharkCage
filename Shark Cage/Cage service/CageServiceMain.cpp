@@ -26,7 +26,7 @@ HANDLE                g_ServiceStopEvent = INVALID_HANDLE_VALUE;
 VOID WINAPI ServiceMain (DWORD argc, LPTSTR *argv);
 VOID WINAPI ServiceCtrlHandler (DWORD);
 DWORD WINAPI ServiceWorkerThread (LPVOID lpParam);
-BOOL startCageManager();
+void startCageManager();
 
 #define SERVICE_NAME _T("Cage Service")
 
@@ -69,7 +69,7 @@ VOID WINAPI ServiceMain (DWORD argc, LPTSTR *argv) {
     /*
     * Perform tasks necessary to start the service here
     */
-    //NetworkManager networkManager(SERVICE);
+    NetworkManager networkManager(SERVICE);
 
     // Create a service stop event to wait on later
     g_ServiceStopEvent = CreateEvent (NULL, TRUE, FALSE, NULL);
@@ -152,18 +152,14 @@ VOID WINAPI ServiceCtrlHandler (DWORD CtrlCode) {
 }
 
 DWORD WINAPI ServiceWorkerThread(LPVOID lpParam) {
-
-    if (startCageManager()) {
-        std::cout << "Cage Manager started\n";
-    } else {
-        std::cout << "Cage Manager could not be started due to session ID\n";
-    }
+    startCageManager();
 
     //  Periodically check if the service has been requested to stop
     while (WaitForSingleObject(g_ServiceStopEvent, 0) != WAIT_OBJECT_0) {
         /*
         * Perform main service function here
         */
+        // Look for messages
 
         Sleep(3000); // Simulate some work by sleeping
     }
@@ -172,21 +168,14 @@ DWORD WINAPI ServiceWorkerThread(LPVOID lpParam) {
 }
 
 
-BOOL startCageManager() {
+void startCageManager() {
     LPTSTR szCmdline = _tcsdup(TEXT("C:\\sharkcage\\CageManager.exe"));
     // Get desktop name
 
-    // Get session id
-    DWORD processId = GetCurrentProcessId();
-    DWORD sessionId;
-    BOOL success = ProcessIdToSessionId(processId, &sessionId);
-    sessionId = WTSGetActiveConsoleSessionId();
-    if (success) {
-        CageService cs;
-        cs.startCageManager(szCmdline, sessionId);
-    }
-
-    return success;
+    // Get session id from loged on user
+    DWORD sessionId = WTSGetActiveConsoleSessionId();
+    CageService cs;
+    cs.startCageManager(szCmdline, sessionId);
 }
 
     // Function for messageReceive
