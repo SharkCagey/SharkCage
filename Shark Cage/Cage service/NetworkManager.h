@@ -90,7 +90,7 @@ public:
 
 /**
 * function used by all components to listen for messages
-*
+*  #blocking call
 *
 **/
 	std::string listen() {
@@ -146,7 +146,7 @@ private:
 
 		return true;
 	}//TODO
-	bool initMANAGER() { 
+	bool initMANAGER() {
 		acceptor = tcp::acceptor(ioservice, tcp::endpoint(tcp::v4(), 1339));
 
 		return true;
@@ -166,6 +166,7 @@ private:
 		for (char const & c : _string) {
 			message.push_back(c);
 		}
+		message.push_back('\n');
 		return message;
 	}
 };
