@@ -9,12 +9,14 @@
 // 
 // in project there is a readme file explaining how to install/uninstall the service
 
-#include "stdafx.h"
-#include <Windows.h>
-#include <tchar.h> //for UNICODE characters
+#define WIN32_LEAN_AND_MEAN
+
 #include <iostream>
 //#include "StatusManager.h" //for StatusManager class
 #include "CageService.h"
+#include "NetworkManager.h"
+#include "stdafx.h"
+#include <Windows.h>
 
 //StatusManager statusManager; //holds the current status of Shark Cage Service
 SERVICE_STATUS        g_ServiceStatus = {0};
@@ -25,7 +27,6 @@ VOID WINAPI ServiceMain (DWORD argc, LPTSTR *argv);
 VOID WINAPI ServiceCtrlHandler (DWORD);
 DWORD WINAPI ServiceWorkerThread (LPVOID lpParam);
 BOOL startCageManager();
-void outputDebugString(const std::wstring functionName, const std::wstring errorMessage);
 
 #define SERVICE_NAME _T("Cage Service")
 
@@ -68,6 +69,7 @@ VOID WINAPI ServiceMain (DWORD argc, LPTSTR *argv) {
     /*
     * Perform tasks necessary to start the service here
     */
+    //NetworkManager networkManager(SERVICE);
 
     // Create a service stop event to wait on later
     g_ServiceStopEvent = CreateEvent (NULL, TRUE, FALSE, NULL);
@@ -178,7 +180,7 @@ BOOL startCageManager() {
     DWORD processId = GetCurrentProcessId();
     DWORD sessionId;
     BOOL success = ProcessIdToSessionId(processId, &sessionId);
-
+    sessionId = WTSGetActiveConsoleSessionId();
     if (success) {
         CageService cs;
         cs.startCageManager(szCmdline, sessionId);

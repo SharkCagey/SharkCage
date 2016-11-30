@@ -8,9 +8,9 @@
 using namespace asio::ip;
 
 enum ExecutableType {
-	UI, //for the front end contacting the service
+	UI,      //for the front end contacting the service
 	SERVICE, //for the CageService
-	MANAGER //for the CageManager
+	MANAGER  //for the CageManager
 };
 
 class NetworkManager {
@@ -30,7 +30,7 @@ public:
 	/*
 	* Constructor
 	* type variable says in what role network manager should be initialized
-	**/
+	*/
 	NetworkManager(ExecutableType type): ioservice(), socket(ioservice), acceptor(ioservice, tcp::endpoint(tcp::v4(), 1338)) {
 		switch (type){
 		case UI:
@@ -94,7 +94,6 @@ public:
 *
 **/
 	std::string listen() {
-
 		tcp::socket temp_socket(ioservice);
 		acceptor.accept(temp_socket);
 		asio::streambuf  buffer;
@@ -135,7 +134,6 @@ private:
 		return true;
 	}
 	bool initSERVICE() {
-
 		tcp::resolver resolver(ioservice);
 		tcp::resolver::query query2(tcp::v4(), "localhost", "1339");
 		send_endpoint = *resolver.resolve(query2);

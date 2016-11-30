@@ -3,8 +3,7 @@
 #include <Windows.h>
 #include <string>
 
-class CageService
-{
+class CageService {
 public:
     CageService();
     ~CageService();
