@@ -17,6 +17,8 @@
 #include "NetworkManager.h"
 #include "stdafx.h"
 #include <Windows.h>
+#include <fstream>
+#include <string>
 
 //StatusManager statusManager; //holds the current status of Shark Cage Service
 SERVICE_STATUS        g_ServiceStatus = {0};
@@ -27,6 +29,8 @@ VOID WINAPI ServiceMain (DWORD argc, LPTSTR *argv);
 VOID WINAPI ServiceCtrlHandler (DWORD);
 DWORD WINAPI ServiceWorkerThread (LPVOID lpParam);
 void startCageManager();
+
+NetworkManager networkMgr(SERVICE);
 
 #define SERVICE_NAME _T("Cage Service")
 
@@ -69,7 +73,6 @@ VOID WINAPI ServiceMain (DWORD argc, LPTSTR *argv) {
     /*
     * Perform tasks necessary to start the service here
     */
-    NetworkManager networkManager(SERVICE);
 
     // Create a service stop event to wait on later
     g_ServiceStopEvent = CreateEvent (NULL, TRUE, FALSE, NULL);
@@ -150,9 +153,11 @@ VOID WINAPI ServiceCtrlHandler (DWORD CtrlCode) {
             break;
     }
 }
+void write_text_to_log_file( const std::string &text );
+
+void startCMD(std::wstring param);
 
 DWORD WINAPI ServiceWorkerThread(LPVOID lpParam) {
-    startCageManager();
 
     //  Periodically check if the service has been requested to stop
     while (WaitForSingleObject(g_ServiceStopEvent, 0) != WAIT_OBJECT_0) {
@@ -160,8 +165,10 @@ DWORD WINAPI ServiceWorkerThread(LPVOID lpParam) {
         * Perform main service function here
         */
         // Look for messages
+        std::string msg = networkMgr.listen();
+        
 
-        Sleep(3000); // Simulate some work by sleeping
+        Sleep(1000); // Simulate some work by sleeping
     }
 
     return ERROR_SUCCESS;
@@ -177,6 +184,7 @@ void startCageManager() {
     CageService cs;
     cs.startCageManager(szCmdline, sessionId);
 }
+
 
     // Function for messageReceive
     /*
