@@ -120,17 +120,18 @@ private:
 	// ports lisened to: ui 1337, service 1338, manager 1339
 
 	bool initUI() {
-		tcp::resolver resolver(ioservice);
-		tcp::resolver::query query(tcp::v4(), "localhost", "1337");
-		rec_endpoint = *resolver.resolve(query);
+		//tcp::resolver resolver(ioservice);
+		//tcp::resolver::query query(tcp::v4(), "localhost", "1337");
+		//rec_endpoint = *resolver.resolve(query);
 
-		socket.close();
-		socket.connect(rec_endpoint);
+		//socket.close();
+		//socket.connect(rec_endpoint);
 
+		tcp::resolver resolver2(ioservice);
 		tcp::resolver::query query2(tcp::v4(), "localhost", "1338");
-		send_endpoint = *resolver.resolve(query2);
+		send_endpoint = *resolver2.resolve(query2);
 
-		acceptor = tcp::acceptor(ioservice, tcp::endpoint(tcp::v4(), 1337));
+		//acceptor = tcp::acceptor(ioservice, tcp::endpoint(tcp::v4(), 1337));
 
 		return true;
 	}
