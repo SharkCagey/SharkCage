@@ -69,7 +69,7 @@ public:
 
 /**
 * Function to be used to send messages
-* max message lenght is 1024 characters - evey message must end with '\n' character
+* max message lenght is 1024 characters
 *
 **/
 	bool send(std::string msg) {
