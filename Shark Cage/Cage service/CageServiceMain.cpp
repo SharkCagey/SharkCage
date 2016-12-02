@@ -207,10 +207,10 @@ void stopCageManager() {
 
 // Function to decaode the message and do a respective action
 void onReceive(std::string message) {
-    if(beginsWith(message, MSG_TO_SERVICE_toString(START_TP))) {
+    if(beginsWith(message, MSG_TO_SERVICE_toString(START_CM))) {
         // Start Process
         startCageManager();
-    } else if (beginsWith(message, MSG_TO_SERVICE_toString(STOP_TP))) {
+    } else if (beginsWith(message, MSG_TO_SERVICE_toString(STOP_CM))) {
         // Stop Process
         stopCageManager();
     } else {
