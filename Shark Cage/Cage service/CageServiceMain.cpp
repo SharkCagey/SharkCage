@@ -15,6 +15,7 @@
 //#include "StatusManager.h" //for StatusManager class
 #include "CageService.h"
 #include "NetworkManager.h"
+#include "MSG_Service.h"
 #include "stdafx.h"
 #include <Windows.h>
 #include <fstream>
@@ -185,16 +186,32 @@ void startCageManager() {
     cs.startCageManager(szCmdline, sessionId);
 }
 
+bool beginsWith(const std::string string, const std::string prefix);
 
-    // Function for messageReceive
-    /*
-    void onReceive(Object message) {
-        // Decode message
-        if(message instanceof someType) {
-            // Do this
-        } else if (message instanceof otherType) {
-            // do that
-        } else {
-            // Do nothing
+// Function for messageReceive
+void onReceive(std::string message) {
+    //System::String msg =
+
+    // Decode message
+    if(beginsWith(message, MSG_TO_SERVICE_toString(START_TP))) {
+        // Start Process
+    } else if (beginsWith(message, MSG_TO_SERVICE_toString(STOP_TP))) {
+        // Stop Process
+    } else {
+        // Unrecognized message - Do nothing
+    }
+}
+
+bool beginsWith(const std::string string, const std::string prefix) {
+    if (prefix.length() > string.length()) {
+        return false;
+        // Throw Exception "Bad parameters: prefix longer than the actual string"
+    } else {
+        for (size_t l = 0; l < prefix.length(); l++) {
+            if (prefix.at(l) != string.at(l)) {
+                return false;
+            }
         }
-    }*/
+        return true;
+    }
+}
