@@ -19,11 +19,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{E9285946-5417-4BFC-AE24-AF3CE059AAFF}</ProjectGuid>
+    <ProjectGuid>{59E3DF20-69D3-47A9-A7FF-9936177CCA10}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>ProccessInSaveDesktop</RootNamespace>
+    <RootNamespace>createACLinNewDesktop</RootNamespace>
     <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
-    <ProjectName>ProccessInSafeDesktop</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -150,7 +149,7 @@
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="ProccessInSafeDesktop.cpp" />
+    <ClCompile Include="createACLinNewDesktop.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
