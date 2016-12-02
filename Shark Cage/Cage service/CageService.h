@@ -11,18 +11,19 @@ public:
     /*
      * Starts the executable in a new process on the normal desktop in the given session.
      *
-     * @appName The path to the execuatble:
-     * @desktopName The name of the desktop to start the program in.
+     * @appName The path to the execuatble.
      * @sessionId The sessionId of the user.
+     * @return The process ID of the started process.
      */
     DWORD startCageManager(LPCTSTR appName, DWORD sessionId);
 
     /*
      * Starts the executable in a new process on the respective desktop in the given session.
      *
-     * @appName The path to the execuatble:
+     * @appName The path to the execuatble.
      * @desktopName The name of the desktop to start the program in.
      * @sessionId The sessionId of the user.
+     * @return The process ID of the started process.
      */
     DWORD startCageManager(LPCTSTR appName, LPTSTR desktopName, DWORD sessionId);
 
