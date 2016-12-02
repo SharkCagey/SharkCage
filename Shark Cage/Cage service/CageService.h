@@ -26,6 +26,13 @@ public:
      */
     void startCageManager(LPCTSTR appName, LPTSTR desktopName, DWORD sessionId);
 
+    /*
+     * Parses a message and does the action according to content of the message.
+     * The message must be in the form of:
+     * "MSG_TO_SERVICE.constant absolute/path/to/executable"
+     */
+    void handleMessage(std::string message);
+
 private:
     std::string CageService::GetLastErrorAsString(DWORD errorID);
 };

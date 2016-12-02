@@ -82,3 +82,8 @@ void CageService::startCageManager(LPCTSTR appName, LPTSTR desktopName, DWORD se
         std::cout << "ImpersonateSelf failed (" << GetLastError() << "): " << GetLastErrorAsString(GetLastError());
     }
 }
+
+void CageService::handleMessage(std::string message) {
+    // Parse message (ENUM constant (MSG_Service) + path/to/Exe)
+    // Do action (start / stop application)
+}
