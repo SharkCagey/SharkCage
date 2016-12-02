@@ -11,8 +11,8 @@ CageService::~CageService() {
 }
 
 
-void CageService::startCageManager(LPCTSTR appName, DWORD sessionId) {
-    startCageManager(appName, nullptr, sessionId);
+DWORD CageService::startCageManager(LPCTSTR appName, DWORD sessionId) {
+    return startCageManager(appName, nullptr, sessionId);
 }
 
 
@@ -36,13 +36,14 @@ std::string CageService::GetLastErrorAsString(DWORD errorID) {
 }
 
 // Must be part of the service
-void CageService::startCageManager(LPCTSTR appName, LPTSTR desktopName, DWORD sessionId) {
+DWORD CageService::startCageManager(LPCTSTR appName, LPTSTR desktopName, DWORD sessionId) {
     HANDLE hServiceToken;
     HANDLE hUserSessionToken;
 
     STARTUPINFO si = { sizeof si };
     si.lpDesktop = desktopName;
     PROCESS_INFORMATION pi;
+    DWORD processId = -1;
 
     if (ImpersonateSelf(SecurityImpersonation)) {
         std::cout << "ImpersonateSelf was successful\n";
@@ -64,6 +65,7 @@ void CageService::startCageManager(LPCTSTR appName, LPTSTR desktopName, DWORD se
                                             &si,   // Startup Info
                                             &pi)) {
                         std::cout << "CreateProcess (" << appName << ") was succesful\n";
+                        processId = pi.dwProcessId;
                         CloseHandle(&si);
                         CloseHandle(&pi);
                     } else {
@@ -81,6 +83,7 @@ void CageService::startCageManager(LPCTSTR appName, LPTSTR desktopName, DWORD se
     } else {
         std::cout << "ImpersonateSelf failed (" << GetLastError() << "): " << GetLastErrorAsString(GetLastError());
     }
+    return processId;
 }
 
 void CageService::handleMessage(std::string message) {

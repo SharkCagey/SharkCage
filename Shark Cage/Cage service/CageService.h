@@ -15,7 +15,7 @@ public:
      * @desktopName The name of the desktop to start the program in.
      * @sessionId The sessionId of the user.
      */
-    void startCageManager(LPCTSTR appName, DWORD sessionId);
+    DWORD startCageManager(LPCTSTR appName, DWORD sessionId);
 
     /*
      * Starts the executable in a new process on the respective desktop in the given session.
@@ -24,7 +24,7 @@ public:
      * @desktopName The name of the desktop to start the program in.
      * @sessionId The sessionId of the user.
      */
-    void startCageManager(LPCTSTR appName, LPTSTR desktopName, DWORD sessionId);
+    DWORD startCageManager(LPCTSTR appName, LPTSTR desktopName, DWORD sessionId);
 
     /*
      * Parses a message and does the action according to content of the message.

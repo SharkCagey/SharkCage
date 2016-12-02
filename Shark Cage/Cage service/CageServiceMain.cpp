@@ -12,7 +12,7 @@
 #define WIN32_LEAN_AND_MEAN
 
 #include <iostream>
-//#include "StatusManager.h" //for StatusManager class
+#include "StatusManager.h"
 #include "CageService.h"
 #include "NetworkManager.h"
 #include "MSG_Service.h"
@@ -21,19 +21,30 @@
 #include <fstream>
 #include <string>
 
-//StatusManager statusManager; //holds the current status of Shark Cage Service
+// Variables for the windows service
+#define SERVICE_NAME _T("Cage Service")
 SERVICE_STATUS        g_ServiceStatus = {0};
 SERVICE_STATUS_HANDLE g_StatusHandle = NULL;
 HANDLE                g_ServiceStopEvent = INVALID_HANDLE_VALUE;
 
+// Own variables for the cage service
+StatusManager statusManager; //holds the current status of Shark Cage Service
+NetworkManager networkMgr(SERVICE);
+DWORD cageManagerProcessId;
+
+
+// Forward declaration of windows service functions
 VOID WINAPI ServiceMain (DWORD argc, LPTSTR *argv);
 VOID WINAPI ServiceCtrlHandler (DWORD);
 DWORD WINAPI ServiceWorkerThread (LPVOID lpParam);
+
+// Forward declaration of own logic and helper funcionts
 void startCageManager();
+void stopCageManager();
+void onReceive(std::string message);
+bool beginsWith(const std::string string, const std::string prefix);
 
-NetworkManager networkMgr(SERVICE);
 
-#define SERVICE_NAME _T("Cage Service")
 
 int _tmain (int argc, TCHAR *argv[]) {
     SERVICE_TABLE_ENTRY ServiceTable[] = {
@@ -154,9 +165,6 @@ VOID WINAPI ServiceCtrlHandler (DWORD CtrlCode) {
             break;
     }
 }
-void write_text_to_log_file( const std::string &text );
-
-void startCMD(std::wstring param);
 
 DWORD WINAPI ServiceWorkerThread(LPVOID lpParam) {
 
@@ -167,7 +175,7 @@ DWORD WINAPI ServiceWorkerThread(LPVOID lpParam) {
         */
         // Look for messages
         std::string msg = networkMgr.listen();
-        
+        onReceive(msg);
 
         Sleep(1000); // Simulate some work by sleeping
     }
@@ -178,25 +186,33 @@ DWORD WINAPI ServiceWorkerThread(LPVOID lpParam) {
 
 void startCageManager() {
     LPTSTR szCmdline = _tcsdup(TEXT("C:\\sharkcage\\CageManager.exe"));
-    // Get desktop name
 
     // Get session id from loged on user
     DWORD sessionId = WTSGetActiveConsoleSessionId();
     CageService cs;
-    cs.startCageManager(szCmdline, sessionId);
+    cageManagerProcessId = cs.startCageManager(szCmdline, sessionId);
 }
 
-bool beginsWith(const std::string string, const std::string prefix);
+void stopCageManager() {
+    // Concider a "graceful" shutdown, i.e. sending a message/signal and then wait for the process terminating itself
+    HANDLE cageManagerHandle = OpenProcess(PROCESS_ALL_ACCESS, TRUE, cageManagerProcessId);
+    if (cageManagerHandle != NULL) {
+        TerminateProcess(cageManagerHandle, 55);
+        std::cout << "Terminated CageManager: 55" << std::endl;
+    } else {
+        std::cout << "Could not stop CageManager: Invalid Process Handle" << std::endl;
+    }
+    
+}
 
-// Function for messageReceive
+// Function to decaode the message and do a respective action
 void onReceive(std::string message) {
-    //System::String msg =
-
-    // Decode message
     if(beginsWith(message, MSG_TO_SERVICE_toString(START_TP))) {
         // Start Process
+        startCageManager();
     } else if (beginsWith(message, MSG_TO_SERVICE_toString(STOP_TP))) {
         // Stop Process
+        stopCageManager();
     } else {
         // Unrecognized message - Do nothing
     }
@@ -207,11 +223,10 @@ bool beginsWith(const std::string string, const std::string prefix) {
         return false;
         // Throw Exception "Bad parameters: prefix longer than the actual string"
     } else {
-        for (size_t l = 0; l < prefix.length(); l++) {
-            if (prefix.at(l) != string.at(l)) {
-                return false;
-            }
+        if (string.compare(0, prefix.length(), prefix) == 0) {
+            return true;
+        } else {
+            return false;
         }
-        return true;
     }
 }
