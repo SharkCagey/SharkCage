@@ -113,8 +113,12 @@ VOID WINAPI ServiceMain(DWORD argc, LPTSTR *argv)
 	// Start a thread that will perform the main task of the service
 	HANDLE hThread = CreateThread(NULL, 0, ServiceWorkerThread, NULL, 0, NULL);
 
-	// Wait until our worker thread exits signaling that the service needs to stop
-	WaitForSingleObject(hThread, INFINITE);
+    if(hThread != NULL) {
+	    // Wait until our worker thread exits signaling that the service needs to stop
+	    WaitForSingleObject(hThread, INFINITE);
+    } else {
+        // ERROR (Stop Process)
+    }
 
 
 	/*
