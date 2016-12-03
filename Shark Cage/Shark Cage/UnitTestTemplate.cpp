@@ -1,9 +1,9 @@
 #include "stdafx.h"
 #include "CppUnitTest.h"
 
+using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
-namespace SharkCage
-{		
+namespace SharkCage {
 	TEST_CLASS(SharkCage) {
 	public:
         TEST_CLASS_INITIALIZE(initClass) {
@@ -23,6 +23,7 @@ namespace SharkCage
 		TEST_METHOD(TestMethod1)
 		{
 			// TODO: Your test code here
+            Assert::AreEqual(1.0f, 1.0f, 0.0f, L"Numbers are not equal!");
 		}
 	};
 }
