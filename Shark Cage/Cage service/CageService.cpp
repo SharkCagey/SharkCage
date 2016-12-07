@@ -45,6 +45,7 @@ DWORD CageService::startCageManager(LPCTSTR appName, LPTSTR desktopName, DWORD s
     PROCESS_INFORMATION pi;
     DWORD processId = -1;
 
+    // Use nwe token with privileges for the trudting vomputinh base
     if (ImpersonateSelf(SecurityImpersonation)) {
         std::cout << "ImpersonateSelf was successful\n";
         if (OpenThreadToken(GetCurrentThread(), TOKEN_ALL_ACCESS, false, &hServiceToken)) {
