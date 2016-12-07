@@ -9,7 +9,27 @@
 int main() {
     NetworkManager mgr(UI);
 
-    mgr.send(MSG_TO_SERVICE_toString(START_CM));
+    
+
+	int msgboxID = MessageBox(
+		NULL,
+		(LPCWSTR)L"Resource not available\nDo you want to try again?",
+		(LPCWSTR)L"Account Details",
+		MB_ICONWARNING | MB_CANCELTRYCONTINUE | MB_DEFBUTTON2
+	);
+
+	switch (msgboxID)
+	{
+	case IDCANCEL:
+		// TODO: add code
+		break;
+	case IDTRYAGAIN:
+		mgr.send(MSG_TO_SERVICE_toString(START_CM));
+		break;
+	case IDCONTINUE:
+		// TODO: add code
+		break;
+	}
 
     return 0;
 }
