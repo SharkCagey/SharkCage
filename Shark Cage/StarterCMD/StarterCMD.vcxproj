@@ -147,12 +147,10 @@
   <ItemGroup>
     <ClInclude Include="..\Cage service\CageService.h" />
     <ClInclude Include="..\Cage service\MSG_Service.h" />
-    <ClInclude Include="MainWindow.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="MainWindow.cpp" />
     <ClCompile Include="StarterCMD.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
