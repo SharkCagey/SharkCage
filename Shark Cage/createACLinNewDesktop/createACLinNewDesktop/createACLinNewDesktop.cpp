@@ -154,7 +154,7 @@ int main()
 		info.lpDesktop = desktop;
 
 		
-		
+
 		
 		//PETER, HERE IS WHERE YOU HAVE TO WRITE YOUR CODE
 
