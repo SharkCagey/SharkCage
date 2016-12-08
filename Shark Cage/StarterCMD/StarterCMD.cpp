@@ -13,21 +13,18 @@ int main() {
 
 	int msgboxID = MessageBox(
 		NULL,
-		(LPCWSTR)L"Resource not available\nDo you want to try again?",
-		(LPCWSTR)L"Account Details",
-		MB_ICONWARNING | MB_CANCELTRYCONTINUE | MB_DEFBUTTON2
+		(LPCWSTR)L"Do you want to start the Cage manager through the Cage service?",
+		(LPCWSTR)L"Start Cage Manager",
+		MB_ICONQUESTION | MB_DEFBUTTON2 | MB_YESNO
 	);
 
 	switch (msgboxID)
 	{
-	case IDCANCEL:
+	case IDNO:
 		// TODO: add code
 		break;
-	case IDTRYAGAIN:
-		mgr.send(MSG_TO_SERVICE_toString(START_CM));
-		break;
-	case IDCONTINUE:
-		// TODO: add code
+	case IDYES:
+        mgr.send(MSG_TO_SERVICE_toString(START_CM));
 		break;
 	}
 
