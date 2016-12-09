@@ -2,25 +2,69 @@
 //
 // createACLinNewDesktop.cpp: define el punto de entrada de la aplicación de consola.
 //
-
 #include "stdafx.h"
-#include "Windows.h"
+#define WIN32_LEAN_AND_MEAN
+
+#include "../Cage service/NetworkManager.h"
+#include "../Cage service/MSG_to_manager.h"
+
+#include <Windows.h>
 #include "stdio.h"
 #include "Aclapi.h"
-#include "tchar.h"
+#include <tchar.h>
 #include "sddl.h"
+#include <string>
+
 
 PSID createSID();
 bool createACL(PSID groupSid);
+void onReceive(std::string message);
+bool beginsWith(const std::string string, const std::string prefix);
+
+NetworkManager networkMgr(MANAGER);
 
 int main() {
+
+
     
     PSID groupSid = createSID();
     return createACL(groupSid);
+    // createDesktop
+    // ask for Process
+    std::string message = networkMgr.listen();
+    onReceive(message);
+    // createProcessToken()
+
 }
 
 PSID createSID() {
     return NULL;
+}
+
+
+bool beginsWith(const std::string string, const std::string prefix) {
+    if (prefix.length() > string.length()) {
+        return false;
+        // Throw Exception "Bad parameters: prefix longer than the actual string"
+    } else {
+        if (string.compare(0, prefix.length(), prefix) == 0) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+}
+
+// Function to decaode the message and do a respective action
+// "START_PC" "path/to.exe"
+void onReceive(std::string message) {
+    if (beginsWith(message, MSG_TO_MANAGER_toString(MGR_START_PC))) {
+        // Start process
+    } else if (beginsWith(message, MSG_TO_MANAGER_toString(MGR_STOP_PC))) {
+        // Stop process
+    } else {
+        // Unrecognized message - Do nothing
+    }
 }
 
 bool createACL(PSID groupSid) {

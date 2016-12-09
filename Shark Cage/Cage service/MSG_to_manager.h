@@ -17,6 +17,6 @@ static const std::string MSG_TO_MANAGER_STRINGS[] = {
 // To test if there are names for all messages (at compile time)
 static_assert((sizeof(MSG_TO_MANAGER_STRINGS)/sizeof(std::string)) == MGR_NUMBEROFMESSAGES, "Error within MessageTypes");
 
-std::string MSG_TO_MANAGER_toString(MSG_TO_SERVICE value) {
+std::string MSG_TO_MANAGER_toString(MSG_TO_MANAGER value) {
     return MSG_TO_MANAGER_STRINGS[value];
 }
