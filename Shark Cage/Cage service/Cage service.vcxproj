@@ -154,6 +154,7 @@
   <ItemGroup>
     <ClInclude Include="CageService.h" />
     <ClInclude Include="MSG_Service.h" />
+    <ClInclude Include="MSG_to_manager.h" />
     <ClInclude Include="NetworkManager.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="StatusManager.h" />

@@ -1,6 +1,5 @@
 #pragma once
 
-#include <vector>
 #include <string>
 
 typedef enum E_MSG_TO_SERVICE {

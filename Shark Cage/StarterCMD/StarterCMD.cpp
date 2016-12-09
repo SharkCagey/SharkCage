@@ -18,15 +18,15 @@ int main() {
 		MB_ICONQUESTION | MB_DEFBUTTON2 | MB_YESNO
 	);
 
-	switch (msgboxID)
-	{
+	switch (msgboxID) {
 	case IDNO:
-		// TODO: add code
-		break;
+		return 0; // Just quit
 	case IDYES:
         mgr.send(MSG_TO_SERVICE_toString(START_CM));
 		break;
 	}
+
+    // Show file selector dialog and send path to the cage service
 
     return 0;
 }
