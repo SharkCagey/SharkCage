@@ -10,7 +10,20 @@
 #include "tchar.h"
 #include "sddl.h"
 
+PSID createSID();
+bool createACL(PSID groupSid);
+
 int main() {
+    
+    PSID groupSid = createSID();
+    return createACL(groupSid);
+}
+
+PSID createSID() {
+    return NULL;
+}
+
+bool createACL(PSID groupSid) {
     DWORD dwRes;
     PACL pACL = NULL;
     PSECURITY_DESCRIPTOR pSD = NULL;
@@ -196,6 +209,4 @@ Cleanup:
         LocalFree(pSD);
 
     return 0;
-
 }
-
