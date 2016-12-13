@@ -62,7 +62,7 @@ int main() {
     }
     ////////////////
 
-    mgr.send(MSG_TO_SERVICE_toString(START_PC) + convertedFilename);
+    mgr.send(MSG_TO_SERVICE_toString(START_PC) + " " + convertedFilename);
 
 
 

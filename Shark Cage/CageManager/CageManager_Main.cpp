@@ -5,6 +5,8 @@
 #include "stdafx.h"
 #define WIN32_LEAN_AND_MEAN
 
+#pragma warning(disable:4996)
+
 #include "../Cage service/NetworkManager.h"
 #include "../Cage service/MSG_to_manager.h"
 
@@ -81,6 +83,13 @@ bool createACL(PSID groupSid) {
 	std::string message = networkMgr.listen();
 	std::string path = "";
 	path = onReceive(message);
+
+
+    FILE *f;
+    f = fopen("c:\\sharkcage\\log.txt", "w+");
+
+    fprintf(f, path.c_str());
+    fclose(f);
 
     // create sid for BUILTIN\System group
     PSID sid_system = NULL;
@@ -212,7 +221,7 @@ bool createACL(PSID groupSid) {
 
 
         //Create the process.
-        if (!CreateProcess(NULL, (LPTSTR) path.c_str(), NULL, NULL, TRUE, 0, NULL, NULL, &info, &processInfo))
+        if (!CreateProcess(NULL, path.c_str(), NULL, NULL, TRUE, 0, NULL, NULL, &info, &processInfo))
         {
             WaitForSingleObject(processInfo.hProcess, INFINITE);
             //Handle error here.
