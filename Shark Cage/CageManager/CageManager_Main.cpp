@@ -72,6 +72,19 @@ std::string onReceive(std::string message) {
 	return path;
 }
 
+std::wstring s2ws(const std::string& s)
+{
+    int len;
+    int slength = (int)s.length() + 1;
+    len = MultiByteToWideChar(CP_ACP, 0, s.c_str(), slength, 0, 0); 
+    wchar_t* buf = new wchar_t[len];
+    MultiByteToWideChar(CP_ACP, 0, s.c_str(), slength, buf, len);
+    std::wstring r(buf);
+    delete[] buf;
+    return r;
+}
+
+
 bool createACL(PSID groupSid) {
     DWORD dwRes;
     PACL pACL = NULL;
@@ -221,7 +234,13 @@ bool createACL(PSID groupSid) {
 
 
         //Create the process.
-        if (!CreateProcess(NULL, path.c_str(), NULL, NULL, TRUE, 0, NULL, NULL, &info, &processInfo))
+        std::wstring widePath = s2ws(path);
+
+        // Kopiere in std::vector inklusive Nullterminierung
+        std::vector<wchar_t> vec(widePath.begin(), widePath.end());
+        vec.push_back(L'\0');
+
+        if (!CreateProcess(NULL, &vec[0], NULL, NULL, TRUE, 0, NULL, NULL, &info, &processInfo))
         {
             WaitForSingleObject(processInfo.hProcess, INFINITE);
             //Handle error here.
