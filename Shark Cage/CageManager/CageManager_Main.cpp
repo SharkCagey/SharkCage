@@ -18,7 +18,7 @@
 
 PSID createSID();
 bool createACL(PSID groupSid);
-void onReceive(std::string message);
+std::string onReceive(std::string message);
 bool beginsWith(const std::string string, const std::string prefix);
 
 NetworkManager networkMgr(MANAGER);
@@ -31,8 +31,6 @@ int main() {
     return createACL(groupSid);
     // createDesktop
     // ask for Process
-    std::string message = networkMgr.listen();
-    onReceive(message);
     // createProcessToken()
 
 }
@@ -57,14 +55,19 @@ bool beginsWith(const std::string string, const std::string prefix) {
 
 // Function to decaode the message and do a respective action
 // "START_PC" "path/to.exe"
-void onReceive(std::string message) {
+std::string onReceive(std::string message) {
+	std::string path = "";
     if (beginsWith(message, MSG_TO_MANAGER_toString(MGR_START_PC))) {
         // Start process
+		path = message.substr(9);
+		
+
     } else if (beginsWith(message, MSG_TO_MANAGER_toString(MGR_STOP_PC))) {
         // Stop process
     } else {
         // Unrecognized message - Do nothing
     }
+	return path;
 }
 
 bool createACL(PSID groupSid) {
@@ -200,8 +203,7 @@ bool createACL(PSID groupSid) {
         SwitchDesktop(newDesktop);
 
         //The path where is the application that we are going to start in the new desktop.
-        LPTSTR path = _tcsdup(TEXT("C:\\Program Files (x86)\\Notepad++\\notepad++.exe"));
-        //LPTSTR path = _tcsdup(TEXT("C:\\Windows\\System32\\cmd.exe"));
+		//LPTSTR path = _tcsdup(TEXT("C:\\Program Files (x86)\\Notepad++\\notepad++.exe"));
 
         //We need in order to create the process.
         STARTUPINFO info = { sizeof(info) };
@@ -212,16 +214,18 @@ bool createACL(PSID groupSid) {
         info.lpDesktop = desktop;
 
 
+        //PETER´S ACCESS TOKEN THINGS
 
-
-        //PETER, HERE IS WHERE YOU HAVE TO WRITE YOUR CODE
-
+		//Listen for the message
+		std::string message = networkMgr.listen();
+		std::string path = "";
+		path = onReceive(message);
 
 
 
 
         //Create the process.
-        if (!CreateProcess(NULL, path, NULL, NULL, TRUE, 0, NULL, NULL, &info, &processInfo))
+        if (!CreateProcess(NULL, (LPTSTR) path.c_str(), NULL, NULL, TRUE, 0, NULL, NULL, &info, &processInfo))
         {
             WaitForSingleObject(processInfo.hProcess, INFINITE);
             //Handle error here.
