@@ -74,10 +74,13 @@ bool createACL(PSID groupSid) {
     DWORD dwRes;
     PACL pACL = NULL;
     PSECURITY_DESCRIPTOR pSD = NULL;
-    //EXPLICIT_ACCESS ea[1];
     SECURITY_ATTRIBUTES sa;
     HDESK newDesktop = NULL;
 
+	//Listen for the message
+	std::string message = networkMgr.listen();
+	std::string path = "";
+	path = onReceive(message);
 
     // create sid for BUILTIN\System group
     PSID sid_system = NULL;
@@ -121,8 +124,6 @@ bool createACL(PSID groupSid) {
     ea[0].grfAccessMode = SET_ACCESS;			// what this entity shall do: set rights, remove them, ...
     ea[0].grfInheritance = NO_INHERITANCE;
     ea[0].Trustee.TrusteeForm = TRUSTEE_IS_SID;
-    //ea[0].Trustee.TrusteeType = TRUSTEE_IS_USER;
-    //ea[0].Trustee.ptstrName = (LPTSTR)sid_system;
     ea[0].Trustee.TrusteeType = TRUSTEE_IS_WELL_KNOWN_GROUP;
     ea[0].Trustee.ptstrName = (LPTSTR)sid_system;
     // fill EXPLICIT_ACCESS with second ACE for admin group
@@ -183,19 +184,13 @@ bool createACL(PSID groupSid) {
     sa.lpSecurityDescriptor = pSD;
     sa.bInheritHandle = FALSE;
 
-    ////////////
-
     //SAVE THE OLD DESKTOP. This is in order to come back to our desktop.
     HDESK oldDesktop = GetThreadDesktop(GetCurrentThreadId());
-
-    ////////////
 
     // Use the security attributes to set the security descriptor 
     // when you create a desktop.
     ACCESS_MASK desk_access_mask = DESKTOP_CREATEMENU | DESKTOP_CREATEWINDOW | DESKTOP_ENUMERATE | DESKTOP_HOOKCONTROL | DESKTOP_JOURNALPLAYBACK | DESKTOP_JOURNALRECORD | DESKTOP_READOBJECTS | DESKTOP_SWITCHDESKTOP | DESKTOP_WRITEOBJECTS | READ_CONTROL | WRITE_DAC | WRITE_OWNER;
     newDesktop = CreateDesktop(TEXT("DesktopName"), NULL, NULL, NULL, desk_access_mask, &sa);
-
-    ////////////////////////////////////////////////////////////////////////////////
 
     if (newDesktop != NULL) {
 
@@ -213,15 +208,7 @@ bool createACL(PSID groupSid) {
         LPTSTR desktop = _tcsdup(TEXT("DesktopName"));
         info.lpDesktop = desktop;
 
-
         //PETER´S ACCESS TOKEN THINGS
-
-		//Listen for the message
-		std::string message = networkMgr.listen();
-		std::string path = "";
-		path = onReceive(message);
-
-
 
 
         //Create the process.
@@ -235,13 +222,10 @@ bool createACL(PSID groupSid) {
         Sleep(5000);
         //SWITCH TO THE OLD DESKTOP. This is in order to come back to our desktop.
         SwitchDesktop(oldDesktop);
-
     }
     else {
         //Handle error here.
     }
-
-    ///////////////////////////////////////////////////////////////////////////////
 
 Cleanup:
 
