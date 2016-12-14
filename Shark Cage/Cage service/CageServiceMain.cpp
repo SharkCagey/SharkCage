@@ -16,6 +16,7 @@
 #include "CageService.h"
 #include "NetworkManager.h"
 #include "MSG_Service.h"
+#include "MSG_to_manager.h"
 #include "stdafx.h"
 #include <Windows.h>
 #include <fstream>
@@ -213,6 +214,12 @@ void onReceive(std::string message) {
     } else if (beginsWith(message, MSG_TO_SERVICE_toString(STOP_CM))) {
         // Stop Process
         stopCageManager();
+    } else if (beginsWith(message, MSG_TO_SERVICE_toString(START_PC))) {
+        // Forward to cage manager
+        networkMgr.send(message);
+    } else if (beginsWith(message, MSG_TO_SERVICE_toString(STOP_PC))) {
+        // Forward to cage manager
+        networkMgr.send(message);
     } else {
         // Unrecognized message - Do nothing
     }

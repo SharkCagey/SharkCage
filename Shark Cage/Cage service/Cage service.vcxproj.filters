@@ -39,6 +39,9 @@
     <ClInclude Include="MSG_Service.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="MSG_to_manager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">

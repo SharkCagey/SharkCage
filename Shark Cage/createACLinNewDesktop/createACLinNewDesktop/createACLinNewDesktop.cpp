@@ -153,6 +153,14 @@ int main()
 		LPTSTR desktop = _tcsdup(TEXT("DesktopName"));
 		info.lpDesktop = desktop;
 
+		
+
+
+		//PETER, HERE IS WHERE YOU HAVE TO WRITE YOUR CODE
+
+
+
+
 
 		//Create the process.
 		if (!CreateProcess(NULL, path, NULL, NULL, TRUE, 0, NULL, NULL, &info, &processInfo))
