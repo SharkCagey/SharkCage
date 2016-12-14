@@ -27,6 +27,9 @@
     <ClInclude Include="StringHelper.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
+    <ClInclude Include="ProcessHandler.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -35,11 +38,17 @@
     <ClCompile Include="Shark Cage.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
+<<<<<<< HEAD
     <ClCompile Include="StringHelper.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
     <ClCompile Include="UnitTestTemplate.cpp">
       <Filter>Headerdateien</Filter>
     </ClCompile>
+=======
+    <ClCompile Include="ProcessHandler.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+>>>>>>> master
   </ItemGroup>
 </Project>

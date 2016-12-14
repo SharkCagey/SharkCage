@@ -5,26 +5,26 @@
 
 enum DeviceStatus
 {
-	STATE_0,
+	STATE_0,  // TODO: Make the name of the states more descriptive
 	STATE_1,
 	STATE_2,
 	STATE_3
 };
 
-//holds the current status of hte machine
+// holds the current status of hte machine
 class StatusManager{
 
 private:
 	DeviceStatus m_status = STATE_0;
 	
 public:
-	//use when entering new state
+	//vuse when entering new state
 	void setStatus(DeviceStatus status) {
 		this->m_status = status;
 		return;
 	}
 
-	//for retrieving info about current state
+	//vfor retrieving info about current state
 	DeviceStatus getStatus() {
 		return m_status;
 	}
