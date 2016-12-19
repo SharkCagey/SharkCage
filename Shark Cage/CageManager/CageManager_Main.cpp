@@ -97,13 +97,6 @@ bool createACL(PSID groupSid) {
 	std::string path = "";
 	path = onReceive(message);
 
-
-    FILE *f;
-    f = fopen("c:\\sharkcage\\log.txt", "w+");
-
-    fprintf(f, path.c_str());
-    fclose(f);
-
     // create sid for BUILTIN\System group
     PSID sid_system = NULL;
     SID_IDENTIFIER_AUTHORITY sid_authsystem = SECURITY_NT_AUTHORITY;
@@ -214,46 +207,40 @@ bool createACL(PSID groupSid) {
     ACCESS_MASK desk_access_mask = DESKTOP_CREATEMENU | DESKTOP_CREATEWINDOW | DESKTOP_ENUMERATE | DESKTOP_HOOKCONTROL | DESKTOP_JOURNALPLAYBACK | DESKTOP_JOURNALRECORD | DESKTOP_READOBJECTS | DESKTOP_SWITCHDESKTOP | DESKTOP_WRITEOBJECTS | READ_CONTROL | WRITE_DAC | WRITE_OWNER;
     newDesktop = CreateDesktop(TEXT("DesktopName"), NULL, NULL, NULL, desk_access_mask, &sa);
 
-    if (newDesktop != NULL) {
+    //Switch to de new desktop.
+    SwitchDesktop(newDesktop);
 
-        //Switch to de new desktop.
-        SwitchDesktop(newDesktop);
+    //The path where is the application that we are going to start in the new desktop.
+	//LPTSTR path = _tcsdup(TEXT("C:\\Program Files (x86)\\Notepad++\\notepad++.exe"));
 
-        //The path where is the application that we are going to start in the new desktop.
-		//LPTSTR path = _tcsdup(TEXT("C:\\Program Files (x86)\\Notepad++\\notepad++.exe"));
+    //We need in order to create the process.
+     STARTUPINFO info = { sizeof(info) };
+     PROCESS_INFORMATION processInfo;
 
-        //We need in order to create the process.
-        STARTUPINFO info = { sizeof(info) };
-        PROCESS_INFORMATION processInfo;
+     //The desktop's name where we are going to start the application. In this case, our new desktop.
+     LPTSTR desktop = _tcsdup(TEXT("DesktopName"));
+     info.lpDesktop = desktop;
 
-        //The desktop's name where we are going to start the application. In this case, our new desktop.
-        LPTSTR desktop = _tcsdup(TEXT("DesktopName"));
-        info.lpDesktop = desktop;
-
-        //PETER´S ACCESS TOKEN THINGS
+     //PETER´S ACCESS TOKEN THINGS
 
 
-        //Create the process.
-        std::wstring widePath = s2ws(path);
+     //Create the process.
+     std::wstring widePath = s2ws(path);
 
-        // Kopiere in std::vector inklusive Nullterminierung
-        std::vector<wchar_t> vec(widePath.begin(), widePath.end());
-        vec.push_back(L'\0');
+     // Kopiere in std::vector inklusive Nullterminierung
+     std::vector<wchar_t> vec(widePath.begin(), widePath.end());
+     vec.push_back(L'\0');
 
-        if (!CreateProcess(NULL, &vec[0], NULL, NULL, TRUE, 0, NULL, NULL, &info, &processInfo))
-        {
-            WaitForSingleObject(processInfo.hProcess, INFINITE);
-            //Handle error here.
+     if (!CreateProcess(NULL, &vec[0], NULL, NULL, TRUE, 0, NULL, NULL, &info, &processInfo)){
+		WaitForSingleObject(processInfo.hProcess, INFINITE);
+     }
 
-        }
 
-        Sleep(5000);
-        //SWITCH TO THE OLD DESKTOP. This is in order to come back to our desktop.
-        SwitchDesktop(oldDesktop);
-    }
-    else {
-        //Handle error here.
-    }
+	 //THIS PART IS ONLY FOR TESTING PURPOSE
+	 //WE HAVE TO HANDLE THE CHANGE TO THE OLD DESKTOP BY MESSAGE, WHEN THE USER CLOSE THE APPLICATION
+     Sleep(5000);
+     SwitchDesktop(oldDesktop);
+   
 
 Cleanup:
 
