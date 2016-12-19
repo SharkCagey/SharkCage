@@ -92,6 +92,13 @@ bool createACL(PSID groupSid) {
     SECURITY_ATTRIBUTES sa;
     HDESK newDesktop = NULL;
 
+    std::wstring widePath;
+    std::vector<wchar_t> vec;
+
+    //We need in order to create the process.
+    STARTUPINFO info = { sizeof(info) };
+    PROCESS_INFORMATION processInfo;
+
 	//Listen for the message
 	std::string message = networkMgr.listen();
 	std::string path = "";
@@ -213,9 +220,6 @@ bool createACL(PSID groupSid) {
     //The path where is the application that we are going to start in the new desktop.
 	//LPTSTR path = _tcsdup(TEXT("C:\\Program Files (x86)\\Notepad++\\notepad++.exe"));
 
-    //We need in order to create the process.
-     STARTUPINFO info = { sizeof(info) };
-     PROCESS_INFORMATION processInfo;
 
      //The desktop's name where we are going to start the application. In this case, our new desktop.
      LPTSTR desktop = _tcsdup(TEXT("DesktopName"));
@@ -225,10 +229,10 @@ bool createACL(PSID groupSid) {
 
 
      //Create the process.
-     std::wstring widePath = s2ws(path);
+    widePath = s2ws(path);
 
      // Kopiere in std::vector inklusive Nullterminierung
-     std::vector<wchar_t> vec(widePath.begin(), widePath.end());
+     vec = std::vector<wchar_t>(widePath.begin(), widePath.end());
      vec.push_back(L'\0');
 
      if (!CreateProcess(NULL, &vec[0], NULL, NULL, TRUE, 0, NULL, NULL, &info, &processInfo)){
