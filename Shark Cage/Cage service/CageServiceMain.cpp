@@ -113,6 +113,8 @@ VOID WINAPI ServiceMain (DWORD argc, LPTSTR *argv) {
         OutputDebugString(_T("My Sample Service: ServiceMain: SetServiceStatus returned error"));
     }
 
+    cageManagerProcessId = 0;
+
     // Start a thread that will perform the main task of the service
     HANDLE hThread = CreateThread (NULL, 0, ServiceWorkerThread, NULL, 0, NULL);
 
@@ -178,6 +180,7 @@ DWORD WINAPI ServiceWorkerThread(LPVOID lpParam) {
         std::string msg = networkMgr.listen();
         onReceive(msg);
 
+
         Sleep(1000); // Simulate some work by sleeping
     }
 
@@ -210,13 +213,20 @@ void stopCageManager() {
 void onReceive(std::string message) {
     if(beginsWith(message, MSG_TO_SERVICE_toString(START_CM))) {
         // Start Process
-        startCageManager();
+        if (cageManagerProcessId == 0) {
+            startCageManager();
+        }
     } else if (beginsWith(message, MSG_TO_SERVICE_toString(STOP_CM))) {
         // Stop Process
         stopCageManager();
     } else if (beginsWith(message, MSG_TO_SERVICE_toString(START_PC))) {
         // Forward to cage manager
         networkMgr.send(message);
+
+        HANDLE cageManagerHandle = OpenProcess(SYNCHRONIZE, TRUE, cageManagerProcessId);
+        WaitForSingleObject(cageManagerHandle, INFINITE);
+        cageManagerProcessId = 0;
+
     } else if (beginsWith(message, MSG_TO_SERVICE_toString(STOP_PC))) {
         // Forward to cage manager
         networkMgr.send(message);
