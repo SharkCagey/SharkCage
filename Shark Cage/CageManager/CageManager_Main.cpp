@@ -231,18 +231,17 @@ bool createACL(PSID groupSid) {
      //Create the process.
     widePath = s2ws(path);
 
-     // Kopiere in std::vector inklusive Nullterminierung
+     // Copy to std::vector incl. termination symbol
      vec = std::vector<wchar_t>(widePath.begin(), widePath.end());
      vec.push_back(L'\0');
 
-     if (!CreateProcess(NULL, &vec[0], NULL, NULL, TRUE, 0, NULL, NULL, &info, &processInfo)){
-		WaitForSingleObject(processInfo.hProcess, INFINITE);
-     }
+     CreateProcess(NULL, &vec[0], NULL, NULL, TRUE, 0, NULL, NULL, &info, &processInfo);
+	WaitForSingleObject(processInfo.hProcess, INFINITE);
 
 
 	 //THIS PART IS ONLY FOR TESTING PURPOSE
 	 //WE HAVE TO HANDLE THE CHANGE TO THE OLD DESKTOP BY MESSAGE, WHEN THE USER CLOSE THE APPLICATION
-     Sleep(5000);
+     Sleep(500);
      SwitchDesktop(oldDesktop);
    
 
