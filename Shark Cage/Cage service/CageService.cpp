@@ -1,6 +1,7 @@
 #include "CageService.h"
 
 #include <iostream>
+#include <tchar.h>
 
 
 CageService::CageService() {
@@ -8,6 +9,11 @@ CageService::CageService() {
 
 
 CageService::~CageService() {
+}
+
+DWORD CageService::startCageManager(DWORD sessionId) {
+    LPTSTR szCmdline = _tcsdup(TEXT("C:\\sharkcage\\CageManager.exe"));
+    return startCageManager(szCmdline, sessionId);
 }
 
 

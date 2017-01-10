@@ -189,12 +189,10 @@ DWORD WINAPI ServiceWorkerThread(LPVOID lpParam) {
 
 
 void startCageManager() {
-    LPTSTR szCmdline = _tcsdup(TEXT("C:\\sharkcage\\CageManager.exe"));
-
     // Get session id from loged on user
     DWORD sessionId = WTSGetActiveConsoleSessionId();
     CageService cs;
-    cageManagerProcessId = cs.startCageManager(szCmdline, sessionId);
+    cageManagerProcessId = cs.startCageManager(sessionId);
 }
 
 void stopCageManager() {

@@ -8,6 +8,15 @@ public:
     CageService();
     ~CageService();
 
+
+    /*
+    * Starts the Cage Manager in a new process on the normal desktop in the given session.
+    *
+    * @sessionId The sessionId of the user.
+    * @return The process ID of the started process.
+    */
+    DWORD startCageManager(DWORD sessionId);
+
     /*
      * Starts the executable in a new process on the normal desktop in the given session.
      *
@@ -35,5 +44,6 @@ public:
     void handleMessage(std::string message);
 
 private:
+    DWORD cageManagerProcessId;
     std::string CageService::GetLastErrorAsString(DWORD errorID);
 };
