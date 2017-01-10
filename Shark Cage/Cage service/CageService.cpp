@@ -14,6 +14,10 @@ CageService::CageService() {
 CageService::~CageService() {
 }
 
+bool CageService::cageManagerRunning() {
+    return cageManagerProcessId > 0;
+}
+
 DWORD CageService::startCageManager(DWORD sessionId) {
     LPTSTR szCmdline = _tcsdup(TEXT("C:\\sharkcage\\CageManager.exe"));
     return startCageManager(szCmdline, sessionId);

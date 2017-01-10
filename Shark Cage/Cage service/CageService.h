@@ -11,6 +11,7 @@ public:
 
     bool beginsWith(const std::string string, const std::string prefix);
 
+    bool cageManagerRunning();
     /*
     * Starts the Cage Manager in a new process on the normal desktop in the given session.
     *

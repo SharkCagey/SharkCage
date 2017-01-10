@@ -25,6 +25,7 @@
 SERVICE_STATUS        g_ServiceStatus = {0};
 SERVICE_STATUS_HANDLE g_StatusHandle = NULL;
 HANDLE                g_ServiceStopEvent = INVALID_HANDLE_VALUE;
+HANDLE workerThread;
 
 // Own variables for the cage service
 StatusManager statusManager; //holds the current status of Shark Cage Service
@@ -105,10 +106,10 @@ VOID WINAPI ServiceMain (DWORD argc, LPTSTR *argv) {
     }
 
     // Start a thread that will perform the main task of the service
-    HANDLE hThread = CreateThread (NULL, 0, ServiceWorkerThread, NULL, 0, NULL);
+    workerThread = CreateThread (NULL, 0, ServiceWorkerThread, NULL, 0, NULL);
 
     // Wait until our worker thread exits signaling that the service needs to stop
-    WaitForSingleObject (hThread, INFINITE);
+    WaitForSingleObject (workerThread, INFINITE);
 
 
     /*
@@ -134,7 +135,9 @@ VOID WINAPI ServiceCtrlHandler (DWORD CtrlCode) {
     switch (CtrlCode) {
         case SERVICE_CONTROL_STOP:
             if (g_ServiceStatus.dwCurrentState == SERVICE_RUNNING) {
-                break;
+                if (cageService.cageManagerRunning()) {
+                    break;
+                }
 
                 /* 
                  * Perform tasks necessary to stop the service here 
@@ -150,6 +153,7 @@ VOID WINAPI ServiceCtrlHandler (DWORD CtrlCode) {
                 }
 
                 // This will signal the worker thread to start shutting down
+                TerminateThread(workerThread, -1); // Have to kill it because listen() is blocking
                 SetEvent (g_ServiceStopEvent);
             }
             break;
