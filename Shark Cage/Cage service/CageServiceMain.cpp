@@ -15,8 +15,6 @@
 #include "StatusManager.h"
 #include "CageService.h"
 #include "NetworkManager.h"
-#include "MSG_Service.h"
-#include "MSG_to_manager.h"
 #include "stdafx.h"
 #include <Windows.h>
 #include <fstream>
@@ -39,11 +37,7 @@ VOID WINAPI ServiceMain (DWORD argc, LPTSTR *argv);
 VOID WINAPI ServiceCtrlHandler (DWORD);
 DWORD WINAPI ServiceWorkerThread (LPVOID lpParam);
 
-// Forward declaration of own logic and helper funcionts
-void startCageManager();
-void stopCageManager();
-void onReceive(std::string message);
-bool beginsWith(const std::string string, const std::string prefix);
+CageService cageService;
 
 
 
@@ -178,70 +172,11 @@ DWORD WINAPI ServiceWorkerThread(LPVOID lpParam) {
         */
         // Look for messages
         std::string msg = networkMgr.listen();
-        onReceive(msg);
+        cageService.handleMessage(msg, &networkMgr);
 
 
         Sleep(1000); // Simulate some work by sleeping
     }
 
     return ERROR_SUCCESS;
-}
-
-
-void startCageManager() {
-    // Get session id from loged on user
-    DWORD sessionId = WTSGetActiveConsoleSessionId();
-    CageService cs;
-    cageManagerProcessId = cs.startCageManager(sessionId);
-}
-
-void stopCageManager() {
-    // Concider a "graceful" shutdown, i.e. sending a message/signal and then wait for the process terminating itself
-    HANDLE cageManagerHandle = OpenProcess(PROCESS_ALL_ACCESS, TRUE, cageManagerProcessId);
-    if (cageManagerHandle != NULL) {
-        TerminateProcess(cageManagerHandle, 55);
-        std::cout << "Terminated CageManager: 55" << std::endl;
-    } else {
-        std::cout << "Could not stop CageManager: Invalid Process Handle" << std::endl;
-    }
-    
-}
-
-// Function to decaode the message and do a respective action
-void onReceive(std::string message) {
-    if(beginsWith(message, MSG_TO_SERVICE_toString(START_CM))) {
-        // Start Process
-        if (cageManagerProcessId == 0) {
-            startCageManager();
-        }
-    } else if (beginsWith(message, MSG_TO_SERVICE_toString(STOP_CM))) {
-        // Stop Process
-        stopCageManager();
-    } else if (beginsWith(message, MSG_TO_SERVICE_toString(START_PC))) {
-        // Forward to cage manager
-        networkMgr.send(message);
-
-        HANDLE cageManagerHandle = OpenProcess(SYNCHRONIZE, TRUE, cageManagerProcessId);
-        WaitForSingleObject(cageManagerHandle, INFINITE);
-        cageManagerProcessId = 0;
-
-    } else if (beginsWith(message, MSG_TO_SERVICE_toString(STOP_PC))) {
-        // Forward to cage manager
-        networkMgr.send(message);
-    } else {
-        // Unrecognized message - Do nothing
-    }
-}
-
-bool beginsWith(const std::string string, const std::string prefix) {
-    if (prefix.length() > string.length()) {
-        return false;
-        // Throw Exception "Bad parameters: prefix longer than the actual string"
-    } else {
-        if (string.compare(0, prefix.length(), prefix) == 0) {
-            return true;
-        } else {
-            return false;
-        }
-    }
 }

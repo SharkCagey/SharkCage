@@ -1,5 +1,7 @@
 #include "CageService.h"
 
+#include "MSG_Service.h"
+
 #include <iostream>
 #include <tchar.h>
 
@@ -93,7 +95,56 @@ DWORD CageService::startCageManager(LPCTSTR appName, LPTSTR desktopName, DWORD s
     return processId;
 }
 
-void CageService::handleMessage(std::string message) {
-    // Parse message (ENUM constant (MSG_Service) + path/to/Exe)
-    // Do action (start / stop application)
+void CageService::stopCageManager() {
+    // Concider a "graceful" shutdown, i.e. sending a message/signal and then wait for the process terminating itself
+    HANDLE cageManagerHandle = OpenProcess(PROCESS_ALL_ACCESS, TRUE, cageManagerProcessId);
+    if (cageManagerHandle != NULL) {
+        TerminateProcess(cageManagerHandle, 55);
+        std::cout << "Terminated CageManager: 55" << std::endl;
+    } else {
+        std::cout << "Could not stop CageManager: Invalid Process Handle" << std::endl;
+    }
+
+}
+
+
+void CageService::handleMessage(std::string message, NetworkManager* mgr) {
+    if(beginsWith(message, MSG_TO_SERVICE_toString(START_CM))) {
+        // Start Process
+        if (cageManagerProcessId == 0) {
+            // Get session id from loged on user
+            DWORD sessionId = WTSGetActiveConsoleSessionId();
+            cageManagerProcessId = startCageManager(sessionId);
+        }
+    } else if (beginsWith(message, MSG_TO_SERVICE_toString(STOP_CM))) {
+        // Stop Process
+        stopCageManager();
+    } else if (beginsWith(message, MSG_TO_SERVICE_toString(START_PC))) {
+        // Forward to cage manager
+        (*mgr).send(message);
+
+        HANDLE cageManagerHandle = OpenProcess(SYNCHRONIZE, TRUE, cageManagerProcessId);
+        WaitForSingleObject(cageManagerHandle, INFINITE);
+        cageManagerProcessId = 0;
+
+    } else if (beginsWith(message, MSG_TO_SERVICE_toString(STOP_PC))) {
+        // Forward to cage manager
+        (*mgr).send(message);
+    } else {
+        // Unrecognized message - Do nothing
+    }
+}
+
+
+bool CageService::beginsWith(const std::string string, const std::string prefix) {
+    if (prefix.length() > string.length()) {
+        return false;
+        // Throw Exception "Bad parameters: prefix longer than the actual string"
+    } else {
+        if (string.compare(0, prefix.length(), prefix) == 0) {
+            return true;
+        } else {
+            return false;
+        }
+    }
 }

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "NetworkManager.h"
 #include <Windows.h>
 #include <string>
 
@@ -8,6 +9,7 @@ public:
     CageService();
     ~CageService();
 
+    bool beginsWith(const std::string string, const std::string prefix);
 
     /*
     * Starts the Cage Manager in a new process on the normal desktop in the given session.
@@ -36,12 +38,14 @@ public:
      */
     DWORD startCageManager(LPCTSTR appName, LPTSTR desktopName, DWORD sessionId);
 
+    void stopCageManager();
+
     /*
      * Parses a message and does the action according to content of the message.
      * The message must be in the form of:
      * "MSG_TO_SERVICE.constant absolute/path/to/executable"
      */
-    void handleMessage(std::string message);
+    void handleMessage(std::string message, NetworkManager* mgr);
 
 private:
     DWORD cageManagerProcessId;
