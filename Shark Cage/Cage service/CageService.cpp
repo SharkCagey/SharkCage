@@ -7,6 +7,7 @@
 
 
 CageService::CageService() {
+    cageManagerProcessId = 0;
 }
 
 

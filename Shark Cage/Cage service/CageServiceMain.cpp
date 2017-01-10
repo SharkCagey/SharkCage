@@ -29,16 +29,13 @@ HANDLE                g_ServiceStopEvent = INVALID_HANDLE_VALUE;
 // Own variables for the cage service
 StatusManager statusManager; //holds the current status of Shark Cage Service
 NetworkManager networkMgr(SERVICE);
-DWORD cageManagerProcessId;
+CageService cageService;
 
 
 // Forward declaration of windows service functions
 VOID WINAPI ServiceMain (DWORD argc, LPTSTR *argv);
 VOID WINAPI ServiceCtrlHandler (DWORD);
 DWORD WINAPI ServiceWorkerThread (LPVOID lpParam);
-
-CageService cageService;
-
 
 
 int _tmain (int argc, TCHAR *argv[]) {
@@ -106,8 +103,6 @@ VOID WINAPI ServiceMain (DWORD argc, LPTSTR *argv) {
     if (SetServiceStatus (g_StatusHandle, &g_ServiceStatus) == FALSE) {
         OutputDebugString(_T("My Sample Service: ServiceMain: SetServiceStatus returned error"));
     }
-
-    cageManagerProcessId = 0;
 
     // Start a thread that will perform the main task of the service
     HANDLE hThread = CreateThread (NULL, 0, ServiceWorkerThread, NULL, 0, NULL);
