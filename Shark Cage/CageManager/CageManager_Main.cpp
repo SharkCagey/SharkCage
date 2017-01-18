@@ -26,7 +26,6 @@ bool beginsWith(const std::string string, const std::string prefix);
 NetworkManager networkMgr(MANAGER);
 
 int main() {
-	printf("Into the main");
 	PSID groupSid = createSID();
 	return createACL(groupSid);
 	// createProcessToken()
@@ -41,11 +40,9 @@ PSID createSID() {
 	HANDLE user_token_h;
 	DWORD bufferSize = 0;
 
-	printf("Before creating the group");
 	//create a group
 	localgroup_info.lgrpi0_name = group_name;
 	NetLocalGroupAdd(NULL, 0, (LPBYTE)&localgroup_info, NULL);
-	printf("Group created");
 
 	//obtain sid
 	const DWORD INITIAL_SIZE = 32;
@@ -82,14 +79,13 @@ PSID createSID() {
 		&cchDomainName,
 		&eSidType
 	);
-	LPTSTR StringSid;
+	/*LPTSTR StringSid;
 	ConvertSidToStringSid(
 		ppSid,
 		&StringSid
 	);
 	ppSid;
-	StringSid;
-	printf("SID obtained");
+	StringSid;*/
 
 	return &ppSid;
 }
@@ -113,19 +109,16 @@ bool beginsWith(const std::string string, const std::string prefix) {
 // Function to decode the message and do a respective action
 // "START_PC" "path/to.exe"
 std::string onReceive(std::string message) {
-	printf("Into onReceive");
 	std::string path = "";
 	if (beginsWith(message, MSG_TO_MANAGER_toString(MGR_START_PC))) {
 		// Start process
 		path = message.substr(9);
-		printf("we get the path");
 	}
 	else if (beginsWith(message, MSG_TO_MANAGER_toString(MGR_STOP_PC))) {
 		// Stop process
 	}
 	else {
 		// Unrecognized message - Do nothing
-		printf("Unrecognized message");
 	}
 	return path;
 }
@@ -150,13 +143,11 @@ bool createACL(PSID groupSid) {
 	SECURITY_ATTRIBUTES sa;
 	HDESK newDesktop = NULL;
 
-	printf("Waiting for the path"); // IT SHOWS THIS
-									//Listen for the message
-	std::string message = networkMgr.listen();   // <- ERROR MUST BE BETWEEN HERE
-	printf("After networkMgr listen");
+
+	//Listen for the message
+	std::string message = networkMgr.listen();   
 	std::string path = "";
-	path = onReceive(message);					// AND HERE
-	printf("Path is: %s", path);
+	path = onReceive(message);		
 	//path = "C:\\Program Files\\Notepad++\\notepad++.exe";
 	// create SID for BUILTIN\Administrators group
 	PSID sid_admin = NULL;
@@ -185,8 +176,6 @@ bool createACL(PSID groupSid) {
 	ea[1].Trustee.TrusteeForm = TRUSTEE_IS_SID;
 	ea[1].Trustee.TrusteeType = TRUSTEE_IS_GROUP;
 	ea[1].Trustee.ptstrName = (LPTSTR)sid_admin;
-
-	printf("ACE created");
 
 	std::wstring widePath = s2ws(path);
 	STARTUPINFO info = { sizeof(info) };
@@ -241,8 +230,6 @@ bool createACL(PSID groupSid) {
 	ACCESS_MASK desk_access_mask = DESKTOP_CREATEMENU | DESKTOP_CREATEWINDOW | DESKTOP_ENUMERATE | DESKTOP_HOOKCONTROL | DESKTOP_JOURNALPLAYBACK | DESKTOP_JOURNALRECORD | DESKTOP_READOBJECTS | DESKTOP_SWITCHDESKTOP | DESKTOP_WRITEOBJECTS | READ_CONTROL | WRITE_DAC | WRITE_OWNER;
 	newDesktop = CreateDesktop(TEXT("SharkCageDesktop"), NULL, NULL, NULL, desk_access_mask, &sa);
 
-	printf("Desktop created");
-
 	//Switch to de new desktop.
 	SwitchDesktop(newDesktop);
 
@@ -264,8 +251,6 @@ bool createACL(PSID groupSid) {
 	if (!CreateProcess(NULL, &vec[0], NULL, NULL, TRUE, 0, NULL, NULL, &info, &processInfo)) {
 		WaitForSingleObject(processInfo.hProcess, INFINITE);
 	}
-
-	printf("Process created");
 
 	//THIS PART IS ONLY FOR TESTING PURPOSE
 	//WE HAVE TO HANDLE THE CHANGE TO THE OLD DESKTOP BY MESSAGE, WHEN THE USER CLOSE THE APPLICATION
