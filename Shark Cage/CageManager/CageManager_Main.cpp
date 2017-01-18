@@ -26,15 +26,10 @@ bool beginsWith(const std::string string, const std::string prefix);
 NetworkManager networkMgr(MANAGER);
 
 int main() {
-
-
-
+	printf("Into the main");
 	PSID groupSid = createSID();
 	return createACL(groupSid);
-	// createDesktop
-	// ask for Process
 	// createProcessToken()
-
 }
 
 PSID createSID() {
@@ -46,9 +41,11 @@ PSID createSID() {
 	HANDLE user_token_h;
 	DWORD bufferSize = 0;
 
+	printf("Before creating the group");
 	//create a group
 	localgroup_info.lgrpi0_name = group_name;
 	NetLocalGroupAdd(NULL, 0, (LPBYTE)&localgroup_info, NULL);
+	printf("Group created");
 
 	//obtain sid
 	const DWORD INITIAL_SIZE = 32;
@@ -87,11 +84,12 @@ PSID createSID() {
 	);
 	LPTSTR StringSid;
 	ConvertSidToStringSid(
-	ppSid,
-	&StringSid
+		ppSid,
+		&StringSid
 	);
 	ppSid;
-	StringSid; 
+	StringSid;
+	printf("SID obtained");
 
 	return &ppSid;
 }
@@ -112,21 +110,22 @@ bool beginsWith(const std::string string, const std::string prefix) {
 	}
 }
 
-// Function to decaode the message and do a respective action
+// Function to decode the message and do a respective action
 // "START_PC" "path/to.exe"
 std::string onReceive(std::string message) {
+	printf("Into onReceive");
 	std::string path = "";
 	if (beginsWith(message, MSG_TO_MANAGER_toString(MGR_START_PC))) {
 		// Start process
 		path = message.substr(9);
-
-
+		printf("we get the path");
 	}
 	else if (beginsWith(message, MSG_TO_MANAGER_toString(MGR_STOP_PC))) {
 		// Stop process
 	}
 	else {
 		// Unrecognized message - Do nothing
+		printf("Unrecognized message");
 	}
 	return path;
 }
@@ -151,29 +150,20 @@ bool createACL(PSID groupSid) {
 	SECURITY_ATTRIBUTES sa;
 	HDESK newDesktop = NULL;
 
-	//Listen for the message
-	std::string message = networkMgr.listen();
+	printf("Waiting for the path"); // IT SHOWS THIS
+									//Listen for the message
+	std::string message = networkMgr.listen();   // <- ERROR MUST BE BETWEEN HERE
+	printf("After networkMgr listen");
 	std::string path = "";
-	path = onReceive(message);
-
-	/*
-	// create sid for BUILTIN\System group
-	PSID sid_system = NULL;
-	SID_IDENTIFIER_AUTHORITY sid_authsystem = SECURITY_NT_AUTHORITY;
-	if (!AllocateAndInitializeSid(&sid_authsystem, 1, SECURITY_LOCAL_SYSTEM_RID, 0, 0, 0, 0, 0, 0, 0, &sid_system)) {
-		DWORD err = GetLastError();
-		//free(group_sid);
-		return FALSE;
-	}
-	*/
-
+	path = onReceive(message);					// AND HERE
+	printf("Path is: %s", path);
+	//path = "C:\\Program Files\\Notepad++\\notepad++.exe";
 	// create SID for BUILTIN\Administrators group
 	PSID sid_admin = NULL;
 	SID_IDENTIFIER_AUTHORITY sid_authnt = SECURITY_NT_AUTHORITY;
 	if (!AllocateAndInitializeSid(&sid_authnt, 2, SECURITY_BUILTIN_DOMAIN_RID, DOMAIN_ALIAS_RID_ADMINS, 0, 0, 0, 0, 0, 0, &sid_admin)) {
-		DWORD err = GetLastError();
+		_tprintf(_T("Obtain Admin SID Error %u\n"), GetLastError());
 		//free(group_sid);
-		//LocalFree(sid_system);
 		return FALSE;
 	}
 
@@ -181,22 +171,6 @@ bool createACL(PSID groupSid) {
 	EXPLICIT_ACCESS ea[2];
 	ZeroMemory(&ea, 2 * sizeof(EXPLICIT_ACCESS));
 
-	/*
-	ea[0].grfAccessPermissions = GENERIC_ALL;	// access rights for this entity
-	ea[0].grfAccessMode = SET_ACCESS;			// what this entity shall do: set rights, remove them, ...
-	ea[0].grfInheritance = NO_INHERITANCE;
-	ea[0].Trustee.TrusteeForm = TRUSTEE_IS_SID;
-	ea[0].Trustee.TrusteeType = TRUSTEE_IS_WELL_KNOWN_GROUP;
-	ea[0].Trustee.ptstrName = (LPTSTR)sid_system;
-	// fill EXPLICIT_ACCESS with second ACE for admin group
-	ea[1].grfAccessPermissions = GENERIC_ALL;
-	ea[1].grfAccessMode = SET_ACCESS; //DENY_ACCES
-	ea[1].grfInheritance = NO_INHERITANCE;
-	ea[1].Trustee.TrusteeForm = TRUSTEE_IS_SID;
-	ea[1].Trustee.TrusteeType = TRUSTEE_IS_GROUP;
-	ea[1].Trustee.ptstrName = (LPTSTR)sid_admin;
-	*/
-	
 	// EXPLICIT_ACCESS for created group
 	ea[0].grfAccessPermissions = GENERIC_ALL;
 	ea[0].grfAccessMode = SET_ACCESS;
@@ -212,6 +186,8 @@ bool createACL(PSID groupSid) {
 	ea[1].Trustee.TrusteeType = TRUSTEE_IS_GROUP;
 	ea[1].Trustee.ptstrName = (LPTSTR)sid_admin;
 
+	printf("ACE created");
+
 	std::wstring widePath = s2ws(path);
 	STARTUPINFO info = { sizeof(info) };
 	std::vector<wchar_t> vec(widePath.begin(), widePath.end());
@@ -221,7 +197,7 @@ bool createACL(PSID groupSid) {
 	if (ERROR_SUCCESS != dwRes)
 	{
 		_tprintf(_T("SetEntriesInAcl Error %u\n"), GetLastError());
-		goto Cleanup;
+		//goto Cleanup;
 	}
 
 	// Initialize a security descriptor.  
@@ -230,7 +206,7 @@ bool createACL(PSID groupSid) {
 	if (NULL == pSD)
 	{
 		_tprintf(_T("LocalAlloc Error %u\n"), GetLastError());
-		goto Cleanup;
+		//goto Cleanup;
 	}
 
 	if (!InitializeSecurityDescriptor(pSD,
@@ -238,7 +214,7 @@ bool createACL(PSID groupSid) {
 	{
 		_tprintf(_T("InitializeSecurityDescriptor Error %u\n"),
 			GetLastError());
-		goto Cleanup;
+		//goto Cleanup;
 	}
 
 	// Add the ACL to the security descriptor. 
@@ -249,7 +225,7 @@ bool createACL(PSID groupSid) {
 	{
 		_tprintf(_T("SetSecurityDescriptorDacl Error %u\n"),
 			GetLastError());
-		goto Cleanup;
+		//goto Cleanup;
 	}
 
 	// Initialize a security attributes structure.
@@ -263,33 +239,33 @@ bool createACL(PSID groupSid) {
 	// Use the security attributes to set the security descriptor 
 	// when you create a desktop.
 	ACCESS_MASK desk_access_mask = DESKTOP_CREATEMENU | DESKTOP_CREATEWINDOW | DESKTOP_ENUMERATE | DESKTOP_HOOKCONTROL | DESKTOP_JOURNALPLAYBACK | DESKTOP_JOURNALRECORD | DESKTOP_READOBJECTS | DESKTOP_SWITCHDESKTOP | DESKTOP_WRITEOBJECTS | READ_CONTROL | WRITE_DAC | WRITE_OWNER;
-	newDesktop = CreateDesktop(TEXT("DesktopName"), NULL, NULL, NULL, desk_access_mask, &sa);
+	newDesktop = CreateDesktop(TEXT("SharkCageDesktop"), NULL, NULL, NULL, desk_access_mask, &sa);
+
+	printf("Desktop created");
 
 	//Switch to de new desktop.
 	SwitchDesktop(newDesktop);
-
-	//The path where is the application that we are going to start in the new desktop.
-	//LPTSTR path = _tcsdup(TEXT("C:\\Program Files (x86)\\Notepad++\\notepad++.exe"));
 
 	//We need in order to create the process.
 	PROCESS_INFORMATION processInfo;
 
 	//The desktop's name where we are going to start the application. In this case, our new desktop.
-	LPTSTR desktop = _tcsdup(TEXT("DesktopName"));
+	LPTSTR desktop = _tcsdup(TEXT("SharkCageDesktop"));
 	info.lpDesktop = desktop;
 	vec.push_back(L'\0');
 
 	//PETER´S ACCESS TOKEN THINGS
 
 
-	
-	
+
+
 
 	//Create the process.
 	if (!CreateProcess(NULL, &vec[0], NULL, NULL, TRUE, 0, NULL, NULL, &info, &processInfo)) {
 		WaitForSingleObject(processInfo.hProcess, INFINITE);
 	}
 
+	printf("Process created");
 
 	//THIS PART IS ONLY FOR TESTING PURPOSE
 	//WE HAVE TO HANDLE THE CHANGE TO THE OLD DESKTOP BY MESSAGE, WHEN THE USER CLOSE THE APPLICATION
@@ -299,8 +275,6 @@ bool createACL(PSID groupSid) {
 
 Cleanup:
 
-	//if (sid_system)
-		//FreeSid(sid_system);
 	if (sid_admin)
 		FreeSid(sid_admin);
 	if (pACL)
