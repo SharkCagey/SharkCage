@@ -22,6 +22,7 @@ PSID createSID();
 bool createACL(PSID groupSid);
 std::string onReceive(std::string message);
 bool beginsWith(const std::string string, const std::string prefix);
+BOOL IsProcessRunning(HANDLE process);
 
 NetworkManager networkMgr(MANAGER);
 
@@ -81,8 +82,8 @@ PSID createSID() {
 	);
 	/*LPTSTR StringSid;
 	ConvertSidToStringSid(
-		ppSid,
-		&StringSid
+	ppSid,
+	&StringSid
 	);
 	ppSid;
 	StringSid;*/
@@ -145,9 +146,9 @@ bool createACL(PSID groupSid) {
 
 
 	//Listen for the message
-	std::string message = networkMgr.listen();   
+	std::string message = networkMgr.listen();
 	std::string path = "";
-	path = onReceive(message);		
+	path = onReceive(message);
 	//path = "C:\\Program Files\\Notepad++\\notepad++.exe";
 	// create SID for BUILTIN\Administrators group
 	PSID sid_admin = NULL;
@@ -248,24 +249,23 @@ bool createACL(PSID groupSid) {
 
 
 	//Create the process.
-	if (!CreateProcess(NULL, &vec[0], NULL, NULL, TRUE, 0, NULL, NULL, &info, &processInfo)) {
-		WaitForSingleObject(processInfo.hProcess, INFINITE);
+	CreateProcess(NULL, &vec[0], NULL, NULL, TRUE, 0, NULL, NULL, &info, &processInfo);
+
+
+	while (IsProcessRunning(processInfo.hProcess)) {
+		//printf("PROCESS RUNNING\n");
 	}
 
-	//THIS PART IS ONLY FOR TESTING PURPOSE
-	//WE HAVE TO HANDLE THE CHANGE TO THE OLD DESKTOP BY MESSAGE, WHEN THE USER CLOSE THE APPLICATION
-	Sleep(5000);
+	//Sleep(500);
+
+	//SWITCH TO THE OLD DESKTOP. This is in order to come back to our desktop.
 	SwitchDesktop(oldDesktop);
 
-
-Cleanup:
-
-	if (sid_admin)
-		FreeSid(sid_admin);
-	if (pACL)
-		LocalFree(pACL);
-	if (pSD)
-		LocalFree(pSD);
-
 	return 0;
+}
+
+BOOL IsProcessRunning(HANDLE process)
+{
+	DWORD ret = WaitForSingleObject(process, 0);
+	return (ret == WAIT_TIMEOUT);
 }
