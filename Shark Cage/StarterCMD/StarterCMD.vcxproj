@@ -146,15 +146,11 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Cage service\MSG_Service.h" />
-    <ClInclude Include="DialogManager.h" />
     <ClInclude Include="resource.h" />
-    <ClInclude Include="SelectDialog.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="DialogManager.cpp" />
-    <ClCompile Include="SelectDialog.cpp" />
     <ClCompile Include="StarterCMD.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>

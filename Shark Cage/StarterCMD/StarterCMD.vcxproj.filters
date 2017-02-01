@@ -27,13 +27,7 @@
     <ClInclude Include="..\Cage service\MSG_Service.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="DialogManager.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="resource.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="SelectDialog.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -42,12 +36,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="StarterCMD.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="DialogManager.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="SelectDialog.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

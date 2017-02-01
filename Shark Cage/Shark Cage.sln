@@ -11,8 +11,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CageManager", "CageManager\
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "StarterCMD", "StarterCMD\StarterCMD.vcxproj", "{B0B048BC-401F-4ECE-AE4E-D1E84BD21E6B}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MFCApplication1", "MFCApplication1\MFCApplication1.vcxproj", "{9D9DA521-2B89-40D0-A0BD-CAFDD32F160F}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -53,14 +51,6 @@ Global
 		{B0B048BC-401F-4ECE-AE4E-D1E84BD21E6B}.Release|x64.Build.0 = Release|x64
 		{B0B048BC-401F-4ECE-AE4E-D1E84BD21E6B}.Release|x86.ActiveCfg = Release|Win32
 		{B0B048BC-401F-4ECE-AE4E-D1E84BD21E6B}.Release|x86.Build.0 = Release|Win32
-		{9D9DA521-2B89-40D0-A0BD-CAFDD32F160F}.Debug|x64.ActiveCfg = Debug|x64
-		{9D9DA521-2B89-40D0-A0BD-CAFDD32F160F}.Debug|x64.Build.0 = Debug|x64
-		{9D9DA521-2B89-40D0-A0BD-CAFDD32F160F}.Debug|x86.ActiveCfg = Debug|Win32
-		{9D9DA521-2B89-40D0-A0BD-CAFDD32F160F}.Debug|x86.Build.0 = Debug|Win32
-		{9D9DA521-2B89-40D0-A0BD-CAFDD32F160F}.Release|x64.ActiveCfg = Release|x64
-		{9D9DA521-2B89-40D0-A0BD-CAFDD32F160F}.Release|x64.Build.0 = Release|x64
-		{9D9DA521-2B89-40D0-A0BD-CAFDD32F160F}.Release|x86.ActiveCfg = Release|Win32
-		{9D9DA521-2B89-40D0-A0BD-CAFDD32F160F}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
