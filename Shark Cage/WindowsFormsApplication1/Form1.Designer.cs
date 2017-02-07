@@ -1,7 +1,5 @@
-﻿namespace WindowsFormsApplication1
-{
-    partial class Form1
-    {
+﻿namespace WindowsFormsApplication1 {
+    partial class Form1 {
         /// <summary>
         /// Required designer variable.
         /// </summary>
@@ -11,10 +9,8 @@
         /// Clean up any resources being used.
         /// </summary>
         /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing && (components != null))
-            {
+        protected override void Dispose(bool disposing) {
+            if (disposing && (components != null)) {
                 components.Dispose();
             }
             base.Dispose(disposing);
@@ -101,6 +97,26 @@
         private System.Windows.Forms.PictureBox pictureBox2;
         private System.Windows.Forms.PictureBox pictureBox3;
         private System.Windows.Forms.Label label1;
+
+        System.IO.StreamWriter file;
+        private void receiveClick1(object source, System.EventArgs e) {
+            string configLine = "picture: 1";
+            file.WriteLine(configLine);
+            file.Close();
+        }
+        private void receiveClick2(object source, System.EventArgs e)
+        {
+            string configLine = "picture: 2";
+            file.WriteLine(configLine);
+            file.Close();
+        }
+        private void receiveClick3(object source, System.EventArgs e)
+        {
+            string configLine = "picture: 3";
+            file.WriteLine(configLine);
+            file.Close();
+        }
     }
+
 }
 
