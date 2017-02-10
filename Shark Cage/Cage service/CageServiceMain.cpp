@@ -105,6 +105,9 @@ VOID WINAPI ServiceMain (DWORD argc, LPTSTR *argv) {
         OutputDebugString(_T("My Sample Service: ServiceMain: SetServiceStatus returned error"));
     }
 
+    cageService.readConfigFile();
+    cageService.getImageIndex();
+
     // Start a thread that will perform the main task of the service
     workerThread = CreateThread (NULL, 0, ServiceWorkerThread, NULL, 0, NULL);
 
@@ -124,8 +127,7 @@ VOID WINAPI ServiceMain (DWORD argc, LPTSTR *argv) {
     g_ServiceStatus.dwCheckPoint = 3;
 
     if (SetServiceStatus (g_StatusHandle, &g_ServiceStatus) == FALSE) {
-        OutputDebugString(_T(
-            "My Sample Service: ServiceMain: SetServiceStatus returned error"));
+        OutputDebugString(_T("My Sample Service: ServiceMain: SetServiceStatus returned error"));
     }
 
     return;
@@ -174,7 +176,7 @@ DWORD WINAPI ServiceWorkerThread(LPVOID lpParam) {
         cageService.handleMessage(msg, &networkMgr);
 
 
-        Sleep(1000); // Simulate some work by sleeping
+        Sleep(500); // Simulate some work by sleeping
     }
 
     return ERROR_SUCCESS;
