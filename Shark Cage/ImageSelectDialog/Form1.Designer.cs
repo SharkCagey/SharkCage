@@ -35,7 +35,7 @@
             // 
             // pictureBox3
             // 
-            this.pictureBox3.Image = global::WindowsFormsApplication1.Properties.Resources.icon_red;
+            this.pictureBox3.Image = global::ImageSelectDialog.Properties.Resources.icon_red;
             this.pictureBox3.Location = new System.Drawing.Point(143, 74);
             this.pictureBox3.Name = "pictureBox3";
             this.pictureBox3.Size = new System.Drawing.Size(63, 65);
@@ -44,7 +44,7 @@
             // 
             // pictureBox2
             // 
-            this.pictureBox2.Image = global::WindowsFormsApplication1.Properties.Resources.icon_green;
+            this.pictureBox2.Image = global::ImageSelectDialog.Properties.Resources.icon_green;
             this.pictureBox2.Location = new System.Drawing.Point(73, 74);
             this.pictureBox2.Name = "pictureBox2";
             this.pictureBox2.Size = new System.Drawing.Size(64, 66);
@@ -53,7 +53,7 @@
             // 
             // pictureBox1
             // 
-            this.pictureBox1.Image = global::WindowsFormsApplication1.Properties.Resources.icon_blue;
+            this.pictureBox1.Image = global::ImageSelectDialog.Properties.Resources.icon_blue;
             this.pictureBox1.Location = new System.Drawing.Point(2, 74);
             this.pictureBox1.Name = "pictureBox1";
             this.pictureBox1.Size = new System.Drawing.Size(65, 66);
@@ -100,19 +100,17 @@
 
         System.IO.StreamWriter file;
         private void receiveClick1(object source, System.EventArgs e) {
+            string configLine = "picture: 0";
+            file.WriteLine(configLine);
+            file.Close();
+        }
+        private void receiveClick2(object source, System.EventArgs e) {
             string configLine = "picture: 1";
             file.WriteLine(configLine);
             file.Close();
         }
-        private void receiveClick2(object source, System.EventArgs e)
-        {
+        private void receiveClick3(object source, System.EventArgs e) {
             string configLine = "picture: 2";
-            file.WriteLine(configLine);
-            file.Close();
-        }
-        private void receiveClick3(object source, System.EventArgs e)
-        {
-            string configLine = "picture: 3";
             file.WriteLine(configLine);
             file.Close();
         }

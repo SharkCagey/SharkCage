@@ -181,7 +181,7 @@ int CageService::getPictureIndexFromLine(std::string line) {
 int CageService::getImageIndex(void) {
     if (imageIndex < 0) {
         // Show Dialog
-        dialogProcessId = startCageManager(_tcsdup(TEXT("C:\\sharkcage\\WindowsFormsApplication1.exe")), WTSGetActiveConsoleSessionId());
+        dialogProcessId = startCageManager(_tcsdup(TEXT("C:\\sharkcage\\ImageSelectDialog.exe")), WTSGetActiveConsoleSessionId());
         // Wait for the dialog to be closed
         HANDLE dialogHandle = OpenProcess(SYNCHRONIZE, TRUE, dialogProcessId);
         WaitForSingleObject(dialogHandle, INFINITE);
