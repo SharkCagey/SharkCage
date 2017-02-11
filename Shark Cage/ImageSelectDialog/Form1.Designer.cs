@@ -80,8 +80,8 @@
             this.Controls.Add(this.pictureBox3);
             this.Controls.Add(this.pictureBox2);
             this.Controls.Add(this.pictureBox1);
-            this.Name = "Form1";
-            this.Text = "Form1";
+            this.Name = "Select Icon for Cage Manager";
+            this.Text = "Select Icon for Cage Manager";
             this.Load += new System.EventHandler(this.Form1_Load);
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox3)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).EndInit();
@@ -103,16 +103,19 @@
             string configLine = "picture: 0";
             file.WriteLine(configLine);
             file.Close();
+            System.Windows.Forms.Application.Exit();
         }
         private void receiveClick2(object source, System.EventArgs e) {
             string configLine = "picture: 1";
             file.WriteLine(configLine);
             file.Close();
+            System.Windows.Forms.Application.Exit();
         }
         private void receiveClick3(object source, System.EventArgs e) {
             string configLine = "picture: 2";
             file.WriteLine(configLine);
             file.Close();
+            System.Windows.Forms.Application.Exit();
         }
     }
 
