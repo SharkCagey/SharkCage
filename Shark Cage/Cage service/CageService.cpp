@@ -148,25 +148,20 @@ bool CageService::beginsWith(const std::string string, const std::string prefix)
         return false;
         // Throw Exception "Bad parameters: prefix longer than the actual string"
     } else {
-        if (string.compare(0, prefix.length(), prefix) == 0) {
-            return true;
-        } else {
-            return false;
-        }
+        return string.compare(0, prefix.length(), prefix) == 0;
     }
 }
 
 
 void CageService::readConfigFile() {
-    std::string configFileName = "config.txt";
+    std::string configFileName = "C:\\sharkcage\\config.txt";
     std::ifstream configStream {configFileName};
 
     std::string line;
     if (configStream.is_open()) {
         std::getline(configStream, line);
         if (beginsWith(line, "picture:")) {
-            int idx = getPictureIndexFromLine(line);
-            this->imageIndex = idx;
+            imageIndex = getPictureIndexFromLine(line);
         }
     } else {
         std::cerr << "Could not open file for reading: " << configFileName;
