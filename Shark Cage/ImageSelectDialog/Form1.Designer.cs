@@ -93,12 +93,18 @@
 
         #endregion
 
+        // Boxes for the images to be displayed in
         private System.Windows.Forms.PictureBox pictureBox1;
         private System.Windows.Forms.PictureBox pictureBox2;
         private System.Windows.Forms.PictureBox pictureBox3;
+        // Label with description what to do
         private System.Windows.Forms.Label label1;
 
+        // Unique click handlers because can not determine pictureBoxes by source
         System.IO.StreamWriter file;
+        /*
+         * Opens fileWriter and write configuration line with index.
+         */
         private void receiveClick1(object source, System.EventArgs e) {
             string configLine = "picture: 0";
             file.WriteLine(configLine);

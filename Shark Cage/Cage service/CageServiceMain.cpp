@@ -166,17 +166,12 @@ VOID WINAPI ServiceCtrlHandler (DWORD CtrlCode) {
 
 DWORD WINAPI ServiceWorkerThread(LPVOID lpParam) {
 
-    //  Periodically check if the service has been requested to stop
+    // periodically check if the service has been requested to stop
+    // But does not work properly because netwirkMgr.listen() is a blocking call.
     while (WaitForSingleObject(g_ServiceStopEvent, 0) != WAIT_OBJECT_0) {
-        /*
-        * Perform main service function here
-        */
-        // Look for messages
+        // Look for messages and parse them
         std::string msg = networkMgr.listen();
         cageService.handleMessage(msg, &networkMgr);
-
-
-        Sleep(500); // Simulate some work by sleeping
     }
 
     return ERROR_SUCCESS;

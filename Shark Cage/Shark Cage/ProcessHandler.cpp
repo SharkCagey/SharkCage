@@ -6,8 +6,7 @@
 #include "ProcessHandler.h"
 
 
-ProcessHandler::ProcessHandler()
-{
+ProcessHandler::ProcessHandler() {
 }
 
 
