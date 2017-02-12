@@ -72,7 +72,7 @@ VOID WINAPI ServiceMain (DWORD argc, LPTSTR *argv) {
     g_ServiceStatus.dwCheckPoint = 0;
 
     if (SetServiceStatus (g_StatusHandle , &g_ServiceStatus) == FALSE) {
-        OutputDebugString(_T("My Sample Service: ServiceMain: SetServiceStatus returned error"));
+        OutputDebugString(_T("Cage Service: ServiceMain: SetServiceStatus returned error"));
     }
 
     /*
@@ -90,7 +90,7 @@ VOID WINAPI ServiceMain (DWORD argc, LPTSTR *argv) {
         g_ServiceStatus.dwCheckPoint = 1;
 
         if (SetServiceStatus (g_StatusHandle, &g_ServiceStatus) == FALSE) {
-            OutputDebugString(_T("My Sample Service: ServiceMain: SetServiceStatus returned error"));
+            OutputDebugString(_T("Cage Service: ServiceMain: SetServiceStatus returned error"));
         }
         return;
     }    
@@ -102,7 +102,7 @@ VOID WINAPI ServiceMain (DWORD argc, LPTSTR *argv) {
     g_ServiceStatus.dwCheckPoint = 0;
 
     if (SetServiceStatus (g_StatusHandle, &g_ServiceStatus) == FALSE) {
-        OutputDebugString(_T("My Sample Service: ServiceMain: SetServiceStatus returned error"));
+        OutputDebugString(_T("Cage Service: ServiceMain: SetServiceStatus returned error"));
     }
 
     cageService.readConfigFile();
@@ -127,7 +127,7 @@ VOID WINAPI ServiceMain (DWORD argc, LPTSTR *argv) {
     g_ServiceStatus.dwCheckPoint = 3;
 
     if (SetServiceStatus (g_StatusHandle, &g_ServiceStatus) == FALSE) {
-        OutputDebugString(_T("My Sample Service: ServiceMain: SetServiceStatus returned error"));
+        OutputDebugString(_T("Cage Service: ServiceMain: SetServiceStatus returned error"));
     }
 
     return;
@@ -141,17 +141,14 @@ VOID WINAPI ServiceCtrlHandler (DWORD CtrlCode) {
                     break;
                 }
 
-                /* 
-                 * Perform tasks necessary to stop the service here 
-                 */
+                // Perform tasks necessary to stop the service here 
                 g_ServiceStatus.dwControlsAccepted = 0;
                 g_ServiceStatus.dwCurrentState = SERVICE_STOP_PENDING;
                 g_ServiceStatus.dwWin32ExitCode = 0;
                 g_ServiceStatus.dwCheckPoint = 4;
 
                 if (SetServiceStatus (g_StatusHandle, &g_ServiceStatus) == FALSE) {
-                    OutputDebugString(_T(
-                        "My Sample Service: ServiceCtrlHandler: SetServiceStatus returned error"));
+                    OutputDebugString(_T("Cage Service: ServiceCtrlHandler: SetServiceStatus returned error"));
                 }
 
                 // This will signal the worker thread to start shutting down
@@ -165,7 +162,6 @@ VOID WINAPI ServiceCtrlHandler (DWORD CtrlCode) {
 }
 
 DWORD WINAPI ServiceWorkerThread(LPVOID lpParam) {
-
     // periodically check if the service has been requested to stop
     // But does not work properly because netwirkMgr.listen() is a blocking call.
     while (WaitForSingleObject(g_ServiceStopEvent, 0) != WAIT_OBJECT_0) {
