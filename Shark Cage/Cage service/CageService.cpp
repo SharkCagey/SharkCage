@@ -3,11 +3,13 @@
 #include "MSG_Service.h"
 
 #include <iostream>
+#include <fstream>
 #include <tchar.h>
 
 
 CageService::CageService() {
     cageManagerProcessId = 0;
+    imageIndex = -1;
 }
 
 
@@ -151,10 +153,46 @@ bool CageService::beginsWith(const std::string string, const std::string prefix)
         return false;
         // Throw Exception "Bad parameters: prefix longer than the actual string"
     } else {
-        if (string.compare(0, prefix.length(), prefix) == 0) {
-            return true;
-        } else {
-            return false;
-        }
+        return string.compare(0, prefix.length(), prefix) == 0;
     }
+}
+
+
+void CageService::readConfigFile() {
+    std::string configFileName = "C:\\sharkcage\\config.txt";
+    std::ifstream configStream {configFileName};
+
+    std::string line;
+    if (configStream.is_open()) {
+        std::getline(configStream, line);
+        if (beginsWith(line, "picture:")) {
+            imageIndex = getPictureIndexFromLine(line);
+        }
+    } else {
+        std::cerr << "Could not open file for reading: " << configFileName;
+    }
+}
+
+int CageService::getPictureIndexFromLine(std::string line) {
+    assert(line.length() > 8);
+    
+    const int length = line.length() - 8;
+    std::string numberString = line.substr(8, length);
+
+    return std::stoi(numberString);
+}
+
+
+int CageService::getImageIndex(void) {
+    if (imageIndex < 0) {
+        // Show Dialog
+        dialogProcessId = startCageManager(_tcsdup(TEXT("C:\\sharkcage\\ImageSelectDialog.exe")), WTSGetActiveConsoleSessionId());
+        // Wait for the dialog to be closed
+        HANDLE dialogHandle = OpenProcess(SYNCHRONIZE, TRUE, dialogProcessId);
+        WaitForSingleObject(dialogHandle, INFINITE);
+
+        // Read config file
+        readConfigFile();
+    }
+    return imageIndex;
 }
