@@ -135,6 +135,8 @@ void CageService::handleMessage(std::string message, NetworkManager* mgr) {
         // Forward to cage manager
         (*mgr).send(message);
 
+        // Wait for the cageManager to close before receiving the next message
+        // This causes that only one cageManager can run a process at a time
         HANDLE cageManagerHandle = OpenProcess(SYNCHRONIZE, TRUE, cageManagerProcessId);
         WaitForSingleObject(cageManagerHandle, INFINITE);
         cageManagerProcessId = 0;
