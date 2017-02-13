@@ -23,7 +23,7 @@ Dummy project used for testing conponents. Contains no actual functionality.
 1. Build the project
 2. Create the folder C:\sharkcage and copy "Cage service.exe" and CageManager.exe to this folder.
 3. Also copy ImageSelectDialog.exe to this directory.
-4. Open a CMD a administrator and add "Cage service.exe" to the services: ```sc create "Cage Service" binPath= "C:\sharkcage\Cage service.exe"```
+4. Open a CMD a administrator and add "Cage service.exe" to the services: ```sc create "Cage Service" binPath= "C:\sharkcage\Cage service.exe" obj= "NT AUTHORITY\SYSTEM"```
 
 ## Useful Links
 Our [Jenkins Server](http://35.162.112.109:8080/)
