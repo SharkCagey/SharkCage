@@ -13,6 +13,9 @@
       <ComponentRef Id="ImageSelectDialog.exe" />
       <ComponentRef Id="StarterCMD.exe" />
 		</Feature>
+    <InstallExecuteSequence>
+      <Custom Action='RegisterService' Before='InstallFinalize'/>
+    </InstallExecuteSequence>
 	</Product>
 
 	<Fragment>
@@ -21,7 +24,7 @@
 				<Directory Id="INSTALLFOLDER" Name="CageServiceInstaller" />
 			</Directory>
 		</Directory>
-    <SetProperty Id="INSTALLFOLDER"  Value="[WindowsVolume]\sharkcage" Before="AppSearch"/>
+    <SetProperty Id="INSTALLFOLDER"  Value="[WindowsVolume]\sharkcage\" Before="AppSearch"/>
 	</Fragment>
 
 	<Fragment>
@@ -41,5 +44,6 @@
            <File Source="$(var.StarterCMD.TargetPath)" />
         </Component>
     </ComponentGroup>
+    <CustomAction Id='RegisterService' Directory='INSTALLFOLDER' Execute='deferred' Impersonate='no' ExeCommand='sc create &quot;Cage Service&quot; binPath= &quot;[INSTALLFOLDER]Cage service.exe&quot; obj= &quot;NT AUTHORITY\SYSTEM&quot;' Return='ignore'/>
 	</Fragment>
 </Wix>
