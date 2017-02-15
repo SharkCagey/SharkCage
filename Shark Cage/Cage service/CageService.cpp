@@ -176,10 +176,11 @@ void CageService::readConfigFile() {
 }
 
 int CageService::getPictureIndexFromLine(std::string line) {
-    assert(line.length() > 8);
+    const int PICTURE_LENGTH = 8;
+    assert(line.length() > PICTURE_LENGTH);
     
-    const int length = line.length() - 8;
-    std::string numberString = line.substr(8, length);
+    const int length = line.length() - PICTURE_LENGTH;
+    std::string numberString = line.substr(PICTURE_LENGTH, length);
 
     return std::stoi(numberString);
 }

@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+	<Product Id="*" Name="CageServiceInstaller" Language="1033" Version="1.0.0.0" Manufacturer="Shark Cage Team" UpgradeCode="cad9ee84-2eee-4e61-a996-ec6205feb95e">
+		<Package InstallerVersion="200" Compressed="yes" InstallScope="perMachine" />
+
+		<MajorUpgrade DowngradeErrorMessage="A newer version of Shark Cage is already installed." />
+		<MediaTemplate />
+
+		<Feature Id="ProductFeature" Title="CageServiceInstaller" Level="1">
+			<ComponentGroupRef Id="ProductComponents" />
+      <ComponentRef Id="CageService.exe" />
+      <ComponentRef Id="CageManager.exe" />
+      <ComponentRef Id="ImageSelectDialog.exe" />
+      <ComponentRef Id="StarterCMD.exe" />
+		</Feature>
+	</Product>
+
+	<Fragment>
+		<Directory Id="TARGETDIR" Name="SourceDir">
+			<Directory Id="ProgramFilesFolder">
+				<Directory Id="INSTALLFOLDER" Name="CageServiceInstaller" />
+			</Directory>
+		</Directory>
+    <SetProperty Id="INSTALLFOLDER"  Value="[WindowsVolume]\sharkcage" Before="AppSearch"/>
+	</Fragment>
+
+	<Fragment>
+		<ComponentGroup Id="ProductComponents" Directory="INSTALLFOLDER">
+			<!-- TODO: Remove the comments around this Component element and the ComponentRef below in order to add resources to this installer. -->
+        <Component Id="CageService.exe" Guid="786cdb28-8758-4db6-a028-6c9cb88257a0">
+           <File Source="$(var.Cage service.TargetPath)" />
+        </Component>
+        <Component Id="CageManager.exe" Guid="14ecc0e0-016b-4b42-b473-a1eff9787cfc">
+           <File Source="$(var.CageManager.TargetPath)" />
+        </Component>
+        <Component Id="ImageSelectDialog.exe" Guid="d3b10737-b40f-42ec-93e0-5bd15e2a8612">
+           <File Source="$(var.ImageSelectDialog.TargetPath)" />
+        </Component>
+        <Component Id="StarterCMD.exe" Guid="3d5c77c3-cb84-4648-9c3e-beb27a70d226">
+          <!-- Also create desktop shortcut -->
+           <File Source="$(var.StarterCMD.TargetPath)" />
+        </Component>
+    </ComponentGroup>
+	</Fragment>
+</Wix>
