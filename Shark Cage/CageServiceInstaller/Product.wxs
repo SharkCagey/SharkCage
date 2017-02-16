@@ -12,24 +12,31 @@
       <ComponentRef Id="CageManager.exe" />
       <ComponentRef Id="ImageSelectDialog.exe" />
       <ComponentRef Id="StarterCMD.exe" />
+      <!--<ComponentRef Id="ApplicationShortcutDesktop" />-->
 		</Feature>
     <InstallExecuteSequence>
       <Custom Action='RegisterService' Before='InstallFinalize'/>
     </InstallExecuteSequence>
 	</Product>
 
-	<Fragment>
-		<Directory Id="TARGETDIR" Name="SourceDir">
-			<Directory Id="ProgramFilesFolder">
-				<Directory Id="INSTALLFOLDER" Name="CageServiceInstaller" />
-			</Directory>
-		</Directory>
+  <Fragment>
+    <Directory Id="TARGETDIR" Name="SourceDir">
+      <Directory Id="ProgramFilesFolder">
+        <Directory Id="INSTALLFOLDER" Name="CageServiceInstaller">
+          <!--<Directory Id="DesktopFolder" Name="Desktop">
+            <Component Id="ApplicationShortcutDesktop" Guid="1b15437d-ccea-4d4d-aa23-a025a37c49e6">
+              <Shortcut Id="StarterCMDDesktopShortcut" Name="Start application in Cage Manager" Description="Start the Cage Manager and an application in the new desktop" Target="[INSTALLFOLDER]StarterCMD.exe" WorkingDirectory="INSTALLFOLDER"/>
+            </Component>
+          </Directory>-->
+        </Directory>
+      </Directory>
+    </Directory>
+    <!-- Override directory to be C:\sharkcage instead under "C:\Program Files" -->
     <SetProperty Id="INSTALLFOLDER"  Value="[WindowsVolume]\sharkcage\" Before="AppSearch"/>
-	</Fragment>
+  </Fragment>
 
 	<Fragment>
 		<ComponentGroup Id="ProductComponents" Directory="INSTALLFOLDER">
-			<!-- TODO: Remove the comments around this Component element and the ComponentRef below in order to add resources to this installer. -->
         <Component Id="CageService.exe" Guid="786cdb28-8758-4db6-a028-6c9cb88257a0">
            <File Source="$(var.Cage service.TargetPath)" />
         </Component>
@@ -40,7 +47,6 @@
            <File Source="$(var.ImageSelectDialog.TargetPath)" />
         </Component>
         <Component Id="StarterCMD.exe" Guid="3d5c77c3-cb84-4648-9c3e-beb27a70d226">
-          <!-- Also create desktop shortcut -->
            <File Source="$(var.StarterCMD.TargetPath)" />
         </Component>
     </ComponentGroup>
