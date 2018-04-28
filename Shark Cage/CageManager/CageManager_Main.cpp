@@ -1,12 +1,14 @@
 #include "stdafx.h"
-#define WIN32_LEAN_AND_MEAN
-
-#pragma warning(disable:4996)
 
 #include "../Cage service/NetworkManager.h"
 #include "../Cage service/MSG_to_manager.h"
 
 #include <Windows.h>
+#include <windowsx.h>
+#include <algorithm> 
+
+using namespace std;
+
 #include "stdio.h"
 #include "Aclapi.h"
 #include <tchar.h>
@@ -16,7 +18,11 @@
 #include <lmerr.h>
 #pragma comment(lib, "netapi32.lib")
 
+#include <objidl.h>
+#include <gdiplus.h>
 
+using namespace Gdiplus;
+#pragma comment (lib, "Gdiplus.lib")
 
 PSID createSID();
 bool createACL(PSID groupSid);
@@ -25,6 +31,11 @@ bool beginsWith(const std::string string, const std::string prefix);
 BOOL IsProcessRunning(HANDLE process);
 
 NetworkManager networkMgr(MANAGER);
+
+const LPCWSTR g_szClassName = L"myWindowClass";
+
+VOID initGdipPlisLib();
+VOID displayImageInCage();
 
 int main() {
 	PSID groupSid = createSID();
@@ -136,7 +147,6 @@ std::wstring s2ws(const std::string& s)
 	return r;
 }
 
-
 bool createACL(PSID groupSid) {
 	DWORD dwRes;
 	PACL pACL = NULL;
@@ -149,7 +159,7 @@ bool createACL(PSID groupSid) {
 	std::string message = networkMgr.listen();
 	std::string path = "";
 	path = onReceive(message);
-	//path = "C:\\Program Files\\Notepad++\\notepad++.exe";
+	path = "C:\\Program Files\\Notepad++\\notepad++.exe";
 	// create SID for BUILTIN\Administrators group
 	PSID sid_admin = NULL;
 	SID_IDENTIFIER_AUTHORITY sid_authnt = SECURITY_NT_AUTHORITY;
@@ -229,6 +239,7 @@ bool createACL(PSID groupSid) {
 	// Use the security attributes to set the security descriptor 
 	// when you create a desktop.
 	ACCESS_MASK desk_access_mask = DESKTOP_CREATEMENU | DESKTOP_CREATEWINDOW | DESKTOP_ENUMERATE | DESKTOP_HOOKCONTROL | DESKTOP_JOURNALPLAYBACK | DESKTOP_JOURNALRECORD | DESKTOP_READOBJECTS | DESKTOP_SWITCHDESKTOP | DESKTOP_WRITEOBJECTS | READ_CONTROL | WRITE_DAC | WRITE_OWNER;
+	
 	newDesktop = CreateDesktop(TEXT("SharkCageDesktop"), NULL, NULL, NULL, desk_access_mask, &sa);
 
 	//Switch to de new desktop.
@@ -244,24 +255,50 @@ bool createACL(PSID groupSid) {
 
 	//PETER´S ACCESS TOKEN THINGS
 
-
-
-
-
 	//Create the process.
 	CreateProcess(NULL, &vec[0], NULL, NULL, TRUE, 0, NULL, NULL, &info, &processInfo);
 
+	if (SetThreadDesktop(newDesktop) == false)
+	{
+		_tprintf(_T("Failed to set thread desktop to new desktop. Error %u\n"), GetLastError());
+	}
+
+	initGdipPlisLib();
+	displayImageInCage();
 
 	while (IsProcessRunning(processInfo.hProcess)) {
 		//printf("PROCESS RUNNING\n");
 	}
 
-	//Sleep(500);
-
 	//SWITCH TO THE OLD DESKTOP. This is in order to come back to our desktop.
 	SwitchDesktop(oldDesktop);
 
 	return 0;
+}
+
+VOID initGdipPlisLib()
+{
+	GdiplusStartupInput gdiplusStartupInput;
+	ULONG_PTR gdiplusToken;
+	GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL);
+}
+
+VOID displayImageInCage()
+{
+	std::wcout << L"starting display image\n" << std::endl;
+
+	HWND hwnd = FindWindow(NULL, L"Pixel In Console?"); // Get the HWND
+	HDC hdc = GetDC(hwnd); // Get the DC from that HWND
+
+	Graphics graphics(hdc);
+	Image image(L"C:\\Users\\Juli\\segeln.jpg");
+	Pen pen(Color(255, 255, 0, 0), 2);
+	graphics.DrawImage(&image, 10, 10);
+	Rect destRect(1000, 500, 1920, 1080);
+	graphics.DrawRectangle(&pen, destRect);
+	graphics.DrawImage(&image, destRect);
+
+	std::wcout << L"Finished display cage\n" << std::endl;
 }
 
 BOOL IsProcessRunning(HANDLE process)
