@@ -180,6 +180,8 @@ bool createACL(PSID groupSid) {
 
 	std::wstring widePath = s2ws(path);
 	STARTUPINFO info = { sizeof(info) };
+	info.dwFlags = STARTF_USESHOWWINDOW;
+	info.wShowWindow = SW_MAXIMIZE;
 	std::vector<wchar_t> vec(widePath.begin(), widePath.end());
 
 	// Create a new ACL that contains the new ACEs.
@@ -236,6 +238,7 @@ bool createACL(PSID groupSid) {
 
 	//We need in order to create the process.
 	PROCESS_INFORMATION processInfo;
+
 
 	//The desktop's name where we are going to start the application. In this case, our new desktop.
 	LPTSTR desktop = _tcsdup(TEXT("SharkCageDesktop"));

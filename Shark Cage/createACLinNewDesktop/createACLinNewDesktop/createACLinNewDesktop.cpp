@@ -148,6 +148,8 @@ int main()
 		//We need in order to create the process.
 		STARTUPINFO info = { sizeof(info) };
 		PROCESS_INFORMATION processInfo;
+		info.dwFlags = STARTF_USESHOWWINDOW;
+		info.wShowWindow = 3;
 
 		//The desktop's name where we are going to start the application. In this case, our new desktop.
 		LPTSTR desktop = _tcsdup(TEXT("DesktopName"));
@@ -170,7 +172,7 @@ int main()
 
 		}
 
-		Sleep(5000);
+		Sleep(5000000000);
 		//SWITCH TO THE OLD DESKTOP. This is in order to come back to our desktop.
 		SwitchDesktop(oldDesktop);
 
