@@ -32,10 +32,9 @@ BOOL IsProcessRunning(HANDLE process);
 
 NetworkManager networkMgr(MANAGER);
 
-const LPCWSTR g_szClassName = L"myWindowClass";
-
 VOID initGdipPlisLib();
-VOID displayImageInCage();
+VOID displayTokenInCageWindow(HWND *hwnd);
+int showCageWindow(LPSTARTUPINFO info);
 
 int main() {
 	PSID groupSid = createSID();
@@ -264,10 +263,13 @@ bool createACL(PSID groupSid) {
 	}
 
 	initGdipPlisLib();
-	displayImageInCage();
+	if (showCageWindow(&info) != 0)
+	{
+		std::wcout << L"Failed to show image in cage\n" << std::endl;
+	}
 
 	while (IsProcessRunning(processInfo.hProcess)) {
-		//printf("PROCESS RUNNING\n");
+		printf("PROCESS RUNNING\n");
 	}
 
 	//SWITCH TO THE OLD DESKTOP. This is in order to come back to our desktop.
@@ -276,6 +278,80 @@ bool createACL(PSID groupSid) {
 	return 0;
 }
 
+BOOL IsProcessRunning(HANDLE process)
+{
+	DWORD ret = WaitForSingleObject(process, 0);
+	return (ret == WAIT_TIMEOUT);
+}
+
+LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+{
+	/*switch (msg)
+	{
+	case WM_CLOSE:
+		DestroyWindow(hwnd);
+		break;
+	case WM_DESTROY:
+		PostQuitMessage(0);
+		break;
+	default:
+		return DefWindowProc(hwnd, msg, wParam, lParam);
+	}*/
+	return DefWindowProc(hwnd, msg, wParam, lParam);
+	//return 0;
+}
+
+int showCageWindow(LPSTARTUPINFO info)
+{
+	const wchar_t CLASS_NAME[] = L"Token window";
+
+	WNDCLASS wc = {};
+
+	wc.lpfnWndProc = WndProc;
+	wc.hInstance = NULL;
+	wc.lpszClassName = CLASS_NAME;
+
+	if (RegisterClass(&wc) == 0)
+	{
+		std::wcout << L"Registering of class for WindowToken failed\n" << std::endl;
+		return 1;
+	}
+
+	HWND hwnd = CreateWindowEx(
+		WS_EX_OVERLAPPEDWINDOW,
+		CLASS_NAME,
+		CLASS_NAME,
+		WS_OVERLAPPEDWINDOW,
+		CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
+		NULL,       // Parent window    
+		NULL,       // Menu
+		NULL,       // Instance handle
+		NULL        // Additional application data
+	); 
+
+	if (hwnd == NULL)
+	{
+		std::wcout << L"Creating Window failed\n" << std::endl;
+		return 1;
+	}
+
+	if (ShowWindow(hwnd, 5)) {
+		std::wcout << L"Show window failed\n" << std::endl;
+		return 1;
+	}
+
+	displayTokenInCageWindow(&hwnd);
+
+	if (UpdateWindow(hwnd))
+	{
+		std::wcout << L"Update window failed\n" << std::endl;
+		return 1;
+	}
+
+	return 0;
+}
+
+
 VOID initGdipPlisLib()
 {
 	GdiplusStartupInput gdiplusStartupInput;
@@ -283,26 +359,16 @@ VOID initGdipPlisLib()
 	GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL);
 }
 
-VOID displayImageInCage()
+VOID displayTokenInCageWindow(HWND *hwnd)
 {
 	std::wcout << L"starting display image\n" << std::endl;
 
-	HWND hwnd = FindWindow(NULL, L"Pixel In Console?"); // Get the HWND
-	HDC hdc = GetDC(hwnd); // Get the DC from that HWND
+	HDC hdc = GetDC(*hwnd);
 
 	Graphics graphics(hdc);
 	Image image(L"C:\\Users\\Juli\\segeln.jpg");
 	Pen pen(Color(255, 255, 0, 0), 2);
 	graphics.DrawImage(&image, 10, 10);
-	Rect destRect(1000, 500, 1920, 1080);
-	graphics.DrawRectangle(&pen, destRect);
-	graphics.DrawImage(&image, destRect);
 
 	std::wcout << L"Finished display cage\n" << std::endl;
-}
-
-BOOL IsProcessRunning(HANDLE process)
-{
-	DWORD ret = WaitForSingleObject(process, 0);
-	return (ret == WAIT_TIMEOUT);
 }
