@@ -30,8 +30,8 @@ Dummy project used for testing conponents. Contains no actual functionality.
 
 1. Build the project
 1. Create the folder `C:\sharkcage` and copy `Cage service.exe`, `CageManager.exe` and `ImageSelectDialog.exe` to this folder.
-1. Open a `CMD` a administrator and add `Cage service.exe` to the services: `sc create "Cage Service" binPath="C:\sharkcage\Cage service.exe" obj= "NT AUTHORITY\SYSTEM"`
-1. Make sure, that `Cage service` is in running state (after creating the service, the default is stopped)
+1. Open `cmd` or `powershell` as administrator and add `Cage service.exe` to the services: `sc create "Cage Service" binPath="C:\sharkcage\Cage service.exe" obj= "NT AUTHORITY\SYSTEM"`
+1. Configure and start the `Cage Service`: `sc config "Cage Service" start=auto | sc start "Cage Service"`
 
 ## Useful Links
 
