@@ -1,9 +1,14 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+# Visual Studio 15
+VisualStudioVersion = 15.0.27428.2037
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Shark Cage", "Shark Cage\Shark Cage.vcxproj", "{8493FADB-8AF1-45B6-9378-D4140C9D6820}"
+	ProjectSection(ProjectDependencies) = postProject
+		{569449B5-18D8-43F0-A6A0-7E754EFEBC25} = {569449B5-18D8-43F0-A6A0-7E754EFEBC25}
+		{B0B048BC-401F-4ECE-AE4E-D1E84BD21E6B} = {B0B048BC-401F-4ECE-AE4E-D1E84BD21E6B}
+		{335335E8-CBFA-458A-BD07-04E22CCC07F9} = {335335E8-CBFA-458A-BD07-04E22CCC07F9}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Cage service", "Cage service\Cage service.vcxproj", "{569449B5-18D8-43F0-A6A0-7E754EFEBC25}"
 EndProject
@@ -26,6 +31,7 @@ Global
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{8493FADB-8AF1-45B6-9378-D4140C9D6820}.Debug|Any CPU.ActiveCfg = Debug|Win32
+		{8493FADB-8AF1-45B6-9378-D4140C9D6820}.Debug|Any CPU.Build.0 = Debug|Win32
 		{8493FADB-8AF1-45B6-9378-D4140C9D6820}.Debug|x64.ActiveCfg = Debug|x64
 		{8493FADB-8AF1-45B6-9378-D4140C9D6820}.Debug|x64.Build.0 = Debug|x64
 		{8493FADB-8AF1-45B6-9378-D4140C9D6820}.Debug|x86.ActiveCfg = Debug|Win32
@@ -36,6 +42,7 @@ Global
 		{8493FADB-8AF1-45B6-9378-D4140C9D6820}.Release|x86.ActiveCfg = Release|Win32
 		{8493FADB-8AF1-45B6-9378-D4140C9D6820}.Release|x86.Build.0 = Release|Win32
 		{569449B5-18D8-43F0-A6A0-7E754EFEBC25}.Debug|Any CPU.ActiveCfg = Debug|Win32
+		{569449B5-18D8-43F0-A6A0-7E754EFEBC25}.Debug|Any CPU.Build.0 = Debug|Win32
 		{569449B5-18D8-43F0-A6A0-7E754EFEBC25}.Debug|x64.ActiveCfg = Debug|x64
 		{569449B5-18D8-43F0-A6A0-7E754EFEBC25}.Debug|x64.Build.0 = Debug|x64
 		{569449B5-18D8-43F0-A6A0-7E754EFEBC25}.Debug|x86.ActiveCfg = Debug|Win32
@@ -46,6 +53,7 @@ Global
 		{569449B5-18D8-43F0-A6A0-7E754EFEBC25}.Release|x86.ActiveCfg = Release|Win32
 		{569449B5-18D8-43F0-A6A0-7E754EFEBC25}.Release|x86.Build.0 = Release|Win32
 		{335335E8-CBFA-458A-BD07-04E22CCC07F9}.Debug|Any CPU.ActiveCfg = Debug|Win32
+		{335335E8-CBFA-458A-BD07-04E22CCC07F9}.Debug|Any CPU.Build.0 = Debug|Win32
 		{335335E8-CBFA-458A-BD07-04E22CCC07F9}.Debug|x64.ActiveCfg = Debug|x64
 		{335335E8-CBFA-458A-BD07-04E22CCC07F9}.Debug|x64.Build.0 = Debug|x64
 		{335335E8-CBFA-458A-BD07-04E22CCC07F9}.Debug|x86.ActiveCfg = Debug|Win32
@@ -56,6 +64,7 @@ Global
 		{335335E8-CBFA-458A-BD07-04E22CCC07F9}.Release|x86.ActiveCfg = Release|Win32
 		{335335E8-CBFA-458A-BD07-04E22CCC07F9}.Release|x86.Build.0 = Release|Win32
 		{B0B048BC-401F-4ECE-AE4E-D1E84BD21E6B}.Debug|Any CPU.ActiveCfg = Debug|Win32
+		{B0B048BC-401F-4ECE-AE4E-D1E84BD21E6B}.Debug|Any CPU.Build.0 = Debug|Win32
 		{B0B048BC-401F-4ECE-AE4E-D1E84BD21E6B}.Debug|x64.ActiveCfg = Debug|x64
 		{B0B048BC-401F-4ECE-AE4E-D1E84BD21E6B}.Debug|x64.Build.0 = Debug|x64
 		{B0B048BC-401F-4ECE-AE4E-D1E84BD21E6B}.Debug|x86.ActiveCfg = Debug|Win32
@@ -88,5 +97,8 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {B415254C-C840-4C26-B64B-5C955434AF13}
 	EndGlobalSection
 EndGlobal
