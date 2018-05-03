@@ -4,7 +4,7 @@ image: Visual Studio 2017
 
 build:
 
-  project: SharkCage/Shark Cage.sln
+  project: SharkCage/SharkCage.sln
 
   verbosity: minimal
 
