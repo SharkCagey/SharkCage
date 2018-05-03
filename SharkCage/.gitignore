@@ -6,6 +6,4 @@ Debug/
 *.VC.db
 *.VC.opendb
 *.suo
-ipch/
-*.user
-SharkCage/.vs/
+ipch
