@@ -9,9 +9,9 @@
 // 
 // in project there is a readme file explaining how to install/uninstall the service
 
-#define WIN32_LEAN_AND_MEAN
-
 #include "stdafx.h"
+
+#define WIN32_LEAN_AND_MEAN
 
 #include "NetworkManager.h"
 
