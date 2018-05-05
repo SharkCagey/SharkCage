@@ -2,12 +2,10 @@
 
 #include "../Cage service/NetworkManager.h"
 #include "../Cage service/MSG_to_manager.h"
+#include "CageDesktop.h"
+#include "CageLabeler.h"
 
 #include <Windows.h>
-#include <windowsx.h>
-#include <algorithm> 
-
-using namespace std;
 
 #include "stdio.h"
 #include "Aclapi.h"
@@ -18,12 +16,6 @@ using namespace std;
 #include <lmerr.h>
 #pragma comment(lib, "netapi32.lib")
 
-#include <objidl.h>
-#include <gdiplus.h>
-
-using namespace Gdiplus;
-#pragma comment (lib, "Gdiplus.lib")
-
 PSID createSID();
 bool createACL(PSID groupSid);
 std::string onReceive(std::string message);
@@ -31,10 +23,6 @@ bool beginsWith(const std::string string, const std::string prefix);
 BOOL IsProcessRunning(HANDLE process);
 
 NetworkManager networkMgr(MANAGER);
-
-VOID initGdipPlisLib();
-VOID displayTokenInCageWindow(HWND *hwnd);
-int showCageWindow(LPSTARTUPINFO info);
 
 int main() {
 	PSID groupSid = createSID();
@@ -158,7 +146,7 @@ bool createACL(PSID groupSid) {
 	std::string message = networkMgr.listen();
 	std::string path = "";
 	path = onReceive(message);
-	path = "C:\\Program Files\\Notepad++\\notepad++.exe";
+	//path = "C:\\Program Files\\Notepad++\\notepad++.exe";
 	// create SID for BUILTIN\Administrators group
 	PSID sid_admin = NULL;
 	SID_IDENTIFIER_AUTHORITY sid_authnt = SECURITY_NT_AUTHORITY;
@@ -227,23 +215,8 @@ bool createACL(PSID groupSid) {
 		//goto Cleanup;
 	}
 
-	// Initialize a security attributes structure.
-	sa.nLength = sizeof(SECURITY_ATTRIBUTES);
-	sa.lpSecurityDescriptor = pSD;
-	sa.bInheritHandle = FALSE;
-
-	//SAVE THE OLD DESKTOP. This is in order to come back to our desktop.
-	HDESK oldDesktop = GetThreadDesktop(GetCurrentThreadId());
-
-	// Use the security attributes to set the security descriptor 
-	// when you create a desktop.
-	ACCESS_MASK desk_access_mask = DESKTOP_CREATEMENU | DESKTOP_CREATEWINDOW | DESKTOP_ENUMERATE | DESKTOP_HOOKCONTROL | DESKTOP_JOURNALPLAYBACK | DESKTOP_JOURNALRECORD | DESKTOP_READOBJECTS | DESKTOP_SWITCHDESKTOP | DESKTOP_WRITEOBJECTS | READ_CONTROL | WRITE_DAC | WRITE_OWNER;
+	CageDesktop::CageDesktop(pSD);
 	
-	newDesktop = CreateDesktop(TEXT("SharkCageDesktop"), NULL, NULL, NULL, desk_access_mask, &sa);
-
-	//Switch to de new desktop.
-	SwitchDesktop(newDesktop);
-
 	//We need in order to create the process.
 	PROCESS_INFORMATION processInfo;
 
@@ -254,26 +227,14 @@ bool createACL(PSID groupSid) {
 
 	//PETER´S ACCESS TOKEN THINGS
 
+	CageLabeler::CageLabeler(&info);
+
 	//Create the process.
 	CreateProcess(NULL, &vec[0], NULL, NULL, TRUE, 0, NULL, NULL, &info, &processInfo);
-
-	if (SetThreadDesktop(newDesktop) == false)
-	{
-		_tprintf(_T("Failed to set thread desktop to new desktop. Error %u\n"), GetLastError());
-	}
-
-	initGdipPlisLib();
-	if (showCageWindow(&info) != 0)
-	{
-		std::wcout << L"Failed to show image in cage\n" << std::endl;
-	}
 
 	while (IsProcessRunning(processInfo.hProcess)) {
 		printf("PROCESS RUNNING\n");
 	}
-
-	//SWITCH TO THE OLD DESKTOP. This is in order to come back to our desktop.
-	SwitchDesktop(oldDesktop);
 
 	return 0;
 }
@@ -282,93 +243,4 @@ BOOL IsProcessRunning(HANDLE process)
 {
 	DWORD ret = WaitForSingleObject(process, 0);
 	return (ret == WAIT_TIMEOUT);
-}
-
-LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
-{
-	/*switch (msg)
-	{
-	case WM_CLOSE:
-		DestroyWindow(hwnd);
-		break;
-	case WM_DESTROY:
-		PostQuitMessage(0);
-		break;
-	default:
-		return DefWindowProc(hwnd, msg, wParam, lParam);
-	}*/
-	return DefWindowProc(hwnd, msg, wParam, lParam);
-	//return 0;
-}
-
-int showCageWindow(LPSTARTUPINFO info)
-{
-	const wchar_t CLASS_NAME[] = L"Token window";
-
-	WNDCLASS wc = {};
-
-	wc.lpfnWndProc = WndProc;
-	wc.hInstance = NULL;
-	wc.lpszClassName = CLASS_NAME;
-
-	if (RegisterClass(&wc) == 0)
-	{
-		std::wcout << L"Registering of class for WindowToken failed\n" << std::endl;
-		return 1;
-	}
-
-	HWND hwnd = CreateWindowEx(
-		WS_EX_OVERLAPPEDWINDOW,
-		CLASS_NAME,
-		CLASS_NAME,
-		WS_OVERLAPPEDWINDOW,
-		CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
-		NULL,       // Parent window    
-		NULL,       // Menu
-		NULL,       // Instance handle
-		NULL        // Additional application data
-	); 
-
-	if (hwnd == NULL)
-	{
-		std::wcout << L"Creating Window failed\n" << std::endl;
-		return 1;
-	}
-
-	if (ShowWindow(hwnd, 5)) {
-		std::wcout << L"Show window failed\n" << std::endl;
-		return 1;
-	}
-
-	displayTokenInCageWindow(&hwnd);
-
-	if (UpdateWindow(hwnd))
-	{
-		std::wcout << L"Update window failed\n" << std::endl;
-		return 1;
-	}
-
-	return 0;
-}
-
-
-VOID initGdipPlisLib()
-{
-	GdiplusStartupInput gdiplusStartupInput;
-	ULONG_PTR gdiplusToken;
-	GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL);
-}
-
-VOID displayTokenInCageWindow(HWND *hwnd)
-{
-	std::wcout << L"starting display image\n" << std::endl;
-
-	HDC hdc = GetDC(*hwnd);
-
-	Graphics graphics(hdc);
-	Image image(L"C:\\Users\\Juli\\segeln.jpg");
-	Pen pen(Color(255, 255, 0, 0), 2);
-	graphics.DrawImage(&image, 10, 10);
-
-	std::wcout << L"Finished display cage\n" << std::endl;
 }
