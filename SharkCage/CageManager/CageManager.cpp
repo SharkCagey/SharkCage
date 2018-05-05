@@ -17,10 +17,11 @@
 #pragma comment(lib, "netapi32.lib")
 
 
-auto sid_deleter = [&](PSID sid) { ::LocalFree(sid); };
+template<typename T>
+auto local_free_deleter = [&](T resource) { ::LocalFree(resource); };
 
-std::unique_ptr<PSID, decltype(sid_deleter)> CreateSID();
-bool CreateACL(std::unique_ptr<PSID, decltype(sid_deleter)> group_sid);
+std::unique_ptr<PSID, decltype(local_free_deleter<PSID>)> CreateSID();
+bool CreateACL(std::unique_ptr<PSID, decltype(local_free_deleter<PSID>)> group_sid);
 std::wstring OnReceive(const std::wstring &message);
 bool BeginsWith(const std::wstring &string, const std::wstring &prefix);
 
@@ -33,7 +34,7 @@ int main()
 	return CreateACL(std::move(group_sid));
 }
 
-std::unique_ptr<PSID, decltype(sid_deleter)> CreateSID()
+std::unique_ptr<PSID, decltype(local_free_deleter<PSID>)> CreateSID()
 {
 	std::wstring group_name = L"shark_cage_group";
 	LOCALGROUP_INFO_0 localgroup_info;
@@ -66,7 +67,7 @@ std::unique_ptr<PSID, decltype(sid_deleter)> CreateSID()
 	);
 
 	// Second call of the function in order to get the SID
-	std::unique_ptr<PSID, decltype(sid_deleter)> sid((PSID*)::LocalAlloc(LPTR, cb_sid), sid_deleter);
+	std::unique_ptr<PSID, decltype(local_free_deleter<PSID>)> sid((PSID*)::LocalAlloc(LPTR, cb_sid), local_free_deleter<PSID>);
 	
 	::LookupAccountName(
 		NULL,
@@ -123,7 +124,7 @@ std::wstring OnReceive(const std::wstring &message)
 	return path;
 }
 
-bool CreateACL(std::unique_ptr<PSID, decltype(sid_deleter)> group_sid)
+bool CreateACL(std::unique_ptr<PSID, decltype(local_free_deleter<PSID>)> group_sid)
 {
 	DWORD result;
 	PACL acl = NULL;
@@ -131,7 +132,7 @@ bool CreateACL(std::unique_ptr<PSID, decltype(sid_deleter)> group_sid)
 	SECURITY_ATTRIBUTES security_attributes;
 	HDESK new_desktop = NULL;
 	//Listen for the message
-	std::wstring message = network_manager.Listen();
+	std::wstring message = L"";// network_manager.Listen();
 	std::wstring path = OnReceive(message);
 
 	// create SID for BUILTIN\Administrators group
@@ -154,10 +155,11 @@ bool CreateACL(std::unique_ptr<PSID, decltype(sid_deleter)> group_sid)
 	explicit_access_group.Trustee.TrusteeForm = TRUSTEE_IS_SID;
 	explicit_access_group.Trustee.TrusteeType = TRUSTEE_IS_GROUP;
 	
-	wchar_t *group_sid_string;
-	::ConvertSidToStringSid(group_sid.get(), &group_sid_string);
-	explicit_access_group.Trustee.ptstrName = group_sid_string;
-	::LocalFree(group_sid_string);
+	wchar_t *group_sid_tmp;
+	::ConvertSidToStringSid(group_sid.get(), &group_sid_tmp);
+	std::unique_ptr<wchar_t, decltype(local_free_deleter<wchar_t*>)> group_sid_string(group_sid_tmp, local_free_deleter<wchar_t*>);
+	
+	explicit_access_group.Trustee.ptstrName = group_sid_string.get();
 
 	// EXPLICIT_ACCESS with second ACE for admin group
 	explicit_access_admin.grfAccessPermissions = GENERIC_ALL;
@@ -166,10 +168,11 @@ bool CreateACL(std::unique_ptr<PSID, decltype(sid_deleter)> group_sid)
 	explicit_access_admin.Trustee.TrusteeForm = TRUSTEE_IS_SID;
 	explicit_access_admin.Trustee.TrusteeType = TRUSTEE_IS_GROUP;
 
-	wchar_t *admin_sid_string;
-	::ConvertSidToStringSid(sid_admin, &admin_sid_string);
-	explicit_access_admin.Trustee.ptstrName = admin_sid_string;
-	::LocalFree(admin_sid_string);
+	wchar_t *admin_sid_tmp;
+	::ConvertSidToStringSid(group_sid.get(), &admin_sid_tmp);
+	std::unique_ptr<wchar_t, decltype(local_free_deleter<wchar_t*>)> admin_sid_string(admin_sid_tmp, local_free_deleter<wchar_t*>);
+
+	explicit_access_admin.Trustee.ptstrName = admin_sid_string.get();
 
 	// Create a new ACL that contains the new ACEs.
 	EXPLICIT_ACCESS ea[2] = { explicit_access_group, explicit_access_admin };
