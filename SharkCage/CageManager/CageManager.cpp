@@ -132,7 +132,7 @@ bool CreateACL(std::unique_ptr<PSID, decltype(local_free_deleter<PSID>)> group_s
 	SECURITY_ATTRIBUTES security_attributes;
 	HDESK new_desktop = NULL;
 	//Listen for the message
-	std::wstring message = L"";// network_manager.Listen();
+	std::wstring message = network_manager.Listen();
 	std::wstring path = OnReceive(message);
 
 	// create SID for BUILTIN\Administrators group
