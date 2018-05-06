@@ -1,19 +1,18 @@
 #include <Windows.h>
 #include <iostream>
-#include "FullWorkArea.h"
 
 class CageDesktop
 {
 public:
-	CageDesktop(PSECURITY_DESCRIPTOR pSD);
+	CageDesktop(PSECURITY_DESCRIPTOR pSD, HDESK *newDesktop);
 	~CageDesktop();
 private:
 	HDESK desktop;
 };
 
-CageDesktop::CageDesktop(PSECURITY_DESCRIPTOR pSD)
+CageDesktop::CageDesktop(PSECURITY_DESCRIPTOR pSD, HDESK *newDesktop)
 {
-	HDESK desktop = GetThreadDesktop(GetCurrentThreadId());
+	desktop = GetThreadDesktop(GetCurrentThreadId());
 
 	ACCESS_MASK desk_access_mask = DESKTOP_CREATEMENU
 		| DESKTOP_CREATEWINDOW
@@ -33,19 +32,17 @@ CageDesktop::CageDesktop(PSECURITY_DESCRIPTOR pSD)
 	sa.lpSecurityDescriptor = pSD;
 	sa.bInheritHandle = FALSE;
 
-	HDESK newDesktop = CreateDesktop(TEXT("SharkCageDesktop"), NULL, NULL, NULL, desk_access_mask, &sa);
+	*newDesktop = CreateDesktop(TEXT("SharkCageDesktop"), NULL, NULL, NULL, desk_access_mask, &sa);
 
-	if (SwitchDesktop(newDesktop) == 0)
+	if (SwitchDesktop(*newDesktop) == false)
 	{
 		std::cout << "Failed to switch to cage dekstop. Error " << GetLastError() << std::endl;
 	}
 
-	if (SetThreadDesktop(newDesktop) == false)
+	if (SetThreadDesktop(*newDesktop) == false)
 	{
 		std::cout << "Failed to set thread desktop to new desktop. Error " << GetLastError() << std::endl;
 	}
-
-	FullWorkArea::FullWorkArea();
 }
 
 CageDesktop::~CageDesktop()
@@ -55,7 +52,7 @@ CageDesktop::~CageDesktop()
 		std::cout << "Failed to set thread desktop back to old desktop.Error " << GetLastError() << std::endl;
 	}
 
-	if (SwitchDesktop(desktop) == 0)
+	if (SwitchDesktop(desktop) == false)
 	{
 		std::cout << "Failed to switch back to old dekstop. Error " << GetLastError() << std::endl;
 	}

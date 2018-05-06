@@ -4,6 +4,7 @@
 #include "../Cage service/MSG_to_manager.h"
 #include "CageDesktop.h"
 #include "CageLabeler.h"
+#include "FullWorkArea.h"
 
 #include <Windows.h>
 
@@ -31,7 +32,6 @@ int main() {
 }
 
 PSID createSID() {
-
 	LPWSTR  group_name = L"Shark_cage_group";
 	LOCALGROUP_INFO_0 localgroup_info;
 	LPTSTR   pUser_name = NULL;
@@ -139,8 +139,6 @@ bool createACL(PSID groupSid) {
 	PACL pACL = NULL;
 	PSECURITY_DESCRIPTOR pSD = NULL;
 	SECURITY_ATTRIBUTES sa;
-	HDESK newDesktop = NULL;
-
 
 	//Listen for the message
 	std::string message = networkMgr.listen();
@@ -215,7 +213,8 @@ bool createACL(PSID groupSid) {
 		//goto Cleanup;
 	}
 
-	CageDesktop::CageDesktop(pSD);
+	HDESK newDesktop = NULL;
+	CageDesktop cageDesktop = CageDesktop::CageDesktop(pSD, &newDesktop);
 	
 	//We need in order to create the process.
 	PROCESS_INFORMATION processInfo;
@@ -227,13 +226,17 @@ bool createACL(PSID groupSid) {
 
 	//PETER´S ACCESS TOKEN THINGS
 
-	CageLabeler::CageLabeler(&info);
+	CageLabeler cageLabeler = CageLabeler::CageLabeler(&info);
+	FullWorkArea fullWorkArea = FullWorkArea::FullWorkArea();
 
 	//Create the process.
-	CreateProcess(NULL, &vec[0], NULL, NULL, TRUE, 0, NULL, NULL, &info, &processInfo);
+	if (CreateProcess(NULL, &vec[0], NULL, NULL, TRUE, 0, NULL, NULL, &info, &processInfo) == FALSE)
+	{
+		std::cout << "Failed to start process. Err " << GetLastError() << std::endl;
+	}
 
 	while (IsProcessRunning(processInfo.hProcess)) {
-		printf("PROCESS RUNNING\n");
+		//printf("PROCESS RUNNING\n");
 	}
 
 	return 0;

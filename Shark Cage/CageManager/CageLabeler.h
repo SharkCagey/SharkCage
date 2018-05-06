@@ -10,6 +10,8 @@ using namespace std;
 using namespace Gdiplus;
 #pragma comment (lib, "Gdiplus.lib")
 
+VOID displayTokenInCageWindow(HWND *hwnd);
+
 class CageLabeler
 {
 public:
@@ -18,7 +20,6 @@ public:
 private:
 	bool CageLabeler::showCageWindow(LPSTARTUPINFO info);
 	VOID CageLabeler::initGdipPlisLib();
-	VOID displayTokenInCageWindow(HWND *hwnd);
 };
 
 CageLabeler::CageLabeler(STARTUPINFO *info)
@@ -43,6 +44,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	std::cout << msg << std::endl;
 	switch (msg)
 	{
+	case WM_CREATE:
+	{
+		break;
+	}
 	case WM_CLOSE:
 		std::cout << "Close" << std::endl;
 		DestroyWindow(hwnd);
@@ -51,15 +56,20 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		PostQuitMessage(0);
 		break;
 	case WM_PAINT:
+	{
+		displayTokenInCageWindow(&hwnd);
+
 		RECT rect;
 		GetWindowRect(hwnd, &rect);
 		ValidateRect(hwnd, &rect);
-		return 0;
+
+		break;
+	}
 	default:
 		return DefWindowProc(hwnd, msg, wParam, lParam);
 	}
 
-	return 0;
+	return EXIT_SUCCESS;
 }
 
 bool CageLabeler::showCageWindow(LPSTARTUPINFO info)
@@ -71,7 +81,7 @@ bool CageLabeler::showCageWindow(LPSTARTUPINFO info)
 	wc.hInstance = NULL;
 	wc.lpszClassName = CLASS_NAME;
 
-	if (RegisterClass(&wc) == 0)
+	if (RegisterClass(&wc) == false)
 	{
 		std::wcout << L"Registering of class for WindowToken failed\n" << std::endl;
 		return 1;
@@ -98,7 +108,7 @@ bool CageLabeler::showCageWindow(LPSTARTUPINFO info)
 	}
 
 	// Remove the window title bar
-	if (SetWindowLong(hwnd, GWL_STYLE, 0) == 0)
+	if (SetWindowLong(hwnd, GWL_STYLE, 0) == false)
 	{
 		std::wcout << L"Failed to remove the titlebar Error" << GetLastError() << std::endl;
 	}
@@ -109,28 +119,17 @@ bool CageLabeler::showCageWindow(LPSTARTUPINFO info)
 		return 1;
 	}
 
-	displayTokenInCageWindow(&hwnd);
-
 	if (UpdateWindow(hwnd))
 	{
 		std::wcout << L"Update window failed\n" << std::endl;
 		return 1;
 	}
 
-	MSG msg = {};
-	BOOL bRetVal;
-	while ((bRetVal = GetMessage(&msg, NULL, 0, 0)) != 0)
+	MSG msg = { 0 };
+	while (GetMessage(&msg, NULL, 0, 0))
 	{
-		if (bRetVal == -1)
-		{
-			std::cout << "Error encountered in message loop!" << std::endl;
-			return 1;
-		}
-		else
-		{
-			TranslateMessage(&msg);
-			DispatchMessage(&msg);
-		}
+		TranslateMessage(&msg);
+		DispatchMessage(&msg);
 	}
 
 	std::cout << "Return from token display window creation" << std::endl;
@@ -138,7 +137,7 @@ bool CageLabeler::showCageWindow(LPSTARTUPINFO info)
 }
 
 
-VOID CageLabeler::displayTokenInCageWindow(HWND *hwnd)
+VOID displayTokenInCageWindow(HWND *hwnd)
 {
 	std::wcout << L"starting display image\n" << std::endl;
 
