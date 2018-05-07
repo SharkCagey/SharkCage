@@ -11,6 +11,8 @@
 #include <string>
 #include <LMaccess.h>
 #include <lmerr.h>
+#include <memory>
+#include <vector>
 
 #include "../CageService/MsgManager.h"
 

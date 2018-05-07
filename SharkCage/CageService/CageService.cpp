@@ -3,6 +3,7 @@
 #include <iostream>
 #include <fstream>
 #include <tchar.h>
+#include <cassert>
 
 #include "CageService.h"
 #include "MsgService.h"

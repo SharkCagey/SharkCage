@@ -3,9 +3,12 @@
 #define ASIO_STANDALONE
 
 #include "asio-1.10.8\include\asio.hpp"
+#include "Windows.h"
 #include <iostream>
 #include <locale>
 #include <codecvt>
+#include <vector>
+#include <sstream>
 
 
 using namespace asio::ip;
