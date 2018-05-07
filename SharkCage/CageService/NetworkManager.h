@@ -8,6 +8,8 @@
 #include <sstream>
 #include <locale>
 #include <codecvt>
+#include <vector>
+#include <sstream>
 
 
 using namespace asio::ip;

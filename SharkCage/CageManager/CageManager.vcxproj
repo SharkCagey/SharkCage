@@ -98,6 +98,13 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <UACExecutionLevel>RequireAdministrator</UACExecutionLevel>
     </Link>
+    <PostBuildEvent>
+      <Command>xcopy /y "$(OutDir)$(TargetName).exe" "$(SolutionDir)post_build_output\"
+xcopy /y "$(OutDir)$(TargetName).pdb" "$(SolutionDir)post_build_output\"</Command>
+    </PostBuildEvent>
+    <PostBuildEvent>
+      <Message>copy-output</Message>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -114,6 +121,13 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
+    <PostBuildEvent>
+      <Command>xcopy /y "$(OutDir)$(TargetName).exe" "$(SolutionDir)post_build_output\"
+xcopy /y "$(OutDir)$(TargetName).pdb" "$(SolutionDir)post_build_output\"</Command>
+    </PostBuildEvent>
+    <PostBuildEvent>
+      <Message>copy-output</Message>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>

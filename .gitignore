@@ -10,3 +10,4 @@ Debug/
 ipch/
 *.user
 SharkCage/.vs/
+SharkCage/post_build_output
