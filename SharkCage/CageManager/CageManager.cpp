@@ -4,13 +4,10 @@
 #include "../CageService/NetworkManager.h"
 
 #include <Windows.h>
-#include "stdio.h"
 #include "Aclapi.h"
-#include <tchar.h>
 #include "sddl.h"
 #include <string>
-#include <LMaccess.h>
-#include <lmerr.h>
+#include <LM.h>
 #include <memory>
 #include <vector>
 
@@ -85,16 +82,16 @@ std::unique_ptr<PSID, decltype(local_free_deleter<PSID>)> CreateSID()
 }
 
 // FIXME: move this and other duplicate functions and their respective implementation in cage service to its own helper class or something like that
-bool BeginsWith(const std::wstring &string, const std::wstring &prefix)
+bool BeginsWith(const std::wstring &string_to_search, const std::wstring &prefix)
 {
-	if (prefix.length() > string.length())
+	if (prefix.length() > string_to_search.length())
 	{
 		return false;
 		// Throw Exception "Bad parameters: prefix longer than the actual string"
 	}
 	else
 	{
-		if (string.compare(0, prefix.length(), prefix) == 0)
+		if (string_to_search.compare(0, prefix.length(), prefix) == 0)
 		{
 			return true;
 		}

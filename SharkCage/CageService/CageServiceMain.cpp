@@ -15,10 +15,8 @@
 
 #include "NetworkManager.h"
 
-#include <iostream>
 #include <Windows.h>
-#include <fstream>
-#include <string>
+#include <vector>
 
 #include "StatusManager.h"
 #include "CageService.h"
@@ -26,9 +24,9 @@
 
 // Variables for the windows service
 const std::wstring SERVICE_NAME = L"shark_cage_service";
-SERVICE_STATUS        g_ServiceStatus = { 0 };
-SERVICE_STATUS_HANDLE g_StatusHandle = NULL;
-HANDLE                g_ServiceStopEvent = INVALID_HANDLE_VALUE;
+SERVICE_STATUS        g_service_status = { 0 };
+SERVICE_STATUS_HANDLE g_status_handle = NULL;
+HANDLE                g_service_stop_event = INVALID_HANDLE_VALUE;
 HANDLE worker_thread;
 
 // Own variables for the cage service
@@ -40,7 +38,7 @@ CageService cage_service;
 // Forward declaration of windows service functions
 VOID WINAPI ServiceMain(DWORD argc, LPTSTR *argv);
 VOID WINAPI ServiceCtrlHandler(DWORD);
-DWORD WINAPI ServiceWorkerThread(LPVOID lpParam);
+DWORD WINAPI ServiceWorkerThread(LPVOID);
 
 
 int _tmain(int argc, TCHAR *argv[])
@@ -66,22 +64,22 @@ VOID WINAPI ServiceMain(DWORD argc, LPTSTR *argv)
 	DWORD status = E_FAIL;
 
 	// Register our service control handler with the SCM
-	g_StatusHandle = ::RegisterServiceCtrlHandler(SERVICE_NAME.c_str(), ServiceCtrlHandler);
+	g_status_handle = ::RegisterServiceCtrlHandler(SERVICE_NAME.c_str(), ServiceCtrlHandler);
 
-	if (g_StatusHandle == nullptr)
+	if (g_status_handle == nullptr)
 	{
 		return;
 	}
 
 	// Tell the service controller we are starting
-	g_ServiceStatus.dwServiceType = SERVICE_WIN32_OWN_PROCESS;
-	g_ServiceStatus.dwControlsAccepted = 0;
-	g_ServiceStatus.dwCurrentState = SERVICE_START_PENDING;
-	g_ServiceStatus.dwWin32ExitCode = 0;
-	g_ServiceStatus.dwServiceSpecificExitCode = 0;
-	g_ServiceStatus.dwCheckPoint = 0;
+	g_service_status.dwServiceType = SERVICE_WIN32_OWN_PROCESS;
+	g_service_status.dwControlsAccepted = 0;
+	g_service_status.dwCurrentState = SERVICE_START_PENDING;
+	g_service_status.dwWin32ExitCode = 0;
+	g_service_status.dwServiceSpecificExitCode = 0;
+	g_service_status.dwCheckPoint = 0;
 
-	if (!::SetServiceStatus(g_StatusHandle, &g_ServiceStatus))
+	if (!::SetServiceStatus(g_status_handle, &g_service_status))
 	{
 		std::wcout << SERVICE_NAME << L": ServiceMain: SetServiceStatus returned error" << std::endl;
 	}
@@ -91,17 +89,17 @@ VOID WINAPI ServiceMain(DWORD argc, LPTSTR *argv)
 	*/
 
 	// Create a service stop event to wait on later
-	g_ServiceStopEvent = ::CreateEvent(NULL, TRUE, FALSE, NULL);
-	if (g_ServiceStopEvent == nullptr)
+	g_service_stop_event = ::CreateEvent(NULL, TRUE, FALSE, NULL);
+	if (g_service_stop_event == nullptr)
 	{
 		// Error creating event
 		// Tell service controller we are stopped and exit
-		g_ServiceStatus.dwControlsAccepted = 0;
-		g_ServiceStatus.dwCurrentState = SERVICE_STOPPED;
-		g_ServiceStatus.dwWin32ExitCode = ::GetLastError();
-		g_ServiceStatus.dwCheckPoint = 1;
+		g_service_status.dwControlsAccepted = 0;
+		g_service_status.dwCurrentState = SERVICE_STOPPED;
+		g_service_status.dwWin32ExitCode = ::GetLastError();
+		g_service_status.dwCheckPoint = 1;
 
-		if (::SetServiceStatus(g_StatusHandle, &g_ServiceStatus))
+		if (::SetServiceStatus(g_status_handle, &g_service_status))
 		{
 			std::wcout << SERVICE_NAME << L": ServiceMain: SetServiceStatus returned error" << std::endl;
 		}
@@ -109,12 +107,12 @@ VOID WINAPI ServiceMain(DWORD argc, LPTSTR *argv)
 	}
 
 	// Tell the service controller we are started
-	g_ServiceStatus.dwControlsAccepted = SERVICE_ACCEPT_STOP;
-	g_ServiceStatus.dwCurrentState = SERVICE_RUNNING;
-	g_ServiceStatus.dwWin32ExitCode = 0;
-	g_ServiceStatus.dwCheckPoint = 0;
+	g_service_status.dwControlsAccepted = SERVICE_ACCEPT_STOP;
+	g_service_status.dwCurrentState = SERVICE_RUNNING;
+	g_service_status.dwWin32ExitCode = 0;
+	g_service_status.dwCheckPoint = 0;
 
-	if (!::SetServiceStatus(g_StatusHandle, &g_ServiceStatus))
+	if (!::SetServiceStatus(g_status_handle, &g_service_status))
 	{
 		std::wcout << SERVICE_NAME << L": ServiceMain: SetServiceStatus returned error" << std::endl;
 	}
@@ -132,20 +130,18 @@ VOID WINAPI ServiceMain(DWORD argc, LPTSTR *argv)
 	/*
 	* Perform any cleanup tasks
 	*/
-	::CloseHandle(g_ServiceStopEvent);
+	::CloseHandle(g_service_stop_event);
 
 	// Tell the service controller we are stopped
-	g_ServiceStatus.dwControlsAccepted = 0;
-	g_ServiceStatus.dwCurrentState = SERVICE_STOPPED;
-	g_ServiceStatus.dwWin32ExitCode = 0;
-	g_ServiceStatus.dwCheckPoint = 3;
+	g_service_status.dwControlsAccepted = 0;
+	g_service_status.dwCurrentState = SERVICE_STOPPED;
+	g_service_status.dwWin32ExitCode = 0;
+	g_service_status.dwCheckPoint = 3;
 
-	if (!::SetServiceStatus(g_StatusHandle, &g_ServiceStatus))
+	if (!::SetServiceStatus(g_status_handle, &g_service_status))
 	{
 		std::wcout << SERVICE_NAME << L": ServiceMain: SetServiceStatus returned error" << std::endl;
 	}
-
-	return;
 }
 
 VOID WINAPI ServiceCtrlHandler(DWORD ctrl_code)
@@ -153,7 +149,7 @@ VOID WINAPI ServiceCtrlHandler(DWORD ctrl_code)
 	switch (ctrl_code)
 	{
 	case SERVICE_CONTROL_STOP:
-		if (g_ServiceStatus.dwCurrentState == SERVICE_RUNNING)
+		if (g_service_status.dwCurrentState == SERVICE_RUNNING)
 		{
 			if (cage_service.CageManagerRunning())
 			{
@@ -161,19 +157,19 @@ VOID WINAPI ServiceCtrlHandler(DWORD ctrl_code)
 			}
 
 			// Perform tasks necessary to stop the service here 
-			g_ServiceStatus.dwControlsAccepted = 0;
-			g_ServiceStatus.dwCurrentState = SERVICE_STOP_PENDING;
-			g_ServiceStatus.dwWin32ExitCode = 0;
-			g_ServiceStatus.dwCheckPoint = 4;
+			g_service_status.dwControlsAccepted = 0;
+			g_service_status.dwCurrentState = SERVICE_STOP_PENDING;
+			g_service_status.dwWin32ExitCode = 0;
+			g_service_status.dwCheckPoint = 4;
 
-			if (!::SetServiceStatus(g_StatusHandle, &g_ServiceStatus))
+			if (!::SetServiceStatus(g_status_handle, &g_service_status))
 			{
 				std::wcout << SERVICE_NAME << L": ServiceMain: ServiceCtrlHandler returned error" << std::endl;
 			}
 
 			// This will signal the worker thread to start shutting down
 			::TerminateThread(worker_thread, -1); // FIXME: Have to kill it because listen() is blocking
-			::SetEvent(g_ServiceStopEvent);
+			::SetEvent(g_service_stop_event);
 		}
 		break;
 	default:
@@ -181,11 +177,11 @@ VOID WINAPI ServiceCtrlHandler(DWORD ctrl_code)
 	}
 }
 
-DWORD WINAPI ServiceWorkerThread(LPVOID lpParam)
+DWORD WINAPI ServiceWorkerThread(LPVOID)
 {
 	// periodically check if the service has been requested to stop
 	// But does not work properly because netwirkMgr.listen() is a blocking call.
-	while (::WaitForSingleObject(g_ServiceStopEvent, 0) != WAIT_OBJECT_0)
+	while (::WaitForSingleObject(g_service_stop_event, 0) != WAIT_OBJECT_0)
 	{
 		// Look for messages and parse them
 		std::wstring msg = network_manager.Listen();

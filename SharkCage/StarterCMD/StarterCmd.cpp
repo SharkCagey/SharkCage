@@ -7,6 +7,8 @@
 
 #include <Windows.h>
 #include <Commdlg.h>
+#include <vector>
+#include <sstream>
 
 #include "../CageService/MsgService.h"
 

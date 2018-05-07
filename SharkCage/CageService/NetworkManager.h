@@ -5,6 +5,7 @@
 #include "asio-1.10.8\include\asio.hpp"
 #include "Windows.h"
 #include <iostream>
+#include <sstream>
 #include <locale>
 #include <codecvt>
 #include <vector>
@@ -143,8 +144,6 @@ private:
 		tcp::resolver resolver(io_service);
 		tcp::resolver::query query(tcp::v4(), "localhost", "1338");
 		send_endpoint = *resolver.resolve(query);
-
-		//acceptor = tcp::acceptor(ioservice, tcp::endpoint(tcp::v4(), 1337));
 
 		return true;
 	}
