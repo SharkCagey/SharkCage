@@ -1,7 +1,9 @@
 #include "stdafx.h"
 
-
 #include <fstream>
+#include <sstream>
+#include <vector>
+#include <cassert>
 
 #include "CageService.h"
 #include "MsgService.h"

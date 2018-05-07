@@ -3,7 +3,9 @@
 #define ASIO_STANDALONE
 
 #include "asio-1.10.8\include\asio.hpp"
+#include "Windows.h"
 #include <iostream>
+#include <sstream>
 #include <locale>
 #include <codecvt>
 
