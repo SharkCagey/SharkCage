@@ -1,8 +1,7 @@
 #include "stdafx.h"
 
-#include <iostream>
+
 #include <fstream>
-#include <tchar.h>
 
 #include "CageService.h"
 #include "MsgService.h"

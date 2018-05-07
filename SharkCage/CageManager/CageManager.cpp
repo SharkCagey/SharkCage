@@ -4,13 +4,12 @@
 #include "../CageService/NetworkManager.h"
 
 #include <Windows.h>
-#include "stdio.h"
 #include "Aclapi.h"
-#include <tchar.h>
 #include "sddl.h"
 #include <string>
-#include <LMaccess.h>
-#include <lmerr.h>
+#include <LM.h>
+#include <memory>
+#include <vector>
 
 #include "../CageService/MsgManager.h"
 
