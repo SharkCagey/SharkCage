@@ -201,16 +201,16 @@ void CageService::HandleMessage(const std::wstring &message, NetworkManager* mgr
 }
 
 
-bool CageService::BeginsWith(const std::wstring &string, const std::wstring &prefix)
+bool CageService::BeginsWith(const std::wstring &string_to_search, const std::wstring &prefix)
 {
-	if (prefix.length() > string.length())
+	if (prefix.length() > string_to_search.length())
 	{
 		return false;
 		// Throw Exception "Bad parameters: prefix longer than the actual string"
 	}
 	else
 	{
-		return string.compare(0, prefix.length(), prefix) == 0;
+		return string_to_search.compare(0, prefix.length(), prefix) == 0;
 	}
 }
 
