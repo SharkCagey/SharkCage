@@ -17,6 +17,9 @@
 #include <lmerr.h>
 #pragma comment(lib, "netapi32.lib")
 
+#include <future>
+#include <thread>
+
 PSID createSID();
 bool createACL(PSID groupSid);
 std::string onReceive(std::string message);
@@ -134,6 +137,17 @@ std::wstring s2ws(const std::string& s)
 	return r;
 }
 
+void runUiStuff(CageLabeler * cageLabeler, FullWorkArea * fullWorkArea, HDESK *newDesktop)
+{
+	if (SetThreadDesktop(*newDesktop) == false)
+	{
+		std::cout << "Failed to set thread desktop to new desktop. Error " << GetLastError() << std::endl;
+	}
+	*cageLabeler = CageLabeler::CageLabeler();
+	*fullWorkArea = FullWorkArea::FullWorkArea();
+	cageLabeler->Init();
+}
+
 bool createACL(PSID groupSid) {
 	DWORD dwRes;
 	PACL pACL = NULL;
@@ -174,8 +188,6 @@ bool createACL(PSID groupSid) {
 	ea[1].Trustee.ptstrName = (LPTSTR)sid_admin;
 
 	std::wstring widePath = s2ws(path);
-	STARTUPINFO info = { sizeof(info) };
-	std::vector<wchar_t> vec(widePath.begin(), widePath.end());
 
 	// Create a new ACL that contains the new ACEs.
 	dwRes = SetEntriesInAcl(2, ea, NULL, &pACL);
@@ -213,26 +225,40 @@ bool createACL(PSID groupSid) {
 		//goto Cleanup;
 	}
 
+	//auto future = std::async([&]()
+	//{ 
 	HDESK newDesktop = NULL;
 	CageDesktop cageDesktop = CageDesktop::CageDesktop(pSD, &newDesktop);
-	
-	//We need in order to create the process.
-	PROCESS_INFORMATION processInfo;
-
-	//The desktop's name where we are going to start the application. In this case, our new desktop.
-	LPTSTR desktop = _tcsdup(TEXT("SharkCageDesktop"));
-	info.lpDesktop = desktop;
-	vec.push_back(L'\0');
 
 	//PETER´S ACCESS TOKEN THINGS
 
-	CageLabeler cageLabeler = CageLabeler::CageLabeler(&info);
-	FullWorkArea fullWorkArea = FullWorkArea::FullWorkArea();
+	CageLabeler cageLabeler;
+	FullWorkArea fullWorkArea;
+	thread uiThread(runUiStuff, &cageLabeler, &fullWorkArea, &newDesktop);
+
+	std::vector<wchar_t> vec((widePath).begin(), (widePath).end());
+	vec.push_back(L'\0');
+
+	//The desktop's name where we are going to start the application. In this case, our new desktop.
+	LPTSTR desktop = _tcsdup(TEXT("SharkCageDesktop"));
+	STARTUPINFO info = { sizeof(info) };
+
+	info.lpDesktop = desktop;
 
 	//Create the process.
+	PROCESS_INFORMATION processInfo;
 	if (CreateProcess(NULL, &vec[0], NULL, NULL, TRUE, 0, NULL, NULL, &info, &processInfo) == FALSE)
 	{
 		std::cout << "Failed to start process. Err " << GetLastError() << std::endl;
+	}
+
+	uiThread.join();
+
+	//::SendMessage(nullptr /*main handle of new process*/, WM_CLOSE, NULL);
+	// with timeout, if nothing happens, terminate process
+	if (!TerminateProcess(processInfo.hProcess, 0))
+	{
+		std::cout << "Failed to terminate process Err " << GetLastError() << std::endl;
 	}
 
 	while (IsProcessRunning(processInfo.hProcess)) {

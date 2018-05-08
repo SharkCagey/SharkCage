@@ -12,20 +12,23 @@ using namespace Gdiplus;
 
 VOID displayTokenInCageWindow(HWND *hwnd);
 
+HWND gotodesk_button, hBtnParent;
+HHOOK hHook;
+
 class CageLabeler
 {
 public:
-	CageLabeler(STARTUPINFO *info);
+	CageLabeler();
 	~CageLabeler();
+	void Init();
 private:
-	bool CageLabeler::showCageWindow(LPSTARTUPINFO info);
+	bool CageLabeler::showCageWindow();
 	VOID CageLabeler::initGdipPlisLib();
 };
 
-CageLabeler::CageLabeler(STARTUPINFO *info)
+CageLabeler::CageLabeler()
 {
 	initGdipPlisLib();
-	showCageWindow(info);
 }
 
 CageLabeler::~CageLabeler()
@@ -39,17 +42,49 @@ VOID CageLabeler::initGdipPlisLib()
 	GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL);
 }
 
-LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM w_param, LPARAM l_param)
 {
 	std::cout << msg << std::endl;
 	switch (msg)
 	{
 	case WM_CREATE:
 	{
+		hBtnParent = hwnd;
+		gotodesk_button = CreateWindowEx(
+			NULL,
+			L"BUTTON",
+			L"OK",
+			WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
+			10,
+			10,
+			100,
+			100,
+			hwnd,
+			NULL,
+			(HINSTANCE)GetWindowLong(hwnd, GWL_HINSTANCE),
+			NULL);
+
+		if (gotodesk_button != NULL)
+		{
+			SendMessage(gotodesk_button, BM_SETIMAGE, NULL, NULL);
+		}
+		else
+		{
+			std::wcout << L"Failed to create logout button Err " << GetLastError() << std::endl;
+		}
 		break;
 	}
+	case WM_COMMAND:
+	{
+		if (l_param == (LPARAM)gotodesk_button) {
+			// Close token
+		}
+		else {
+			break;
+		}
+	}
 	case WM_CLOSE:
-		std::cout << "Close" << std::endl;
+		std::cout << "Close window" << std::endl;
 		DestroyWindow(hwnd);
 		break;
 	case WM_DESTROY:
@@ -58,21 +93,15 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	case WM_PAINT:
 	{
 		displayTokenInCageWindow(&hwnd);
-
-		RECT rect;
-		GetWindowRect(hwnd, &rect);
-		ValidateRect(hwnd, &rect);
-
-		break;
 	}
 	default:
-		return DefWindowProc(hwnd, msg, wParam, lParam);
+		return DefWindowProc(hwnd, msg, w_param, l_param);
 	}
 
 	return EXIT_SUCCESS;
 }
 
-bool CageLabeler::showCageWindow(LPSTARTUPINFO info)
+bool CageLabeler::showCageWindow()
 {
 	const wchar_t CLASS_NAME[] = L"Token window";
 
@@ -83,14 +112,14 @@ bool CageLabeler::showCageWindow(LPSTARTUPINFO info)
 
 	if (RegisterClass(&wc) == false)
 	{
-		std::wcout << L"Registering of class for WindowToken failed\n" << std::endl;
-		return 1;
+		std::wcout << L"Registering of class for WindowToken failed" << std::endl;
+		return false;
 	}
 
 	HWND hwnd = CreateWindowEx(
 		WS_EX_LEFT | WS_EX_TOPMOST,
 		CLASS_NAME,
-		NULL,
+		L"",
 		(WS_POPUPWINDOW | WS_THICKFRAME | WS_VISIBLE | WS_CLIPCHILDREN),
 		CW_USEDEFAULT,
 		CW_USEDEFAULT,
@@ -104,7 +133,7 @@ bool CageLabeler::showCageWindow(LPSTARTUPINFO info)
 	if (hwnd == NULL)
 	{
 		std::wcout << L"Creating Window failed\n" << std::endl;
-		return 1;
+		return false;
 	}
 
 	// Remove the window title bar
@@ -116,24 +145,27 @@ bool CageLabeler::showCageWindow(LPSTARTUPINFO info)
 	if (ShowWindow(hwnd, SW_SHOW))
 	{
 		std::wcout << L"Show window failed\n" << std::endl;
-		return 1;
-	}
-
-	if (UpdateWindow(hwnd))
-	{
-		std::wcout << L"Update window failed\n" << std::endl;
-		return 1;
+		return false;
 	}
 
 	MSG msg = { 0 };
-	while (GetMessage(&msg, NULL, 0, 0))
+
+	while (GetMessage(&msg, NULL, 0, 0) > 0)
 	{
 		TranslateMessage(&msg);
 		DispatchMessage(&msg);
 	}
 
 	std::cout << "Return from token display window creation" << std::endl;
-	return 0;
+	return true;
+}
+
+void CageLabeler::Init()
+{
+	if (!showCageWindow())
+	{
+		std::cout << "Failed to show cage window" << std::endl;
+	}
 }
 
 
