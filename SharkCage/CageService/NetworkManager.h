@@ -2,7 +2,7 @@
 
 #define ASIO_STANDALONE
 
-#include "asio-1.10.8\include\asio.hpp"
+#include "asio-1.12.1\include\asio.hpp"
 #include "Windows.h"
 #include <iostream>
 #include <sstream>
