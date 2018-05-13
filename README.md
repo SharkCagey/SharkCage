@@ -3,36 +3,32 @@
 [![Build status](https://ci.appveyor.com/api/projects/status/jxhrl395fvtjhwc6?svg=true)](https://ci.appveyor.com/project/SharkCagey/htwg-shark-cage)
 
 This project contains windows programs to isolate a program in an own desktop to prevent malware (without OS privileges) to capture user input or sreenshots.
-It consists of 5 sub-programs: The `Cage Service`, `Cage Manager`, `StarterCMD`, `ImageSelectDialog` and a project for testing. The 3 actual parts (Service, Manager and StarterCMD) communicate over a TCP connection to interchange messages.
+It consists of 4 sub-programs: The `CageService`, `CageManager`, `StarterCmd`, and `ImageSelectDialog`. The 3 actual parts (Service, Manager and StarterCmd) communicate over a TCP connection to interchange messages.
 
 ## Components
 
-### Cage Service
+### CageService
 
-The `Cage Service` implements a Windows service running the background. It receives messages from the UI and sends messages to the `Cage Manager`.
+The `CageService` implements a Windows service running the background. It receives messages from the UI and sends messages to the `CageManager`.
 
-### Cage Manager
+### CageManager
 
-The `Cage Manager` creates a new desktop and processes in it, according to the messages received by the `Cage Service`.
+The `CageManager` creates a new desktop and processes in it, according to the messages received by the `CageService`.
 
-### StarterCMD
+### StarterCmd
 
-A user interface for starting the `Cage Manager` and an application in it. Directly communicating with the `Cage Service`.
+A user interface for starting the `CageManager` and an application in it. Directly communicating with the `CageService`.
 
 ### ImageSelectDialog
 
-A user interface to select an icon to be displayed on the user's desktop. `config.txt` will be created in `C:\sharkcage` with a line containing `picture: ` followed by the index of the icon. The `Cage Service` reads this configuration file and searches for that line and opens the dialog if the file contains no such line.
-
-### Shark Cage
-
-Dummy project used for testing conponents. Contains no actual functionality.
+A user interface to select an icon to be displayed on the user's desktop. `config.txt` will be created in `C:\sharkcage` with a line containing `picture: ` followed by the index of the icon. The `CageService` reads this configuration file and searches for that line and opens the dialog if the file contains no such line.
 
 ## Installation
 
 1. Build the project
-1. Create the folder `C:\sharkcage` and copy `Cage service.exe`, `CageManager.exe` and `ImageSelectDialog.exe` to this folder.
-1. Open `cmd` or `powershell` as administrator and add `Cage service.exe` to the services: `sc create "Cage Service" binPath="C:\sharkcage\Cage service.exe" obj= "NT AUTHORITY\SYSTEM"`
-1. Configure and start the `Cage Service`: `sc config "Cage Service" start=auto | sc start "Cage Service"`
+1. Create the folder `C:\sharkcage` and copy `CageService.exe`, `CageManager.exe` and `ImageSelectDialog.exe` to this folder.
+1. Open `cmd` or `powershell` as administrator and add `CageService.exe` to the services: `sc create "shark-cage-service" binPath="C:\sharkcage\CageService.exe" obj= "NT AUTHORITY\SYSTEM"`
+1. Configure and start the `CageService`: `sc config "shark-cage-service" start=auto | sc start "shark-cage-service"`
 
 ## Useful Links
 

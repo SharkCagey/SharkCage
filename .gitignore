@@ -6,6 +6,8 @@ Debug/
 *.VC.db
 *.VC.opendb
 *.suo
+*.aps
 ipch/
 *.user
-Shark Cage/.vs/
+SharkCage/.vs/
+SharkCage/post_build_output
