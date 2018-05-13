@@ -129,15 +129,16 @@ std::wstring OnReceive(const std::wstring &message)
 	return path;
 }
 
-void runUiStuff(CageLabeler * cageLabeler, FullWorkArea * fullWorkArea, HDESK *newDesktop)
+void RunUiStuff(CageLabeler * cage_labeler, FullWorkArea * full_work_area, HDESK *new_desktop)
 {
-	if (SetThreadDesktop(*newDesktop) == false)
+	if (SetThreadDesktop(*new_desktop) == false)
 	{
 		std::cout << "Failed to set thread desktop to new desktop. Error " << GetLastError() << std::endl;
 	}
-	*cageLabeler = CageLabeler::CageLabeler();
-	*fullWorkArea = FullWorkArea::FullWorkArea();
-	cageLabeler->Init();
+	*full_work_area = FullWorkArea::FullWorkArea();
+	*cage_labeler = CageLabeler::CageLabeler();
+	full_work_area->Init();
+	cage_labeler->Init();
 }
 
 bool CreateACL(std::unique_ptr<PSID, decltype(local_free_deleter<PSID>)> group_sid)
@@ -146,7 +147,6 @@ bool CreateACL(std::unique_ptr<PSID, decltype(local_free_deleter<PSID>)> group_s
 	PACL acl = NULL;
 	PSECURITY_DESCRIPTOR security_descriptor = NULL;
 	SECURITY_ATTRIBUTES security_attributes;
-	HDESK new_desktop = NULL;
 	//Listen for the message
 	std::wstring message = network_manager.Listen();
 	std::wstring path = OnReceive(message);
@@ -224,14 +224,18 @@ bool CreateACL(std::unique_ptr<PSID, decltype(local_free_deleter<PSID>)> group_s
 	security_attributes.lpSecurityDescriptor = security_descriptor;
 	security_attributes.bInheritHandle = FALSE;
 
-	HDESK newDesktop = NULL;
-	//CageDesktop cageDesktop = CageDesktop::CageDesktop(security_descriptor, &newDesktop);
+	HDESK new_desktop;
+	CageDesktop cage_desktop = CageDesktop::CageDesktop(security_descriptor, &new_desktop);
+	if (!cage_desktop.Init(&new_desktop))
+	{
+		// Error handling and lala
+	}
 
 	//PETER´S ACCESS TOKEN THINGS
 
-	CageLabeler cageLabeler;
-	FullWorkArea fullWorkArea;
-	thread ui_thread(runUiStuff, &cageLabeler, &fullWorkArea, &newDesktop);
+	CageLabeler cage_labeler;
+	FullWorkArea full_work_area;
+	thread ui_thread(RunUiStuff, &cage_labeler, &full_work_area, &new_desktop);
 
 	// We need in order to create the process.
 	STARTUPINFO info = { 0 };
@@ -248,8 +252,7 @@ bool CreateACL(std::unique_ptr<PSID, decltype(local_free_deleter<PSID>)> group_s
 	PROCESS_INFORMATION process_info = { 0 };
 	std::vector<wchar_t> path_buf(path.begin(), path.end());
 	path_buf.push_back(0);
-	//if (::CreateProcess(NULL, path_buf.data(), NULL, NULL, TRUE, 0, NULL, NULL, &info, &process_info))
-	if (::CreateProcess(NULL, path_buf.data(), NULL, NULL, TRUE, 0, NULL, NULL, NULL, NULL))
+	if (::CreateProcess(NULL, path_buf.data(), NULL, NULL, TRUE, 0, NULL, NULL, &info, &process_info))
 	{
 		std::cout << "Failed to start process. Err " << GetLastError() << std::endl;
 	}

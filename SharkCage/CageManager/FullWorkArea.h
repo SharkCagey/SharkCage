@@ -6,6 +6,7 @@ class FullWorkArea
 public:
 	FullWorkArea();
 	~FullWorkArea();
+	bool Init();
 private:
 	RECT rect;
 	int getBottomFromMonitor();
@@ -13,14 +14,20 @@ private:
 
 
 FullWorkArea::FullWorkArea()
+{	
+}
+
+
+bool FullWorkArea::Init()
 {
 	if (SystemParametersInfo(SPI_GETWORKAREA, 0, &rect, 0) == false)
 	{
 		std::cout << "Failed to access work area. Error " << GetLastError() << std::endl;
+		return false;
 	}
 
 	int bottom;
-	if ((bottom = getBottomFromMonitor()) > 0) 
+	if ((bottom = getBottomFromMonitor()) > 0)
 	{
 		RECT cage_rect;
 		cage_rect.left = 500;
@@ -33,12 +40,16 @@ FullWorkArea::FullWorkArea()
 		if (SystemParametersInfo(SPI_SETWORKAREA, 0, &cage_rect, SPIF_UPDATEINIFILE) == false)
 		{
 			std::cout << "Failed to  work area. Error " << GetLastError() << std::endl;
+			return false;
 		}
 	}
 	else
 	{
 		std::cout << "Failed to set working area" << std::endl;
+		return false;
 	}
+
+	return true;
 }
 
 FullWorkArea::~FullWorkArea()

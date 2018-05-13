@@ -20,7 +20,7 @@ class CageLabeler
 public:
 	CageLabeler();
 	~CageLabeler();
-	void Init();
+	bool Init();
 private:
 	bool CageLabeler::showCageWindow();
 	VOID CageLabeler::initGdipPlisLib();
@@ -160,12 +160,14 @@ bool CageLabeler::showCageWindow()
 	return true;
 }
 
-void CageLabeler::Init()
+bool CageLabeler::Init()
 {
 	if (!showCageWindow())
 	{
 		std::cout << "Failed to show cage window" << std::endl;
+		return false;
 	}
+	return true;
 }
 
 

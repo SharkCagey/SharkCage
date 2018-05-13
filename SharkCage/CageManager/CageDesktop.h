@@ -6,13 +6,14 @@ class CageDesktop
 public:
 	CageDesktop(PSECURITY_DESCRIPTOR pSD, HDESK *newDesktop);
 	~CageDesktop();
+	BOOL Init(HDESK *newDesktop);
 private:
-	HDESK desktop;
+	HDESK old_desktop;
 };
 
-CageDesktop::CageDesktop(PSECURITY_DESCRIPTOR pSD, HDESK *newDesktop)
+CageDesktop::CageDesktop(PSECURITY_DESCRIPTOR pSD, HDESK *new_desktop)
 {
-	desktop = GetThreadDesktop(GetCurrentThreadId());
+	old_desktop = GetThreadDesktop(GetCurrentThreadId());
 
 	ACCESS_MASK desk_access_mask = DESKTOP_CREATEMENU
 		| DESKTOP_CREATEWINDOW
@@ -32,28 +33,35 @@ CageDesktop::CageDesktop(PSECURITY_DESCRIPTOR pSD, HDESK *newDesktop)
 	sa.lpSecurityDescriptor = pSD;
 	sa.bInheritHandle = FALSE;
 
-	*newDesktop = CreateDesktop(TEXT("SharkCageDesktop"), NULL, NULL, NULL, desk_access_mask, &sa);
-
-	if (SwitchDesktop(*newDesktop) == false)
-	{
-		std::cout << "Failed to switch to cage dekstop. Error " << GetLastError() << std::endl;
-	}
-
-	if (SetThreadDesktop(*newDesktop) == false)
-	{
-		std::cout << "Failed to set thread desktop to new desktop. Error " << GetLastError() << std::endl;
-	}
+	*new_desktop = CreateDesktop(TEXT("shark_cage_desktop"), NULL, NULL, NULL, desk_access_mask, &sa);
 }
 
 CageDesktop::~CageDesktop()
 {
-	if (SetThreadDesktop(desktop) == false)
+	if (SetThreadDesktop(old_desktop) == false)
 	{
 		std::cout << "Failed to set thread desktop back to old desktop.Error " << GetLastError() << std::endl;
 	}
 
-	if (SwitchDesktop(desktop) == false)
+	if (SwitchDesktop(old_desktop) == false)
 	{
 		std::cout << "Failed to switch back to old dekstop. Error " << GetLastError() << std::endl;
 	}
+}
+
+
+BOOL CageDesktop::Init(HDESK *new_desktop)
+{
+	if (SwitchDesktop(*new_desktop) == false)
+	{
+		std::cout << "Failed to switch to cage dekstop. Error " << GetLastError() << std::endl;
+		return false;
+	}
+
+	if (SetThreadDesktop(*new_desktop) == false)
+	{
+		std::cout << "Failed to set thread desktop to new desktop. Error " << GetLastError() << std::endl;
+		return false;
+	}
+	return true;
 }
