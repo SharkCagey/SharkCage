@@ -10,6 +10,7 @@ if (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdenti
 else
 {
     $sourceDir = Split-Path -Path $PSScriptRoot -Parent;
+    Write-Host $sourceDir;
     $serviceName = "shark-cage-service";
     $defaultCopyPath = "C:\sharkcage\";
 
@@ -61,12 +62,6 @@ else
         Write-Host $_.Exception.Message;
         Read-Host -Prompt "Press any key to exit...";
         exit;
-    }
-    
-    $startCmd = Read-Host -Prompt "Would you like to open the 'StarterCmd' program now? [y | yes]";
-    if ($startCmd -eq "y" -or $startCmd -eq "yes")
-    {
-        Start-Process "$copyPath\StarterCmd.exe";
     }
     
     exit;

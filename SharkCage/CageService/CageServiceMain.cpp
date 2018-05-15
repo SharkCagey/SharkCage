@@ -13,14 +13,11 @@
 
 #define WIN32_LEAN_AND_MEAN
 
-#include "NetworkManager.h"
-
 #include <Windows.h>
 #include <vector>
 
 #include "StatusManager.h"
 #include "CageService.h"
-
 
 // Variables for the windows service
 const std::wstring SERVICE_NAME = L"shark_cage_service";
@@ -122,6 +119,12 @@ VOID WINAPI ServiceMain(DWORD argc, LPTSTR *argv)
 
 	// Start a thread that will perform the main task of the service
 	worker_thread = ::CreateThread(NULL, 0, ServiceWorkerThread, NULL, 0, NULL);
+
+	if (worker_thread == nullptr)
+	{
+		std::wcout << SERVICE_NAME << L": ServiceMain: Could not create worker thread" << std::endl;
+		return;
+	}
 
 	// Wait until our worker thread exits signaling that the service needs to stop
 	::WaitForSingleObject(worker_thread, INFINITE);

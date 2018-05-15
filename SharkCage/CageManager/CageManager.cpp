@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #define WIN32_LEAN_AND_MEAN
 
-#include "../CageService/NetworkManager.h"
+#include "../CageNetwork/NetworkManager.h"
 
 #include <Windows.h>
 #include "Aclapi.h"
@@ -11,7 +11,7 @@
 #include <memory>
 #include <vector>
 
-#include "../CageService/MsgManager.h"
+#include "../CageNetwork/MsgManager.h"
 
 #pragma comment(lib, "netapi32.lib")
 
@@ -30,7 +30,7 @@ NetworkManager network_manager(ExecutableType::MANAGER);
 int main()
 {
 	auto group_sid = CreateSID();
-	return CreateACL(std::move(group_sid));
+	return CreateACL(std::move(group_sid)) ? 0 : 1;
 }
 
 std::unique_ptr<PSID, decltype(local_free_deleter<PSID>)> CreateSID()
@@ -186,6 +186,7 @@ bool CreateACL(std::unique_ptr<PSID, decltype(local_free_deleter<PSID>)> group_s
 	if (security_descriptor == nullptr)
 	{
 		std::cout << "LocalAlloc Error: " << ::GetLastError() << std::endl;
+		return false;
 	}
 
 	if (!::InitializeSecurityDescriptor(security_descriptor, SECURITY_DESCRIPTOR_REVISION))
@@ -246,5 +247,5 @@ bool CreateACL(std::unique_ptr<PSID, decltype(local_free_deleter<PSID>)> group_s
 	// SWITCH TO THE OLD DESKTOP. This is in order to come back to our desktop.
 	::SwitchDesktop(old_desktop);
 
-	return 0;
+	return true;
 }

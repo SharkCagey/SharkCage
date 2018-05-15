@@ -6,12 +6,13 @@
 #include <cassert>
 
 #include "CageService.h"
-#include "MsgService.h"
+#include "../CageNetwork/MsgService.h"
 
-CageService::CageService()
+CageService::CageService() noexcept
+	: cage_manager_process_id(0)
+	, image_index(-1)
+	, dialog_process_id(0)
 {
-	cage_manager_process_id = 0;
-	image_index = -1;
 }
 
 bool CageService::CageManagerRunning()
