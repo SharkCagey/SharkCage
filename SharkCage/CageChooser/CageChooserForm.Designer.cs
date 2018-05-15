@@ -41,7 +41,7 @@
             // secureSecondaryApplicationLabel
             // 
             this.secureSecondaryApplicationLabel.AutoSize = true;
-            this.secureSecondaryApplicationLabel.Location = new System.Drawing.Point(16, 79);
+            this.secureSecondaryApplicationLabel.Location = new System.Drawing.Point(13, 79);
             this.secureSecondaryApplicationLabel.Name = "secureSecondaryApplicationLabel";
             this.secureSecondaryApplicationLabel.Size = new System.Drawing.Size(239, 13);
             this.secureSecondaryApplicationLabel.TabIndex = 1;
@@ -82,7 +82,7 @@
             // configChooseLabel
             // 
             this.configChooseLabel.AutoSize = true;
-            this.configChooseLabel.Location = new System.Drawing.Point(16, 16);
+            this.configChooseLabel.Location = new System.Drawing.Point(13, 16);
             this.configChooseLabel.Name = "configChooseLabel";
             this.configChooseLabel.Size = new System.Drawing.Size(137, 13);
             this.configChooseLabel.TabIndex = 6;
