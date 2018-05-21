@@ -129,7 +129,7 @@ std::wstring OnReceive(const std::wstring &message)
 	return path;
 }
 
-void RunUiStuff(CageLabeler * cage_labeler, FullWorkArea * full_work_area, HDESK *new_desktop)
+void LabelCage(CageLabeler * cage_labeler, FullWorkArea * full_work_area, HDESK *new_desktop)
 {
 	if (SetThreadDesktop(*new_desktop) == false)
 	{
@@ -228,14 +228,15 @@ bool CreateACL(std::unique_ptr<PSID, decltype(local_free_deleter<PSID>)> group_s
 	CageDesktop cage_desktop = CageDesktop::CageDesktop(security_descriptor, &new_desktop);
 	if (!cage_desktop.Init(&new_desktop))
 	{
-		// Error handling and lala
+		std::cout << "Failed to create/launch the cage desktop" << std::endl;
+		return 1;
 	}
 
 	//PETER´S ACCESS TOKEN THINGS
 
 	CageLabeler cage_labeler;
 	FullWorkArea full_work_area;
-	thread ui_thread(RunUiStuff, &cage_labeler, &full_work_area, &new_desktop);
+	thread ui_thread(LabelCage, &cage_labeler, &full_work_area, &new_desktop);
 
 	// We need in order to create the process.
 	STARTUPINFO info = { 0 };
