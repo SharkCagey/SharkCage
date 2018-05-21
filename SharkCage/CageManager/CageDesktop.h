@@ -4,14 +4,14 @@
 class CageDesktop
 {
 public:
-	CageDesktop(PSECURITY_DESCRIPTOR pSD, HDESK *newDesktop);
+	CageDesktop(PSECURITY_DESCRIPTOR p_sd, HDESK *new_desktop);
 	~CageDesktop();
-	BOOL Init(HDESK *newDesktop);
+	BOOL Init(HDESK *new_desktop);
 private:
 	HDESK old_desktop;
 };
 
-CageDesktop::CageDesktop(PSECURITY_DESCRIPTOR pSD, HDESK *new_desktop)
+CageDesktop::CageDesktop(PSECURITY_DESCRIPTOR p_sd, HDESK *new_desktop)
 {
 	old_desktop = GetThreadDesktop(GetCurrentThreadId());
 
@@ -30,7 +30,7 @@ CageDesktop::CageDesktop(PSECURITY_DESCRIPTOR pSD, HDESK *new_desktop)
 
 	SECURITY_ATTRIBUTES sa;
 	sa.nLength = sizeof(SECURITY_ATTRIBUTES);
-	sa.lpSecurityDescriptor = pSD;
+	sa.lpSecurityDescriptor = p_sd;
 	sa.bInheritHandle = FALSE;
 
 	*new_desktop = CreateDesktop(TEXT("shark_cage_desktop"), NULL, NULL, NULL, desk_access_mask, &sa);

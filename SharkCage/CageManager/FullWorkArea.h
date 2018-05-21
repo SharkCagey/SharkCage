@@ -9,7 +9,7 @@ public:
 	bool Init();
 private:
 	RECT rect;
-	int getBottomFromMonitor();
+	int GetBottomFromMonitor();
 };
 
 
@@ -27,7 +27,7 @@ bool FullWorkArea::Init()
 	}
 
 	int bottom;
-	if ((bottom = getBottomFromMonitor()) > 0)
+	if ((bottom = GetBottomFromMonitor()) > 0)
 	{
 		RECT cage_rect;
 		cage_rect.left = 500;
@@ -60,7 +60,7 @@ FullWorkArea::~FullWorkArea()
 	}
 }
 
-int FullWorkArea::getBottomFromMonitor()
+int FullWorkArea::GetBottomFromMonitor()
 {
 	HMONITOR monitor = MonitorFromWindow(NULL, MONITOR_DEFAULTTONEAREST);
 	if (monitor == NULL)
@@ -69,14 +69,14 @@ int FullWorkArea::getBottomFromMonitor()
 		return -1;
 	}
 
-	MONITORINFO monitorInfo;
-	monitorInfo.cbSize = sizeof(monitorInfo);
+	MONITORINFO monitor_info;
+	monitor_info.cbSize = sizeof(monitor_info);
 
-	if (GetMonitorInfo(monitor, &monitorInfo) == false)
+	if (GetMonitorInfo(monitor, &monitor_info) == false)
 	{
 		std::cout << "Failed to GetMonitorInfo. Error " << GetLastError() << std::endl;
 		return -1;
 	}
 
-	return monitorInfo.rcMonitor.bottom;
+	return monitor_info.rcMonitor.bottom;
 }

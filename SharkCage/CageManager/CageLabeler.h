@@ -10,9 +10,10 @@ using namespace std;
 using namespace Gdiplus;
 #pragma comment (lib, "Gdiplus.lib")
 
-VOID displayTokenInCageWindow(HWND *hwnd);
+VOID DisplayTokenInCageWindow(HWND *hwnd);
+int GetBottomFromMonitor();
 
-HWND gotodesk_button, hBtnParent;
+HWND gotodesk_button;
 HHOOK hHook;
 
 class CageLabeler
@@ -22,20 +23,20 @@ public:
 	~CageLabeler();
 	bool Init();
 private:
-	bool CageLabeler::showCageWindow();
-	VOID CageLabeler::initGdipPlisLib();
+	bool CageLabeler::ShowCageWindow();
+	VOID CageLabeler::InitGdipPlisLib();
 };
 
 CageLabeler::CageLabeler()
 {
-	initGdipPlisLib();
+	InitGdipPlisLib();
 }
 
 CageLabeler::~CageLabeler()
 {
 }
 
-VOID CageLabeler::initGdipPlisLib()
+VOID CageLabeler::InitGdipPlisLib()
 {
 	GdiplusStartupInput gdiplusStartupInput;
 	ULONG_PTR gdiplusToken;
@@ -49,14 +50,13 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM w_param, LPARAM l_param)
 	{
 	case WM_CREATE:
 	{
-		hBtnParent = hwnd;
 		gotodesk_button = CreateWindowEx(
 			NULL,
 			L"BUTTON",
-			L"OK",
+			L"Exit",
 			WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
 			10,
-			10,
+			900,
 			100,
 			100,
 			hwnd,
@@ -92,7 +92,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM w_param, LPARAM l_param)
 		break;
 	case WM_PAINT:
 	{
-		displayTokenInCageWindow(&hwnd);
+		DisplayTokenInCageWindow(&hwnd);
 	}
 	default:
 		return DefWindowProc(hwnd, msg, w_param, l_param);
@@ -101,7 +101,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM w_param, LPARAM l_param)
 	return EXIT_SUCCESS;
 }
 
-bool CageLabeler::showCageWindow()
+bool CageLabeler::ShowCageWindow()
 {
 	const wchar_t CLASS_NAME[] = L"Token window";
 
@@ -124,7 +124,7 @@ bool CageLabeler::showCageWindow()
 		CW_USEDEFAULT,
 		CW_USEDEFAULT,
 		500,
-		500,
+		GetBottomFromMonitor(),
 		NULL,
 		NULL,
 		NULL,
@@ -162,7 +162,7 @@ bool CageLabeler::showCageWindow()
 
 bool CageLabeler::Init()
 {
-	if (!showCageWindow())
+	if (!ShowCageWindow())
 	{
 		std::cout << "Failed to show cage window" << std::endl;
 		return false;
@@ -171,7 +171,7 @@ bool CageLabeler::Init()
 }
 
 
-VOID displayTokenInCageWindow(HWND *hwnd)
+VOID DisplayTokenInCageWindow(HWND *hwnd)
 {
 	std::wcout << L"starting display image\n" << std::endl;
 
@@ -183,4 +183,26 @@ VOID displayTokenInCageWindow(HWND *hwnd)
 	graphics.DrawImage(&image, 10, 10);
 
 	std::wcout << L"Finished display cage\n" << std::endl;
+}
+
+// Write util to remove this dublicated function (same in FullWorkArea.h)
+int GetBottomFromMonitor()
+{
+	HMONITOR monitor = MonitorFromWindow(NULL, MONITOR_DEFAULTTONEAREST);
+	if (monitor == NULL)
+	{
+		std::cout << "Failed to get MonitorFromWindow. Error " << GetLastError() << std::endl;
+		return -1;
+	}
+
+	MONITORINFO monitor_info;
+	monitor_info.cbSize = sizeof(monitor_info);
+
+	if (GetMonitorInfo(monitor, &monitor_info) == false)
+	{
+		std::cout << "Failed to GetMonitorInfo. Error " << GetLastError() << std::endl;
+		return -1;
+	}
+
+	return monitor_info.rcMonitor.bottom;
 }
