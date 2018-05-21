@@ -1,0 +1,10 @@
+version: 1.0.{build}
+
+image: Visual Studio 2017
+
+build:
+
+  project: SharkCage/SharkCage.sln
+
+  verbosity: minimal
+

@@ -1,9 +1,0 @@
-*.log
-*.tlog
-*.lastbuildstate
-Debug/
-*.obj
-*.VC.db
-*.VC.opendb
-*.suo
-ipch/
