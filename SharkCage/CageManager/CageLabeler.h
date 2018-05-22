@@ -80,7 +80,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM w_param, LPARAM l_param)
 	{
 		if (l_param == (LPARAM)gotodesk_button)
 		{
-			// Close token
+			std::cout << "Close window" << std::endl;
+			::DestroyWindow(hwnd);
+			break;
 		}
 		else
 		{
@@ -90,7 +92,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM w_param, LPARAM l_param)
 	case WM_CLOSE:
 	{
 		std::cout << "Close window" << std::endl;
-		DestroyWindow(hwnd);
+		::DestroyWindow(hwnd);
 		break;
 	}
 	case WM_DESTROY:
