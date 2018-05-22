@@ -71,7 +71,7 @@ std::unique_ptr<PSID, decltype(local_free_deleter<PSID>)> CreateSID()
 
 	// Second call of the function in order to get the SID
 	std::unique_ptr<PSID, decltype(local_free_deleter<PSID>)> sid((PSID*)::LocalAlloc(LPTR, cb_sid), local_free_deleter<PSID>);
-	
+
 	::LookupAccountName(
 		NULL,
 		group_name_buf.data(),
@@ -165,11 +165,11 @@ bool CreateACL(std::unique_ptr<PSID, decltype(local_free_deleter<PSID>)> group_s
 	explicit_access_group.grfInheritance = NO_INHERITANCE;
 	explicit_access_group.Trustee.TrusteeForm = TRUSTEE_IS_SID;
 	explicit_access_group.Trustee.TrusteeType = TRUSTEE_IS_GROUP;
-	
+
 	wchar_t *group_sid_tmp;
 	::ConvertSidToStringSid(group_sid.get(), &group_sid_tmp);
 	std::unique_ptr<wchar_t, decltype(local_free_deleter<wchar_t*>)> group_sid_string(group_sid_tmp, local_free_deleter<wchar_t*>);
-	
+
 	explicit_access_group.Trustee.ptstrName = group_sid_string.get();
 
 	// EXPLICIT_ACCESS with second ACE for admin group

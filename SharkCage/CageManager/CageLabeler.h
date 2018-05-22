@@ -63,7 +63,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM w_param, LPARAM l_param)
 			100,
 			hwnd,
 			NULL,
-			(HINSTANCE)GetWindowLong(hwnd, GWL_HINSTANCE),
+			NULL,
 			NULL);
 
 		if (gotodesk_button != NULL)
@@ -88,15 +88,20 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM w_param, LPARAM l_param)
 		}
 	}
 	case WM_CLOSE:
+	{
 		std::cout << "Close window" << std::endl;
 		DestroyWindow(hwnd);
 		break;
+	}
 	case WM_DESTROY:
+	{
 		PostQuitMessage(0);
 		break;
+	}
 	case WM_PAINT:
 	{
 		DisplayTokenInCageWindow(&hwnd);
+		return DefWindowProc(hwnd, msg, w_param, l_param);
 	}
 	default:
 		return DefWindowProc(hwnd, msg, w_param, l_param);

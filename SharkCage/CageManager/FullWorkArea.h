@@ -66,7 +66,7 @@ bool FullWorkArea::GetBottomFromMonitor(int *monitor_bottom)
 	MONITORINFO monitor_info;
 	monitor_info.cbSize = sizeof(monitor_info);
 
-	if (!::GetMonitorInfo(monitor, &monitor_info) )
+	if (!::GetMonitorInfo(monitor, &monitor_info))
 	{
 		std::cout << "Failed to GetMonitorInfo. Error " << ::GetLastError() << std::endl;
 		return false;
