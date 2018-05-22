@@ -1,19 +1,25 @@
 #include <Windows.h>
 #include <iostream>
 
+#include "CageLabeler.h"
+#include "FullWorkArea.h"
+
 class CageDesktop
 {
 public:
-	CageDesktop(PSECURITY_DESCRIPTOR p_sd, HDESK *new_desktop);
+	CageDesktop(PSECURITY_DESCRIPTOR p_sd);
 	~CageDesktop();
-	BOOL Init(HDESK *new_desktop);
+	bool Init();
 private:
 	HDESK old_desktop;
+	HDESK new_desktop;
+	FullWorkArea full_work_area;
+	CageLabeler cage_labeler;
 };
 
-CageDesktop::CageDesktop(PSECURITY_DESCRIPTOR p_sd, HDESK *new_desktop)
+CageDesktop::CageDesktop(PSECURITY_DESCRIPTOR p_sd)
 {
-	old_desktop = GetThreadDesktop(GetCurrentThreadId());
+	old_desktop = ::GetThreadDesktop(GetCurrentThreadId());
 
 	ACCESS_MASK desk_access_mask = DESKTOP_CREATEMENU
 		| DESKTOP_CREATEWINDOW
@@ -33,35 +39,48 @@ CageDesktop::CageDesktop(PSECURITY_DESCRIPTOR p_sd, HDESK *new_desktop)
 	sa.lpSecurityDescriptor = p_sd;
 	sa.bInheritHandle = FALSE;
 
-	*new_desktop = CreateDesktop(TEXT("shark_cage_desktop"), NULL, NULL, NULL, desk_access_mask, &sa);
+	new_desktop = ::CreateDesktop(TEXT("shark_cage_desktop"), NULL, NULL, NULL, desk_access_mask, &sa);
 }
 
 CageDesktop::~CageDesktop()
 {
-	if (SetThreadDesktop(old_desktop) == false)
+	if (!::SetThreadDesktop(old_desktop))
 	{
-		std::cout << "Failed to set thread desktop back to old desktop.Error " << GetLastError() << std::endl;
+		std::cout << "Failed to set thread desktop back to old desktop. Error " << ::GetLastError() << std::endl;
 	}
 
-	if (SwitchDesktop(old_desktop) == false)
+	if (!::SwitchDesktop(old_desktop))
 	{
-		std::cout << "Failed to switch back to old dekstop. Error " << GetLastError() << std::endl;
+		std::cout << "Failed to switch back to old desktop. Error " << ::GetLastError() << std::endl;
 	}
 }
 
 
-BOOL CageDesktop::Init(HDESK *new_desktop)
+bool CageDesktop::Init()
 {
-	if (SwitchDesktop(*new_desktop) == false)
+	if (!::SwitchDesktop(new_desktop))
 	{
-		std::cout << "Failed to switch to cage dekstop. Error " << GetLastError() << std::endl;
+		std::cout << "Failed to switch to cage desktop. Error " << ::GetLastError() << std::endl;
 		return false;
 	}
 
-	if (SetThreadDesktop(*new_desktop) == false)
+	if (!::SetThreadDesktop(new_desktop))
 	{
-		std::cout << "Failed to set thread desktop to new desktop. Error " << GetLastError() << std::endl;
+		std::cout << "Failed to set thread desktop to new desktop. Error " << ::GetLastError() << std::endl;
 		return false;
 	}
+
+	if (!full_work_area.Init())
+	{
+		std::cout << "Failed to set area too fullscreen" << std::endl;
+		return false;
+	}
+
+	if (!cage_labeler.Init())
+	{
+		std::cout << "Failed to label cage" << std::endl;
+		return false;
+	}
+
 	return true;
 }

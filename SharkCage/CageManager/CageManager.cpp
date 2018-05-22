@@ -2,10 +2,8 @@
 
 #include "../CageService/NetworkManager.h"
 
-#define byte win_byte_override
+#define byte WIN_BYTE_OVERRIDE
 #include "CageDesktop.h"
-#include "CageLabeler.h"
-#include "FullWorkArea.h"
 
 #include "stdio.h"
 #include "Aclapi.h"
@@ -129,16 +127,13 @@ std::wstring OnReceive(const std::wstring &message)
 	return path;
 }
 
-void LabelCage(CageLabeler * cage_labeler, FullWorkArea * full_work_area, HDESK *new_desktop)
+void StartCageDesktop(PSECURITY_DESCRIPTOR *security_descriptor)
 {
-	if (SetThreadDesktop(*new_desktop) == false)
+	CageDesktop cage_desktop = CageDesktop::CageDesktop(*security_descriptor);
+	if (!cage_desktop.Init())
 	{
-		std::cout << "Failed to set thread desktop to new desktop. Error " << GetLastError() << std::endl;
+		std::cout << "Failed to create/launch the cage desktop" << std::endl;
 	}
-	*full_work_area = FullWorkArea::FullWorkArea();
-	*cage_labeler = CageLabeler::CageLabeler();
-	full_work_area->Init();
-	cage_labeler->Init();
 }
 
 bool CreateACL(std::unique_ptr<PSID, decltype(local_free_deleter<PSID>)> group_sid)
@@ -224,22 +219,12 @@ bool CreateACL(std::unique_ptr<PSID, decltype(local_free_deleter<PSID>)> group_s
 	security_attributes.lpSecurityDescriptor = security_descriptor;
 	security_attributes.bInheritHandle = FALSE;
 
-	HDESK new_desktop;
-	CageDesktop cage_desktop = CageDesktop::CageDesktop(security_descriptor, &new_desktop);
-	if (!cage_desktop.Init(&new_desktop))
-	{
-		std::cout << "Failed to create/launch the cage desktop" << std::endl;
-		return 1;
-	}
+	thread desktop_thread(StartCageDesktop, &security_descriptor);
 
 	//PETER´S ACCESS TOKEN THINGS
 
-	CageLabeler cage_labeler;
-	FullWorkArea full_work_area;
-	thread ui_thread(LabelCage, &cage_labeler, &full_work_area, &new_desktop);
-
 	// We need in order to create the process.
-	STARTUPINFO info = { 0 };
+	STARTUPINFO info = {};
 
 	// The desktop's name where we are going to start the application. In this case, our new desktop.
 	std::wstring new_desktop_name = L"shark_cage_desktop";
@@ -250,21 +235,21 @@ bool CreateACL(std::unique_ptr<PSID, decltype(local_free_deleter<PSID>)> group_s
 	// PETER´S ACCESS TOKEN THINGS
 
 	// Create the process.
-	PROCESS_INFORMATION process_info = { 0 };
+	PROCESS_INFORMATION process_info = {};
 	std::vector<wchar_t> path_buf(path.begin(), path.end());
 	path_buf.push_back(0);
 	if (::CreateProcess(NULL, path_buf.data(), NULL, NULL, TRUE, 0, NULL, NULL, &info, &process_info))
 	{
-		std::cout << "Failed to start process. Err " << GetLastError() << std::endl;
+		std::cout << "Failed to start process. Err " << ::GetLastError() << std::endl;
 	}
 
-	ui_thread.join();
+	desktop_thread.join();
 
 	//::SendMessage(nullptr /*main handle of new process*/, WM_CLOSE, NULL);
 	// with timeout, if nothing happens, terminate process
-	if (!TerminateProcess(process_info.hProcess, 0))
+	if (!::TerminateProcess(process_info.hProcess, 0))
 	{
-		std::cout << "Failed to terminate process Err " << GetLastError() << std::endl;
+		std::cout << "Failed to terminate process Err " << ::GetLastError() << std::endl;
 	}
 
 	// wait for the process to exit

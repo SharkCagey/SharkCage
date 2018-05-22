@@ -1,5 +1,4 @@
 #include <Windows.h>
-#include <windowsx.h>
 #include <algorithm> 
 
 using namespace std;
@@ -10,21 +9,19 @@ using namespace std;
 using namespace Gdiplus;
 #pragma comment (lib, "Gdiplus.lib")
 
-VOID DisplayTokenInCageWindow(HWND *hwnd);
-int GetBottomFromMonitor();
+void DisplayTokenInCageWindow(HWND *hwnd);
+bool GetBottomFromMonitor(int *monitor_bottom);
 
 HWND gotodesk_button;
-HHOOK hHook;
 
 class CageLabeler
 {
 public:
 	CageLabeler();
-	~CageLabeler();
 	bool Init();
 private:
-	bool CageLabeler::ShowCageWindow();
-	VOID CageLabeler::InitGdipPlisLib();
+	bool ShowCageWindow();
+	void InitGdipPlisLib();
 };
 
 CageLabeler::CageLabeler()
@@ -32,20 +29,25 @@ CageLabeler::CageLabeler()
 	InitGdipPlisLib();
 }
 
-CageLabeler::~CageLabeler()
-{
-}
-
-VOID CageLabeler::InitGdipPlisLib()
+void CageLabeler::InitGdipPlisLib()
 {
 	GdiplusStartupInput gdiplusStartupInput;
 	ULONG_PTR gdiplusToken;
 	GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL);
 }
 
+bool CageLabeler::Init()
+{
+	if (!ShowCageWindow())
+	{
+		std::cout << "Failed to show cage window" << std::endl;
+		return false;
+	}
+	return true;
+}
+
 LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM w_param, LPARAM l_param)
 {
-	std::cout << msg << std::endl;
 	switch (msg)
 	{
 	case WM_CREATE:
@@ -70,16 +72,18 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM w_param, LPARAM l_param)
 		}
 		else
 		{
-			std::wcout << L"Failed to create logout button Err " << GetLastError() << std::endl;
+			std::wcout << L"Failed to create logout button. Err " << GetLastError() << std::endl;
 		}
 		break;
 	}
 	case WM_COMMAND:
 	{
-		if (l_param == (LPARAM)gotodesk_button) {
+		if (l_param == (LPARAM)gotodesk_button)
+		{
 			// Close token
 		}
-		else {
+		else
+		{
 			break;
 		}
 	}
@@ -103,28 +107,35 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM w_param, LPARAM l_param)
 
 bool CageLabeler::ShowCageWindow()
 {
-	const wchar_t CLASS_NAME[] = L"Token window";
+	const std::wstring CLASS_NAME = L"Token window";
 
 	WNDCLASS wc = {};
 	wc.lpfnWndProc = WndProc;
 	wc.hInstance = NULL;
-	wc.lpszClassName = CLASS_NAME;
+	wc.lpszClassName = CLASS_NAME.c_str();
 
-	if (RegisterClass(&wc) == false)
+	if (!::RegisterClass(&wc))
 	{
 		std::wcout << L"Registering of class for WindowToken failed" << std::endl;
 		return false;
 	}
 
-	HWND hwnd = CreateWindowEx(
+	int bottom;
+	if (!GetBottomFromMonitor(&bottom))
+	{
+		std::wcout << L"Failed to get bottom of monitor" << std::endl;
+		return false;
+	}
+
+	HWND hwnd = ::CreateWindowEx(
 		WS_EX_LEFT | WS_EX_TOPMOST,
-		CLASS_NAME,
+		CLASS_NAME.c_str(),
 		L"",
 		(WS_POPUPWINDOW | WS_THICKFRAME | WS_VISIBLE | WS_CLIPCHILDREN),
 		CW_USEDEFAULT,
 		CW_USEDEFAULT,
 		500,
-		GetBottomFromMonitor(),
+		bottom,
 		NULL,
 		NULL,
 		NULL,
@@ -137,43 +148,27 @@ bool CageLabeler::ShowCageWindow()
 	}
 
 	// Remove the window title bar
-	if (SetWindowLong(hwnd, GWL_STYLE, 0) == false)
+	if (!::SetWindowLong(hwnd, GWL_STYLE, 0))
 	{
-		std::wcout << L"Failed to remove the titlebar Error" << GetLastError() << std::endl;
+		std::wcout << L"Failed to remove the titlebar Error" << ::GetLastError() << std::endl;
 	}
 
-	if (ShowWindow(hwnd, SW_SHOW))
-	{
-		std::wcout << L"Show window failed\n" << std::endl;
-		return false;
-	}
+	::ShowWindow(hwnd, SW_SHOW);
 
-	MSG msg = { 0 };
-
-	while (GetMessage(&msg, NULL, 0, 0) > 0)
+	MSG msg = {};
+	while (::GetMessage(&msg, NULL, 0, 0) > 0)
 	{
-		TranslateMessage(&msg);
-		DispatchMessage(&msg);
+		::TranslateMessage(&msg);
+		::DispatchMessage(&msg);
 	}
 
 	std::cout << "Return from token display window creation" << std::endl;
 	return true;
 }
 
-bool CageLabeler::Init()
+void DisplayTokenInCageWindow(HWND *hwnd)
 {
-	if (!ShowCageWindow())
-	{
-		std::cout << "Failed to show cage window" << std::endl;
-		return false;
-	}
-	return true;
-}
-
-
-VOID DisplayTokenInCageWindow(HWND *hwnd)
-{
-	std::wcout << L"starting display image\n" << std::endl;
+	std::wcout << L"starting display image" << std::endl;
 
 	HDC hdc = GetDC(*hwnd);
 
@@ -182,27 +177,29 @@ VOID DisplayTokenInCageWindow(HWND *hwnd)
 	Pen pen(Color(255, 255, 0, 0), 2);
 	graphics.DrawImage(&image, 10, 10);
 
-	std::wcout << L"Finished display cage\n" << std::endl;
+	std::wcout << L"Finished display cage" << std::endl;
 }
 
-// Write util to remove this dublicated function (same in FullWorkArea.h)
-int GetBottomFromMonitor()
+// Write util to remove this duplicated function (same in FullWorkArea.h)
+bool GetBottomFromMonitor(int *monitor_bottom)
 {
-	HMONITOR monitor = MonitorFromWindow(NULL, MONITOR_DEFAULTTONEAREST);
+	HMONITOR monitor = ::MonitorFromWindow(NULL, MONITOR_DEFAULTTONEAREST);
 	if (monitor == NULL)
 	{
-		std::cout << "Failed to get MonitorFromWindow. Error " << GetLastError() << std::endl;
-		return -1;
+		std::cout << "Failed to get MonitorFromWindow. Error " << ::GetLastError() << std::endl;
+		return false;
 	}
 
 	MONITORINFO monitor_info;
 	monitor_info.cbSize = sizeof(monitor_info);
 
-	if (GetMonitorInfo(monitor, &monitor_info) == false)
+	if (!::GetMonitorInfo(monitor, &monitor_info))
 	{
-		std::cout << "Failed to GetMonitorInfo. Error " << GetLastError() << std::endl;
-		return -1;
+		std::cout << "Failed to GetMonitorInfo. Error " << ::GetLastError() << std::endl;
+		return false;
 	}
 
-	return monitor_info.rcMonitor.bottom;
+	*monitor_bottom = monitor_info.rcMonitor.bottom;
+
+	return true;
 }
