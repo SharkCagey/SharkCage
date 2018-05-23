@@ -223,7 +223,7 @@ bool CreateACL(std::unique_ptr<PSID, decltype(local_free_deleter<PSID>)> group_s
 	}
 
 	// We need in order to create the process.
-	STARTUPINFO info = { sizeof(info) };
+	STARTUPINFO info = { };
 	info.dwFlags = STARTF_USESHOWWINDOW;
 	info.wShowWindow = SW_MAXIMIZE;
 
