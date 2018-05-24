@@ -1,13 +1,39 @@
-*.log
-*.tlog
-*.lastbuildstate
-Debug/
-*.obj
-*.VC.db
-*.VC.opendb
-*.suo
-*.aps
-ipch/
-*.user
-SharkCage/.vs/
-SharkCage/post_build_output
+# Ignore everything
+*
+
+# Whitelist subdirectories
+!*/
+
+# general
+!*.gitignore
+!*.yml
+!*.md
+!*.txt
+!*.pdf
+!*.docx
+!*.bmp
+
+# project related
+!*.sln
+!*.vcxproj
+!*.vcxproj.filters
+!*.csproj
+!*.config
+!*.settings
+!*.ps1
+
+# c++ / c#
+!*.h
+!*.cpp
+!*.rc
+!*.cs
+!*.resx
+
+# special rules for builded sources
+**/Debug/*.config
+**/Debug/*.cs
+**/Debug/*.txt
+
+
+# libraries
+!*/**/asio-1.12.1/**
