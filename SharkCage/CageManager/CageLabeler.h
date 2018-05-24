@@ -180,7 +180,7 @@ void DisplayTokenInCageWindow(HWND *hwnd)
 	HDC hdc = GetDC(*hwnd);
 
 	Graphics graphics(hdc);
-	Image image(L"C:\\Users\\Juli\\segeln.jpg"); // TODO Read path from config
+	Image image(L"C:\\Users\\Juli\\segeln.jpg"); // TODO change path to a file in your env and later, read path from config
 	Pen pen(Color(255, 255, 0, 0), 2);
 	graphics.DrawImage(&image, 10, 10);
 
