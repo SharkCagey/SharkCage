@@ -30,10 +30,10 @@
 !*.resx
 
 # special rules for built sources
-**/Debug/*.config
-**/Debug/*.cs
-**/Debug/*.txt
-
+**/Debug/**/*.*
+**/Release/**/*.*
+**/bin/**/*.*
+**/obj/**/*.*
 
 # libraries
 !*/**/asio-1.12.1/**
