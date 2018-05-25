@@ -29,7 +29,7 @@
 !*.cs
 !*.resx
 
-# special rules for builded sources
+# special rules for built sources
 **/Debug/*.config
 **/Debug/*.cs
 **/Debug/*.txt
