@@ -223,7 +223,9 @@ bool CreateACL(std::unique_ptr<PSID, decltype(local_free_deleter<PSID>)> group_s
 	}
 
 	// We need in order to create the process.
-	STARTUPINFO info = { 0 };
+	STARTUPINFO info = { };
+	info.dwFlags = STARTF_USESHOWWINDOW;
+	info.wShowWindow = SW_MAXIMIZE;
 
 	// The desktop's name where we are going to start the application. In this case, our new desktop.
 	std::vector<wchar_t> new_desktop_name_buf(new_desktop_name.begin(), new_desktop_name.end());
