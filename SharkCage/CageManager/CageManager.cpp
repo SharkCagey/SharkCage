@@ -1,20 +1,25 @@
 #include "stdafx.h"
-#define WIN32_LEAN_AND_MEAN
 
 #include "../CageService/NetworkManager.h"
 
-#include <Windows.h>
+#define byte WIN_BYTE_OVERRIDE
+#include "CageDesktop.h"
+
+#include "stdio.h"
 #include "Aclapi.h"
+#include <tchar.h>
 #include "sddl.h"
 #include <string>
 #include <LM.h>
 #include <memory>
 #include <vector>
 
+#include <LMaccess.h>
+#include <lmerr.h>
+
 #include "../CageService/MsgManager.h"
 
 #pragma comment(lib, "netapi32.lib")
-
 
 template<typename T>
 auto local_free_deleter = [&](T resource) { ::LocalFree(resource); };
@@ -23,7 +28,6 @@ std::unique_ptr<PSID, decltype(local_free_deleter<PSID>)> CreateSID();
 bool CreateACL(std::unique_ptr<PSID, decltype(local_free_deleter<PSID>)> group_sid);
 std::wstring OnReceive(const std::wstring &message);
 bool BeginsWith(const std::wstring &string, const std::wstring &prefix);
-
 
 NetworkManager network_manager(ExecutableType::MANAGER);
 
@@ -67,7 +71,7 @@ std::unique_ptr<PSID, decltype(local_free_deleter<PSID>)> CreateSID()
 
 	// Second call of the function in order to get the SID
 	std::unique_ptr<PSID, decltype(local_free_deleter<PSID>)> sid((PSID*)::LocalAlloc(LPTR, cb_sid), local_free_deleter<PSID>);
-	
+
 	::LookupAccountName(
 		NULL,
 		group_name_buf.data(),
@@ -123,13 +127,21 @@ std::wstring OnReceive(const std::wstring &message)
 	return path;
 }
 
+void StartCageDesktop(PSECURITY_DESCRIPTOR security_descriptor)
+{
+	CageDesktop cage_desktop = CageDesktop::CageDesktop(security_descriptor);
+	if (!cage_desktop.Init())
+	{
+		std::cout << "Failed to create/launch the cage desktop" << std::endl;
+	}
+}
+
 bool CreateACL(std::unique_ptr<PSID, decltype(local_free_deleter<PSID>)> group_sid)
 {
 	DWORD result;
 	PACL acl = NULL;
 	PSECURITY_DESCRIPTOR security_descriptor = NULL;
 	SECURITY_ATTRIBUTES security_attributes;
-	HDESK new_desktop = NULL;
 	//Listen for the message
 	std::wstring message = network_manager.Listen();
 	std::wstring path = OnReceive(message);
@@ -153,11 +165,11 @@ bool CreateACL(std::unique_ptr<PSID, decltype(local_free_deleter<PSID>)> group_s
 	explicit_access_group.grfInheritance = NO_INHERITANCE;
 	explicit_access_group.Trustee.TrusteeForm = TRUSTEE_IS_SID;
 	explicit_access_group.Trustee.TrusteeType = TRUSTEE_IS_GROUP;
-	
+
 	wchar_t *group_sid_tmp;
 	::ConvertSidToStringSid(group_sid.get(), &group_sid_tmp);
 	std::unique_ptr<wchar_t, decltype(local_free_deleter<wchar_t*>)> group_sid_string(group_sid_tmp, local_free_deleter<wchar_t*>);
-	
+
 	explicit_access_group.Trustee.ptstrName = group_sid_string.get();
 
 	// EXPLICIT_ACCESS with second ACE for admin group
@@ -207,20 +219,9 @@ bool CreateACL(std::unique_ptr<PSID, decltype(local_free_deleter<PSID>)> group_s
 	security_attributes.lpSecurityDescriptor = security_descriptor;
 	security_attributes.bInheritHandle = FALSE;
 
-	// SAVE THE OLD DESKTOP. This is in order to come back to our desktop.
-	HDESK old_desktop = ::GetThreadDesktop(::GetCurrentThreadId());
+	thread desktop_thread(StartCageDesktop, security_descriptor);
 
-	// Use the security attributes to set the security descriptor 
-	// when you create a desktop.
-	ACCESS_MASK desk_access_mask = DESKTOP_CREATEMENU | DESKTOP_CREATEWINDOW | DESKTOP_ENUMERATE | DESKTOP_HOOKCONTROL | DESKTOP_JOURNALPLAYBACK | DESKTOP_JOURNALRECORD | DESKTOP_READOBJECTS | DESKTOP_SWITCHDESKTOP | DESKTOP_WRITEOBJECTS | READ_CONTROL | WRITE_DAC | WRITE_OWNER;
-	std::wstring new_desktop_name = L"shark_cage_desktop";
-	new_desktop = ::CreateDesktop(new_desktop_name.c_str(), NULL, NULL, NULL, desk_access_mask, &security_attributes);
-
-	// Switch to de new desktop.
-	if (!::SwitchDesktop(new_desktop))
-	{
-		std::cout << "Switching to new desktop failed" << std::endl;
-	}
+	//PETER´S ACCESS TOKEN THINGS
 
 	// We need in order to create the process.
 	STARTUPINFO info = { };
@@ -228,25 +229,34 @@ bool CreateACL(std::unique_ptr<PSID, decltype(local_free_deleter<PSID>)> group_s
 	info.wShowWindow = SW_MAXIMIZE;
 
 	// The desktop's name where we are going to start the application. In this case, our new desktop.
+	std::wstring new_desktop_name = L"shark_cage_desktop";
 	std::vector<wchar_t> new_desktop_name_buf(new_desktop_name.begin(), new_desktop_name.end());
 	new_desktop_name_buf.push_back(0);
 	info.lpDesktop = new_desktop_name_buf.data();
 
-	// PETER�S ACCESS TOKEN THINGS
+	// PETER´S ACCESS TOKEN THINGS
 
 	// Create the process.
-	PROCESS_INFORMATION process_info = { 0 };
+	PROCESS_INFORMATION process_info = {};
 	std::vector<wchar_t> path_buf(path.begin(), path.end());
 	path_buf.push_back(0);
-	::CreateProcess(NULL, path_buf.data(), NULL, NULL, TRUE, 0, NULL, NULL, &info, &process_info);
+	if (::CreateProcess(NULL, path_buf.data(), NULL, NULL, TRUE, 0, NULL, NULL, &info, &process_info))
+	{
+		std::cout << "Failed to start process. Err " << ::GetLastError() << std::endl;
+	}
+
+	desktop_thread.join();
+
+	//::SendMessage(nullptr /*main handle of new process*/, WM_CLOSE, NULL);
+	// with timeout, if nothing happens, terminate process
+	if (!::TerminateProcess(process_info.hProcess, 0))
+	{
+		std::cout << "Failed to terminate process Err " << ::GetLastError() << std::endl;
+	}
 
 	// wait for the process to exit
 	::WaitForSingleObject(process_info.hProcess, INFINITE);
 	::CloseHandle(process_info.hProcess);
 	::CloseHandle(process_info.hThread);
-
-	// SWITCH TO THE OLD DESKTOP. This is in order to come back to our desktop.
-	::SwitchDesktop(old_desktop);
-
-	return 0;
+	return Ok;
 }
