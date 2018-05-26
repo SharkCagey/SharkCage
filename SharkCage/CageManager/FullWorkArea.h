@@ -8,7 +8,7 @@ public:
 	bool Init();
 private:
 	RECT rect;
-	bool GetBottomFromMonitor(int *monitor_bottom);
+	bool GetBottomFromMonitor(int &monitor_bottom);
 };
 
 
@@ -21,7 +21,7 @@ bool FullWorkArea::Init()
 	}
 
 	int bottom;
-	if (GetBottomFromMonitor(&bottom))
+	if (GetBottomFromMonitor(bottom))
 	{
 		RECT cage_rect;
 		cage_rect.left = 500;
@@ -54,7 +54,7 @@ FullWorkArea::~FullWorkArea()
 	}
 }
 
-bool FullWorkArea::GetBottomFromMonitor(int *monitor_bottom)
+bool FullWorkArea::GetBottomFromMonitor(int &monitor_bottom)
 {
 	HMONITOR monitor = ::MonitorFromWindow(NULL, MONITOR_DEFAULTTONEAREST);
 	if (monitor == NULL)
@@ -72,7 +72,7 @@ bool FullWorkArea::GetBottomFromMonitor(int *monitor_bottom)
 		return false;
 	}
 
-	*monitor_bottom = monitor_info.rcMonitor.bottom;
+	monitor_bottom = monitor_info.rcMonitor.bottom;
 
 	return true;
 }

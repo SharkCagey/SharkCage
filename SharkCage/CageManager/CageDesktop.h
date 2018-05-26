@@ -66,7 +66,8 @@ bool CageDesktop::Init()
 
 	if (!::SetThreadDesktop(new_desktop))
 	{
-		std::cout << "Failed to set thread desktop to new desktop. Error " << ::GetLastError() << std::endl;
+		std::cout << "Failed to set thread desktop to new desktop. Error " << ::GetLastError() << "Switching back to old desktop" << std::endl;
+		::SwitchDesktop(old_desktop);
 		return false;
 	}
 

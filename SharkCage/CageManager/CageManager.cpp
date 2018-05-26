@@ -127,9 +127,9 @@ std::wstring OnReceive(const std::wstring &message)
 	return path;
 }
 
-void StartCageDesktop(PSECURITY_DESCRIPTOR *security_descriptor)
+void StartCageDesktop(PSECURITY_DESCRIPTOR security_descriptor)
 {
-	CageDesktop cage_desktop = CageDesktop::CageDesktop(*security_descriptor);
+	CageDesktop cage_desktop = CageDesktop::CageDesktop(security_descriptor);
 	if (!cage_desktop.Init())
 	{
 		std::cout << "Failed to create/launch the cage desktop" << std::endl;
@@ -219,7 +219,7 @@ bool CreateACL(std::unique_ptr<PSID, decltype(local_free_deleter<PSID>)> group_s
 	security_attributes.lpSecurityDescriptor = security_descriptor;
 	security_attributes.bInheritHandle = FALSE;
 
-	thread desktop_thread(StartCageDesktop, &security_descriptor);
+	thread desktop_thread(StartCageDesktop, security_descriptor);
 
 	//PETER´S ACCESS TOKEN THINGS
 

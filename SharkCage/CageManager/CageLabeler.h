@@ -31,9 +31,9 @@ CageLabeler::CageLabeler()
 
 void CageLabeler::InitGdipPlisLib()
 {
-	GdiplusStartupInput gdiplusStartupInput;
-	ULONG_PTR gdiplusToken;
-	GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL);
+	GdiplusStartupInput gdiplus_startup_input;
+	ULONG_PTR gdiplus_token;
+	::GdiplusStartup(&gdiplus_token, &gdiplus_startup_input, NULL);
 }
 
 bool CageLabeler::Init()
@@ -52,7 +52,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM w_param, LPARAM l_param)
 	{
 	case WM_CREATE:
 	{
-		gotodesk_button = CreateWindowEx(
+		gotodesk_button = ::CreateWindowEx(
 			NULL,
 			L"BUTTON",
 			L"Exit",
@@ -68,11 +68,11 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM w_param, LPARAM l_param)
 
 		if (gotodesk_button != NULL)
 		{
-			SendMessage(gotodesk_button, BM_SETIMAGE, NULL, NULL);
+			::SendMessage(gotodesk_button, BM_SETIMAGE, NULL, NULL);
 		}
 		else
 		{
-			std::wcout << L"Failed to create logout button. Err " << GetLastError() << std::endl;
+			std::wcout << L"Failed to create logout button. Err " << ::GetLastError() << std::endl;
 		}
 		break;
 	}
@@ -97,16 +97,16 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM w_param, LPARAM l_param)
 	}
 	case WM_DESTROY:
 	{
-		PostQuitMessage(0);
+		::PostQuitMessage(0);
 		break;
 	}
 	case WM_PAINT:
 	{
 		DisplayTokenInCageWindow(&hwnd);
-		return DefWindowProc(hwnd, msg, w_param, l_param);
+		return ::DefWindowProc(hwnd, msg, w_param, l_param);
 	}
 	default:
-		return DefWindowProc(hwnd, msg, w_param, l_param);
+		return ::DefWindowProc(hwnd, msg, w_param, l_param);
 	}
 
 	return EXIT_SUCCESS;
@@ -177,7 +177,7 @@ void DisplayTokenInCageWindow(HWND *hwnd)
 {
 	std::wcout << L"starting display image" << std::endl;
 
-	HDC hdc = GetDC(*hwnd);
+	HDC hdc = ::GetDC(*hwnd);
 
 	Graphics graphics(hdc);
 	Image image(L"C:\\Users\\Juli\\segeln.jpg"); // TODO change path to a file in your env and later, read path from config
