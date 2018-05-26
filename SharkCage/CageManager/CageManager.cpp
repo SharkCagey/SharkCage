@@ -221,10 +221,12 @@ bool CreateACL(std::unique_ptr<PSID, decltype(local_free_deleter<PSID>)> group_s
 
 	thread desktop_thread(StartCageDesktop, security_descriptor);
 
-	//PETER´S ACCESS TOKEN THINGS
+	//PETERÂ´S ACCESS TOKEN THINGS
 
 	// We need in order to create the process.
-	STARTUPINFO info = {};
+	STARTUPINFO info = { };
+	info.dwFlags = STARTF_USESHOWWINDOW;
+	info.wShowWindow = SW_MAXIMIZE;
 
 	// The desktop's name where we are going to start the application. In this case, our new desktop.
 	std::wstring new_desktop_name = L"shark_cage_desktop";
@@ -232,7 +234,7 @@ bool CreateACL(std::unique_ptr<PSID, decltype(local_free_deleter<PSID>)> group_s
 	new_desktop_name_buf.push_back(0);
 	info.lpDesktop = new_desktop_name_buf.data();
 
-	// PETER´S ACCESS TOKEN THINGS
+	// PETERÂ´S ACCESS TOKEN THINGS
 
 	// Create the process.
 	PROCESS_INFORMATION process_info = {};
