@@ -10,7 +10,7 @@ using namespace Gdiplus;
 #pragma comment (lib, "Gdiplus.lib")
 
 void DisplayTokenInCageWindow(HWND *hwnd);
-bool GetBottomFromMonitor(int *monitor_bottom);
+bool GetBottomFromMonitor(int &monitor_bottom);
 
 HWND gotodesk_button;
 
@@ -128,7 +128,7 @@ bool CageLabeler::ShowCageWindow()
 	}
 
 	int bottom;
-	if (!GetBottomFromMonitor(&bottom))
+	if (!GetBottomFromMonitor(bottom))
 	{
 		std::wcout << L"Failed to get bottom of monitor" << std::endl;
 		return false;
@@ -188,7 +188,7 @@ void DisplayTokenInCageWindow(HWND *hwnd)
 }
 
 // Write util to remove this duplicated function (same in FullWorkArea.h)
-bool GetBottomFromMonitor(int *monitor_bottom)
+bool GetBottomFromMonitor(int &monitor_bottom)
 {
 	HMONITOR monitor = ::MonitorFromWindow(NULL, MONITOR_DEFAULTTONEAREST);
 	if (monitor == NULL)
@@ -206,7 +206,7 @@ bool GetBottomFromMonitor(int *monitor_bottom)
 		return false;
 	}
 
-	*monitor_bottom = monitor_info.rcMonitor.bottom;
+	monitor_bottom = monitor_info.rcMonitor.bottom;
 
 	return true;
 }
