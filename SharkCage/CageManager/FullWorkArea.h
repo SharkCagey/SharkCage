@@ -29,8 +29,6 @@ bool FullWorkArea::Init()
 		cage_rect.right = rect.right;
 		cage_rect.top = rect.top;
 
-		std::cout << "Set working area to" << cage_rect.left << "x" << cage_rect.bottom << "x" << cage_rect.right << "x" << cage_rect.top << std::endl;
-
 		if (!::SystemParametersInfo(SPI_SETWORKAREA, 0, &cage_rect, SPIF_UPDATEINIFILE))
 		{
 			std::cout << "Failed to  work area. Error " << ::GetLastError() << std::endl;
