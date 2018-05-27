@@ -11,6 +11,7 @@ using namespace Gdiplus;
 
 void DisplayTokenInCageWindow(HWND *hwnd);
 bool GetBottomFromMonitor(int &monitor_bottom);
+bool ShowConfigMetadata(HWND &hwnd);
 
 HWND gotodesk_button;
 
@@ -52,28 +53,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM w_param, LPARAM l_param)
 	{
 	case WM_CREATE:
 	{
-		gotodesk_button = ::CreateWindowEx(
-			NULL,
-			L"BUTTON",
-			L"Exit",
-			WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
-			10,
-			900,
-			100,
-			100,
-			hwnd,
-			NULL,
-			NULL,
-			NULL);
-
-		if (gotodesk_button != NULL)
-		{
-			::SendMessage(gotodesk_button, BM_SETIMAGE, NULL, NULL);
-		}
-		else
-		{
-			std::wcout << L"Failed to create logout button. Err " << ::GetLastError() << std::endl;
-		}
+		ShowConfigMetadata(hwnd);
 		break;
 	}
 	case WM_COMMAND:
@@ -207,6 +187,98 @@ bool GetBottomFromMonitor(int &monitor_bottom)
 	}
 
 	monitor_bottom = monitor_info.rcMonitor.bottom;
+
+	return true;
+}
+
+bool ShowConfigMetadata(HWND &hwnd)
+{
+	gotodesk_button = ::CreateWindowEx(
+		NULL,
+		L"BUTTON",
+		L"Exit",
+		WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
+		10,
+		900,
+		100,
+		100,
+		hwnd,
+		NULL,
+		NULL,
+		NULL);
+
+
+	HWND keepass_title = ::CreateWindowEx(
+		NULL,
+		TEXT("STATIC"),
+		L"Keepass",
+		SS_LEFT | WS_VISIBLE | WS_CHILD,
+		10,
+		605,
+		150,
+		20,
+		hwnd,
+		NULL,
+		NULL,
+		NULL);
+
+	HWND keepass_button = ::CreateWindowEx(
+		NULL,
+		L"BUTTON",
+		L"Restart",
+		WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
+		150,
+		605,
+		150,
+		20,
+		hwnd,
+		NULL,
+		NULL,
+		NULL);
+
+	HWND cryptomator_title = ::CreateWindowEx(
+		NULL,
+		TEXT("STATIC"),
+		L"Cryptomator",
+		SS_LEFT | WS_VISIBLE | WS_CHILD,
+		10,
+		630,
+		150,
+		20,
+		hwnd,
+		NULL,
+		NULL,
+		NULL);
+
+	HWND cryptomator_button = ::CreateWindowEx(
+		NULL,
+		L"BUTTON",
+		L"Restart",
+		WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
+		150,
+		630,
+		150,
+		20,
+		hwnd,
+		NULL,
+		NULL,
+		NULL);
+
+	if (gotodesk_button != NULL 
+		&& keepass_title != NULL && keepass_button != NULL 
+		&& cryptomator_title != NULL && cryptomator_button != NULL)
+	{
+		::SendMessage(gotodesk_button, BM_SETIMAGE, NULL, NULL);
+		::SendMessage(keepass_title, BM_SETIMAGE, NULL, NULL);
+		::SendMessage(keepass_button, BM_SETIMAGE, NULL, NULL);
+		::SendMessage(cryptomator_title, BM_SETIMAGE, NULL, NULL);
+		::SendMessage(cryptomator_button, BM_SETIMAGE, NULL, NULL);
+	}
+	else
+	{
+		std::wcout << L"Failed to create logout button Err " << ::GetLastError() << std::endl;
+		return false;
+	}
 
 	return true;
 }

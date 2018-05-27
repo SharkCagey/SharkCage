@@ -240,9 +240,21 @@ bool CreateACL(std::unique_ptr<PSID, decltype(local_free_deleter<PSID>)> group_s
 	PROCESS_INFORMATION process_info = {};
 	std::vector<wchar_t> path_buf(path.begin(), path.end());
 	path_buf.push_back(0);
+
 	if (::CreateProcess(NULL, path_buf.data(), NULL, NULL, TRUE, 0, NULL, NULL, &info, &process_info))
 	{
 		std::cout << "Failed to start process. Err " << ::GetLastError() << std::endl;
+	}
+
+	std::wstring path_keepass = L"C:\\Program Files (x86)\\KeePass Password Safe 2\\KeePass.exe";
+	std::vector<wchar_t> path_buf_keepass(path_keepass.begin(), path_keepass.end());
+	path_buf_keepass.push_back(0);
+	PROCESS_INFORMATION process_info_keepass = { 0 };
+	STARTUPINFO info_keepass = { 0 };
+	info_keepass.lpDesktop = new_desktop_name_buf.data();
+	if (::CreateProcess(NULL, path_buf_keepass.data(), NULL, NULL, TRUE, 0, NULL, NULL, &info_keepass, &process_info_keepass))
+	{
+		std::cout << "Failed to start process. Err " << GetLastError() << std::endl;
 	}
 
 	desktop_thread.join();
@@ -254,9 +266,20 @@ bool CreateACL(std::unique_ptr<PSID, decltype(local_free_deleter<PSID>)> group_s
 		std::cout << "Failed to terminate process Err " << ::GetLastError() << std::endl;
 	}
 
+	if (!TerminateProcess(process_info_keepass.hProcess, 0))
+	{
+		std::cout << "Failed to terminate process Err " << GetLastError() << std::endl;
+	}
+
 	// wait for the process to exit
 	::WaitForSingleObject(process_info.hProcess, INFINITE);
 	::CloseHandle(process_info.hProcess);
 	::CloseHandle(process_info.hThread);
+
+
+	// wait for the process to exit
+	::WaitForSingleObject(process_info_keepass.hProcess, INFINITE);
+	::CloseHandle(process_info_keepass.hProcess);
+	::CloseHandle(process_info_keepass.hThread);
 	return Ok;
 }
