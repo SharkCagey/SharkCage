@@ -23,6 +23,15 @@
     <ClInclude Include="targetver.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="CageDesktop.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CageLabeler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FullWorkArea.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CageManager.cpp">
