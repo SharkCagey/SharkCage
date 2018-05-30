@@ -118,7 +118,7 @@ bool CageLabeler::ShowCageWindow()
 		WS_EX_LEFT | WS_EX_TOPMOST,
 		CLASS_NAME.c_str(),
 		L"",
-		(WS_POPUPWINDOW | WS_THICKFRAME | WS_VISIBLE | WS_CLIPCHILDREN),
+		WS_POPUPWINDOW | WS_VISIBLE | WS_CLIPCHILDREN,
 		CW_USEDEFAULT,
 		CW_USEDEFAULT,
 		500,
@@ -161,8 +161,18 @@ void DisplayTokenInCageWindow(HWND *hwnd)
 
 	Graphics graphics(hdc);
 	Image image(L"C:\\Users\\Juli\\segeln.jpg"); // TODO change path to a file in your env and later, read path from config
-	Pen pen(Color(255, 255, 0, 0), 2);
-	graphics.DrawImage(&image, 10, 10);
+
+	double available_width = 500, available_height = 500;
+	double image_height = (double) image.GetHeight() * (available_width / (double) image.GetWidth());
+	double image_width = available_width;
+
+	if (image_height > available_height)
+	{
+		image_width = image_width * (available_height / image_height);
+		image_height = available_height;
+	}
+
+	graphics.DrawImage(&image, 0, 0, (int)image_width, (int)image_height);
 
 	std::wcout << L"Finished display cage" << std::endl;
 }
@@ -198,9 +208,9 @@ bool ShowConfigMetadata(HWND &hwnd)
 		L"BUTTON",
 		L"Exit",
 		WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
-		10,
+		0,
 		900,
-		100,
+		500,
 		100,
 		hwnd,
 		NULL,
