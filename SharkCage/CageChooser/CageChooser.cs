@@ -15,7 +15,7 @@ namespace CageChooser
         static void Main()
         {
             // comment out '&& FALSE' to install service on application start
-#if DEBUG && FALSE
+#if DEBUG
             var p = new System.Diagnostics.Process();
             p.StartInfo.FileName = "Powershell.exe";
             p.StartInfo.Arguments = "-ExecutionPolicy Unrestricted -File ..\\..\\install_service.ps1";

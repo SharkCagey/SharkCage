@@ -8,8 +8,10 @@
 #include "CageService.h"
 #include "../CageNetwork/MsgService.h"
 
+const std::wstring CAGE_MANAGER_NAME = L"CageManager.exe";
+
 CageService::CageService() noexcept
-	: cage_manager_process_id(0)
+	: cage_manager_process_id(-1)
 	, image_index(-1)
 	, dialog_process_id(0)
 {
@@ -22,10 +24,19 @@ bool CageService::CageManagerRunning()
 
 DWORD CageService::StartCageManager(DWORD session_id)
 {
-	std::wstring cage_manager_path = L"C:\\sharkcage\\CageManager.exe";
-	return StartCageManager(cage_manager_path, session_id);
-}
+	std::vector<wchar_t> filename_buffer(MAX_PATH);
+	::GetModuleFileName(nullptr, filename_buffer.data(), MAX_PATH);
 
+	std::wstring filename(filename_buffer.data());
+	auto pos = filename.rfind(L"\\");
+	if (pos != std::wstring::npos)
+	{
+		filename = filename.substr(0, pos) + L"\\" + CAGE_MANAGER_NAME;
+		return StartCageManager(L"C:\\sharkcage\\CageManager.exe", session_id);
+	}
+
+	return -1;
+}
 
 DWORD CageService::StartCageManager(const std::wstring &app_name, DWORD session_id)
 {
@@ -58,7 +69,7 @@ DWORD CageService::StartCageManager(const std::wstring &app_name, const std::opt
 	sa.lpSecurityDescriptor = nullptr;
 	sa.bInheritHandle = true;
 
-	// Use nwe token with privileges for the trudting vomputinh base
+	// Use new token with privileges for the trusting computing base
 	if (!::ImpersonateSelf(SecurityImpersonation))
 	{
 		std::wostringstream os;
@@ -163,7 +174,7 @@ void CageService::HandleMessage(const std::wstring &message, NetworkManager* mgr
 	if (BeginsWith(message, ServiceMessageToString(ServiceMessage::START_CM)))
 	{
 		// Start Process
-		if (cage_manager_process_id == 0)
+		if (cage_manager_process_id == -1)
 		{
 			// Get session id from loged on user
 			DWORD session_id = ::WTSGetActiveConsoleSessionId();
@@ -174,7 +185,7 @@ void CageService::HandleMessage(const std::wstring &message, NetworkManager* mgr
 	{
 		// Stop Process
 		StopCageManager();
-		cage_manager_process_id = 0;
+		cage_manager_process_id = -1;
 	}
 	else if (BeginsWith(message, ServiceMessageToString(ServiceMessage::START_PC)))
 	{

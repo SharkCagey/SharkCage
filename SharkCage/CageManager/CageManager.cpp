@@ -14,8 +14,13 @@
 #include <memory>
 #include <vector>
 #include <thread>
+#include <optional>
+#include <fstream>
+#include <cwctype>
 
 #include "../CageNetwork/MsgManager.h"
+
+#include "json.hpp"
 
 #pragma comment(lib, "netapi32.lib")
 
@@ -24,7 +29,8 @@ auto local_free_deleter = [&](T resource) { ::LocalFree(resource); };
 
 std::unique_ptr<PSID, decltype(local_free_deleter<PSID>)> CreateSID();
 bool CreateACL(std::unique_ptr<PSID, decltype(local_free_deleter<PSID>)> group_sid);
-std::wstring OnReceive(const std::wstring &message);
+std::optional<std::wstring> ParseStartProcessMessage(const std::wstring &file_path);
+std::optional<std::wstring> WaitForMessage(const std::wstring &message);
 bool BeginsWith(const std::wstring &string, const std::wstring &prefix);
 
 NetworkManager network_manager(ExecutableType::MANAGER);
@@ -106,13 +112,28 @@ bool BeginsWith(const std::wstring &string_to_search, const std::wstring &prefix
 
 // Function to decode the message and do a respective action
 // "START_PC" "path/to.exe"
-std::wstring OnReceive(const std::wstring &message)
+std::optional<std::wstring> WaitForMessage(const std::wstring &message)
 {
-	std::wstring path = L"";
 	if (BeginsWith(message, ManagerMessageToString(ManagerMessage::START_PROCESS)))
 	{
-		// Start process
-		path = message.substr(9);
+		// read config
+		auto message_cmd_length = ManagerMessageToString(ManagerMessage::START_PROCESS).length();
+		auto stripped_message = message.substr(message_cmd_length);
+		
+		// FIXME maybe make a function for this?
+		// trim whitespace at beginning
+		stripped_message.erase(stripped_message.begin(), std::find_if(stripped_message.begin(), stripped_message.end(), [](wchar_t c)
+		{
+			return !std::iswspace(c);
+		}));
+
+		// trim whitespace at end
+		stripped_message.erase(std::find_if(stripped_message.rbegin(), stripped_message.rend(), [](wchar_t c)
+		{
+			return !std::iswspace(c);
+		}).base(), stripped_message.end());
+
+		return ParseStartProcessMessage(stripped_message);
 	}
 	else if (BeginsWith(message, ManagerMessageToString(ManagerMessage::STOP_PROCESS)))
 	{
@@ -122,7 +143,27 @@ std::wstring OnReceive(const std::wstring &message)
 	{
 		std::wcout << "Received unrecognized message: " << message << std::endl;
 	}
-	return path;
+	return std::nullopt;
+}
+
+std::optional<std::wstring> ParseStartProcessMessage(const std::wstring &file_path)
+{
+	std::ifstream config_stream;
+	config_stream.open(file_path);
+	
+	if (config_stream.is_open())
+	{
+		nlohmann::json json_config;
+		config_stream >> json_config;
+		auto path = json_config["binary_path"].get<std::string>();
+		
+		// no suitable alternative in c++ standard yet, so it is safe to use for now
+		// warning is suppressed by a define in project settings: _SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING
+		std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+		return converter.from_bytes(path);
+	}
+
+	return std::nullopt;
 }
 
 void StartCageDesktop(PSECURITY_DESCRIPTOR security_descriptor)
@@ -142,7 +183,16 @@ bool CreateACL(std::unique_ptr<PSID, decltype(local_free_deleter<PSID>)> group_s
 	SECURITY_ATTRIBUTES security_attributes;
 	//Listen for the message
 	std::wstring message = network_manager.Listen();
-	std::wstring path = OnReceive(message);
+	auto message_result = WaitForMessage(message);
+	
+	if (!message_result.has_value())
+	{
+		MessageBox(NULL, L"debug", L"caption", 0);
+		std::cout << "Could not process incoming message" << std::endl;
+		return false;
+	}
+
+	auto path = message_result.value();
 
 	// create SID for BUILTIN\Administrators group
 	PSID sid_admin = NULL;

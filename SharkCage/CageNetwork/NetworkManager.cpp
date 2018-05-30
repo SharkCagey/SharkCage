@@ -74,7 +74,7 @@ DLLEXPORT std::wstring NetworkManager::Listen()
 	}
 	catch (std::system_error e)
 	{
-		std::wcout << e.what();
+		std::wcout << L"asio error: " << e.what() << std::endl;
 	}
 
 	std::istream str(&buffer);
