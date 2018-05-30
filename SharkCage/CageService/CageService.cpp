@@ -32,7 +32,7 @@ DWORD CageService::StartCageManager(DWORD session_id)
 	if (pos != std::wstring::npos)
 	{
 		filename = filename.substr(0, pos) + L"\\" + CAGE_MANAGER_NAME;
-		return StartCageManager(L"C:\\sharkcage\\CageManager.exe", session_id);
+		return StartCageManager(filename, session_id);
 	}
 
 	return -1;
@@ -196,7 +196,7 @@ void CageService::HandleMessage(const std::wstring &message, NetworkManager* mgr
 		// This causes that only one cageManager can run a process at a time
 		HANDLE cage_manager_handle = ::OpenProcess(SYNCHRONIZE, TRUE, cage_manager_process_id);
 		::WaitForSingleObject(cage_manager_handle, INFINITE);
-		cage_manager_process_id = 0;
+		cage_manager_process_id = -1;
 
 	}
 	else if (BeginsWith(message, ServiceMessageToString(ServiceMessage::STOP_PC)))

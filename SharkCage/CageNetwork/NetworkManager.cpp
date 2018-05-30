@@ -53,6 +53,7 @@ DLLEXPORT bool NetworkManager::Send(const std::wstring &msg)
 		tmp_socket.connect(send_endpoint);
 		send_buf = message;
 		tmp_socket.write_some(asio::buffer(send_buf));
+		tmp_socket.close();
 		return true;
 	}
 	catch (std::exception&)
@@ -103,14 +104,16 @@ bool NetworkManager::InitService()
 	tcp::resolver::query query(tcp::v4(), "localhost", "1339");
 	send_endpoint = *resolver.resolve(query);
 
-
+	acceptor.set_option(asio::ip::tcp::acceptor::reuse_address(true));
 	acceptor = tcp::acceptor(io_service, tcp::endpoint(tcp::v4(), 1338));
+
 
 	return true;
 }
 
 bool NetworkManager::InitManager()
 {
+	acceptor.set_option(asio::ip::tcp::acceptor::reuse_address(true));
 	acceptor = tcp::acceptor(io_service, tcp::endpoint(tcp::v4(), 1339));
 
 	return true;

@@ -17,6 +17,7 @@
 #include <optional>
 #include <fstream>
 #include <cwctype>
+#include <regex>
 
 #include "../CageNetwork/MsgManager.h"
 
@@ -152,15 +153,24 @@ std::optional<std::wstring> ParseStartProcessMessage(const std::wstring &file_pa
 	config_stream.open(file_path);
 	
 	if (config_stream.is_open())
-	{
-		nlohmann::json json_config;
-		config_stream >> json_config;
-		auto path = json_config["binary_path"].get<std::string>();
-		
-		// no suitable alternative in c++ standard yet, so it is safe to use for now
-		// warning is suppressed by a define in project settings: _SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING
-		std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
-		return converter.from_bytes(path);
+	{	
+		try
+		{
+			nlohmann::json json_config;
+			config_stream >> json_config;
+
+			auto path = json_config["binary_path"].get<std::string>();
+
+			// no suitable alternative in c++ standard yet, so it is safe to use for now
+			// warning is suppressed by a define in project settings: _SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING
+			std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+			return converter.from_bytes(path);
+		}
+		catch (std::exception e)
+		{
+			std::cout << "Could not parse json: " << e.what() << std::endl;
+			return std::nullopt;
+		}
 	}
 
 	return std::nullopt;
@@ -187,7 +197,6 @@ bool CreateACL(std::unique_ptr<PSID, decltype(local_free_deleter<PSID>)> group_s
 	
 	if (!message_result.has_value())
 	{
-		MessageBox(NULL, L"debug", L"caption", 0);
 		std::cout << "Could not process incoming message" << std::endl;
 		return false;
 	}
