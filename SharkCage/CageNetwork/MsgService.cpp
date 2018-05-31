@@ -1,16 +1,9 @@
-#pragma once
 
-#include <string>
+#include "stdafx.h"
 
-enum class ServiceMessage
-{
-	START_CM = 0,       // Start CageManager
-	STOP_CM,            // Stop CageManager
-	START_PC,           // Start Process (in CageManager)
-	STOP_PC				// Stop Process (in CageManager)
-};
+#include "MsgService.h"
 
-std::wstring ServiceMessageToString(ServiceMessage value)
+DLLEXPORT std::wstring ServiceMessageToString(ServiceMessage value)
 {
 	switch (value)
 	{
@@ -27,5 +20,3 @@ std::wstring ServiceMessageToString(ServiceMessage value)
 
 	return L"";
 }
-
-
