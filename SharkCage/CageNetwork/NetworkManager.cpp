@@ -56,8 +56,11 @@ DLLEXPORT bool NetworkManager::Send(const std::wstring &msg)
 		tmp_socket.close();
 		return true;
 	}
-	catch (std::exception&)
+	catch (std::system_error e)
 	{
+		std::wostringstream os;
+		os << e.what();
+		::OutputDebugString(os.str().c_str());
 		return false;
 	}
 }
@@ -75,7 +78,9 @@ DLLEXPORT std::wstring NetworkManager::Listen()
 	}
 	catch (std::system_error e)
 	{
-		std::wcout << L"asio error: " << e.what() << std::endl;
+		std::wostringstream os;
+		os << e.what();
+		::OutputDebugString(os.str().c_str());
 	}
 
 	std::istream str(&buffer);
@@ -106,7 +111,6 @@ bool NetworkManager::InitService()
 
 	acceptor.set_option(asio::ip::tcp::acceptor::reuse_address(true));
 	acceptor = tcp::acceptor(io_service, tcp::endpoint(tcp::v4(), 1338));
-
 
 	return true;
 }

@@ -4,10 +4,14 @@
 
 enum class ServiceMessage
 {
-	START_CM = 0,       // Start CageManager
-	STOP_CM,            // Stop CageManager
-	START_PC,           // Start Process (in CageManager)
-	STOP_PC				// Stop Process (in CageManager)
+	// Start CageManager
+	START_CM = 0,
+	// Stop CageManager
+	STOP_CM,
+	// Start Process (in CageManager)
+	START_PC,
+	// Stop Process (in CageManager)
+	STOP_PC
 };
 
 DLLEXPORT std::wstring ServiceMessageToString(ServiceMessage value);

@@ -18,8 +18,13 @@ namespace CageChooser
 #if DEBUG && FALSE
             var p = new System.Diagnostics.Process();
             p.StartInfo.FileName = "Powershell.exe";
-            p.StartInfo.Arguments = "-ExecutionPolicy Unrestricted -File ..\\..\\install_service.ps1";
+            p.StartInfo.Verb = "runAs";
+            var rootDir = Directory.GetParent(Directory.GetCurrentDirectory()).Parent;
+            var scriptDir = rootDir.FullName + "\\install_service.ps1";
+
+            p.StartInfo.Arguments = "-ExecutionPolicy Unrestricted -File \"" + scriptDir + "\" -DontStartNewContext";
             p.Start();
+            p.WaitForExit();
 #endif
 
             // check if service is running
