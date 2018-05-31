@@ -114,9 +114,6 @@ VOID WINAPI ServiceMain(DWORD argc, LPTSTR *argv)
 		std::wcout << SERVICE_NAME << L": ServiceMain: SetServiceStatus returned error" << std::endl;
 	}
 
-	cage_service.ReadConfigFile();
-	cage_service.GetImageIndex();
-
 	// Start a thread that will perform the main task of the service
 	worker_thread = ::CreateThread(NULL, 0, ServiceWorkerThread, NULL, 0, NULL);
 
@@ -128,7 +125,6 @@ VOID WINAPI ServiceMain(DWORD argc, LPTSTR *argv)
 
 	// Wait until our worker thread exits signaling that the service needs to stop
 	::WaitForSingleObject(worker_thread, INFINITE);
-
 
 	/*
 	* Perform any cleanup tasks

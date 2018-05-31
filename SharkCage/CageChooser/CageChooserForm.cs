@@ -8,15 +8,17 @@ namespace CageChooser
 {
     public partial class CageChooserForm : Form
     {
+        private class NativeMethods
+        {
+            [DllImport("CageNetwork.dll")]
+            public static extern void StartCageManager();
 
-        [DllImport("CageNetwork.dll")]
-        private static extern void StartCageManager();
-
-        [DllImport("CageNetwork.dll", CallingConvention = CallingConvention.Cdecl)]
-        private static extern void SendConfigAndExternalProgram(
-            [MarshalAs(UnmanagedType.LPWStr)] string config_path,
-            [MarshalAs(UnmanagedType.LPWStr)] string external_program_name
-        );
+            [DllImport("CageNetwork.dll", CallingConvention = CallingConvention.Cdecl)]
+            public static extern void SendConfigAndExternalProgram(
+                [MarshalAs(UnmanagedType.LPWStr)] string config_path,
+                [MarshalAs(UnmanagedType.LPWStr)] string external_program_name
+            );
+        }
 
         public CageChooserForm()
         {
@@ -152,9 +154,9 @@ namespace CageChooser
             {
                 if (configPath.Text != String.Empty)
                 {
-                    StartCageManager();
+                    NativeMethods.StartCageManager();
                     var secondary_program = secureSecondaryPrograms.Text == "None" ? null : secureSecondaryPrograms.Text;
-                    SendConfigAndExternalProgram(configPath.Text, secondary_program);
+                    NativeMethods.SendConfigAndExternalProgram(configPath.Text, secondary_program);
 
                     // bring the form back in focus
                     Activate();
