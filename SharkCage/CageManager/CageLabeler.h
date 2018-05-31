@@ -11,9 +11,14 @@ using namespace Gdiplus;
 
 void DisplayTokenInCageWindow(HWND *hwnd);
 bool GetBottomFromMonitor(int &monitor_bottom);
+bool ShowExitButton(HWND &hwnd);
 bool ShowConfigMetadata(HWND &hwnd);
 
 HWND gotodesk_button;
+HWND keepass_title;
+HWND cryptomator_title;
+
+static HBRUSH h_brush = ::CreateSolidBrush(RGB(255, 255, 255));
 
 class CageLabeler
 {
@@ -53,6 +58,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM w_param, LPARAM l_param)
 	{
 	case WM_CREATE:
 	{
+		ShowExitButton(hwnd);
 		ShowConfigMetadata(hwnd);
 		break;
 	}
@@ -84,6 +90,16 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM w_param, LPARAM l_param)
 	{
 		DisplayTokenInCageWindow(&hwnd);
 		return ::DefWindowProc(hwnd, msg, w_param, l_param);
+	}
+	case WM_CTLCOLORSTATIC:
+	{
+		if (cryptomator_title == (HWND)l_param || keepass_title == (HWND)l_param)
+		{
+			HDC hdc_static = (HDC)w_param;
+			::SetTextColor(hdc_static, RGB(0, 0, 0));
+			::SetBkColor(hdc_static, RGB(255, 255, 255));
+			return (INT_PTR)h_brush;
+		}
 	}
 	default:
 		return ::DefWindowProc(hwnd, msg, w_param, l_param);
@@ -201,32 +217,54 @@ bool GetBottomFromMonitor(int &monitor_bottom)
 	return true;
 }
 
-bool ShowConfigMetadata(HWND &hwnd)
+bool ShowExitButton(HWND &hwnd)
 {
+	int bottom;
+	if (!GetBottomFromMonitor(bottom))
+	{
+		std::wcout << L"Failed to get bottom of monitor" << std::endl;
+		return false;
+	}
+
 	gotodesk_button = ::CreateWindowEx(
 		NULL,
 		L"BUTTON",
 		L"Exit",
-		WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
-		0,
-		900,
+		WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
+		-1,
+		bottom - 80,
 		500,
-		100,
+		80,
 		hwnd,
 		NULL,
 		NULL,
 		NULL);
 
 
-	HWND keepass_title = ::CreateWindowEx(
+	if (gotodesk_button != NULL)
+	{
+		::SendMessage(gotodesk_button, BM_SETIMAGE, NULL, NULL);
+	}
+	else
+	{
+		std::wcout << L"Failed to create logout button Err " << ::GetLastError() << std::endl;
+		return false;
+	}
+
+	return true;
+}
+
+bool ShowConfigMetadata(HWND &hwnd)
+{
+	keepass_title = ::CreateWindowEx(
 		NULL,
 		TEXT("STATIC"),
 		L"Keepass",
 		SS_LEFT | WS_VISIBLE | WS_CHILD,
-		10,
-		605,
+		0,
+		615,
 		150,
-		20,
+		34,
 		hwnd,
 		NULL,
 		NULL,
@@ -236,25 +274,25 @@ bool ShowConfigMetadata(HWND &hwnd)
 		NULL,
 		L"BUTTON",
 		L"Restart",
-		WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
+		WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
+		350,
+		608,
 		150,
-		605,
-		150,
-		20,
+		34,
 		hwnd,
 		NULL,
 		NULL,
 		NULL);
 
-	HWND cryptomator_title = ::CreateWindowEx(
+	cryptomator_title = ::CreateWindowEx(
 		NULL,
 		TEXT("STATIC"),
 		L"Cryptomator",
 		SS_LEFT | WS_VISIBLE | WS_CHILD,
-		10,
-		630,
+		0,
+		655,
 		150,
-		20,
+		34,
 		hwnd,
 		NULL,
 		NULL,
@@ -264,24 +302,38 @@ bool ShowConfigMetadata(HWND &hwnd)
 		NULL,
 		L"BUTTON",
 		L"Restart",
-		WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
+		WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
+		350,
+		648,
 		150,
-		630,
-		150,
-		20,
+		34,
 		hwnd,
 		NULL,
 		NULL,
 		NULL);
 
-	if (gotodesk_button != NULL 
-		&& keepass_title != NULL && keepass_button != NULL 
+	if (keepass_title != NULL && keepass_button != NULL 
 		&& cryptomator_title != NULL && cryptomator_button != NULL)
 	{
-		::SendMessage(gotodesk_button, BM_SETIMAGE, NULL, NULL);
-		::SendMessage(keepass_title, BM_SETIMAGE, NULL, NULL);
+		HFONT h_font = ::CreateFont(
+			18,
+			0,
+			0,
+			0,
+			FW_MEDIUM,
+			FALSE,
+			FALSE,
+			FALSE,
+			ANSI_CHARSET,
+			OUT_DEFAULT_PRECIS,
+			CLIP_DEFAULT_PRECIS,
+			DEFAULT_QUALITY,
+			DEFAULT_PITCH | FF_SWISS,
+			NULL);
+
+		::SendMessage(keepass_title, WM_SETFONT, (WPARAM) h_font, TRUE);
 		::SendMessage(keepass_button, BM_SETIMAGE, NULL, NULL);
-		::SendMessage(cryptomator_title, BM_SETIMAGE, NULL, NULL);
+		::SendMessage(cryptomator_title, WM_SETFONT, (WPARAM) h_font, TRUE);
 		::SendMessage(cryptomator_button, BM_SETIMAGE, NULL, NULL);
 	}
 	else
