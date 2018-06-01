@@ -1,6 +1,6 @@
 #pragma once
 
-#include "NetworkManager.h"
+#include "../CageNetwork/NetworkManager.h"
 
 #include <Windows.h>
 #include <string>
@@ -9,7 +9,7 @@
 class CageService
 {
 public:
-	CageService();
+	CageService() noexcept;
 
 	bool BeginsWith(const std::wstring &string, const std::wstring &prefix);
 

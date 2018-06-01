@@ -25,6 +25,7 @@
 # c++ / c#
 !*.h
 !*.cpp
+!*.hpp
 !*.rc
 !*.cs
 !*.resx
