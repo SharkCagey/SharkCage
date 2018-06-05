@@ -45,17 +45,5 @@ namespace CageChooser.Properties {
                 this["PersistentLRUConfigs"] = value;
             }
         }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string PeristentKeepassPath {
-            get {
-                return ((string)(this["PeristentKeepassPath"]));
-            }
-            set {
-                this["PeristentKeepassPath"] = value;
-            }
-        }
     }
 }

@@ -28,42 +28,19 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.secureSecondaryApplicationLabel = new System.Windows.Forms.Label();
-            this.secureSecondaryPrograms = new System.Windows.Forms.ComboBox();
             this.lruConfigs = new System.Windows.Forms.ListBox();
             this.lruConfigsLabel = new System.Windows.Forms.Label();
             this.configChooseLabel = new System.Windows.Forms.Label();
             this.configBrowseButton = new System.Windows.Forms.Button();
             this.openButton = new System.Windows.Forms.Button();
             this.configPath = new System.Windows.Forms.TextBox();
+            this.openCageConfiguratorButton = new System.Windows.Forms.Button();
             this.SuspendLayout();
-            // 
-            // secureSecondaryApplicationLabel
-            // 
-            this.secureSecondaryApplicationLabel.AutoSize = true;
-            this.secureSecondaryApplicationLabel.Location = new System.Drawing.Point(13, 79);
-            this.secureSecondaryApplicationLabel.Name = "secureSecondaryApplicationLabel";
-            this.secureSecondaryApplicationLabel.Size = new System.Drawing.Size(239, 13);
-            this.secureSecondaryApplicationLabel.TabIndex = 1;
-            this.secureSecondaryApplicationLabel.Text = "Would you like to open an additional application?";
-            // 
-            // secureSecondaryPrograms
-            // 
-            this.secureSecondaryPrograms.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.secureSecondaryPrograms.FormattingEnabled = true;
-            this.secureSecondaryPrograms.Items.AddRange(new object[] {
-            "None",
-            "Keepass"});
-            this.secureSecondaryPrograms.Location = new System.Drawing.Point(261, 76);
-            this.secureSecondaryPrograms.Name = "secureSecondaryPrograms";
-            this.secureSecondaryPrograms.Size = new System.Drawing.Size(201, 21);
-            this.secureSecondaryPrograms.TabIndex = 2;
-            this.secureSecondaryPrograms.SelectedIndexChanged += new System.EventHandler(this.secureSecondaryPrograms_SelectedIndexChanged);
             // 
             // lruConfigs
             // 
             this.lruConfigs.FormattingEnabled = true;
-            this.lruConfigs.Location = new System.Drawing.Point(16, 135);
+            this.lruConfigs.Location = new System.Drawing.Point(16, 86);
             this.lruConfigs.Name = "lruConfigs";
             this.lruConfigs.Size = new System.Drawing.Size(446, 134);
             this.lruConfigs.TabIndex = 3;
@@ -73,7 +50,7 @@
             // lruConfigsLabel
             // 
             this.lruConfigsLabel.AutoSize = true;
-            this.lruConfigsLabel.Location = new System.Drawing.Point(13, 112);
+            this.lruConfigsLabel.Location = new System.Drawing.Point(13, 70);
             this.lruConfigsLabel.Name = "lruConfigsLabel";
             this.lruConfigsLabel.Size = new System.Drawing.Size(147, 13);
             this.lruConfigsLabel.TabIndex = 4;
@@ -90,7 +67,7 @@
             // 
             // configBrowseButton
             // 
-            this.configBrowseButton.Location = new System.Drawing.Point(366, 37);
+            this.configBrowseButton.Location = new System.Drawing.Point(366, 30);
             this.configBrowseButton.Name = "configBrowseButton";
             this.configBrowseButton.Size = new System.Drawing.Size(96, 24);
             this.configBrowseButton.TabIndex = 7;
@@ -100,37 +77,47 @@
             // 
             // openButton
             // 
-            this.openButton.Location = new System.Drawing.Point(16, 289);
+            this.openButton.Location = new System.Drawing.Point(249, 238);
             this.openButton.Name = "openButton";
-            this.openButton.Size = new System.Drawing.Size(446, 23);
+            this.openButton.Size = new System.Drawing.Size(213, 23);
             this.openButton.TabIndex = 8;
-            this.openButton.Text = "Open";
+            this.openButton.Text = "Start";
             this.openButton.UseVisualStyleBackColor = true;
             this.openButton.Click += new System.EventHandler(this.openButton_Click);
             // 
             // configPath
             // 
             this.configPath.DataBindings.Add(new System.Windows.Forms.Binding("Text", global::CageChooser.Properties.Settings.Default, "PersistentConfigPath", true, System.Windows.Forms.DataSourceUpdateMode.OnPropertyChanged));
-            this.configPath.Location = new System.Drawing.Point(16, 39);
+            this.configPath.Location = new System.Drawing.Point(16, 32);
             this.configPath.Name = "configPath";
             this.configPath.Size = new System.Drawing.Size(340, 20);
             this.configPath.TabIndex = 5;
             this.configPath.Text = global::CageChooser.Properties.Settings.Default.PersistentConfigPath;
             this.configPath.Leave += new System.EventHandler(this.configPath_Leave);
             // 
+            // openCageConfiguratorButton
+            // 
+            this.openCageConfiguratorButton.Location = new System.Drawing.Point(16, 238);
+            this.openCageConfiguratorButton.Name = "openCageConfiguratorButton";
+            this.openCageConfiguratorButton.Size = new System.Drawing.Size(213, 23);
+            this.openCageConfiguratorButton.TabIndex = 9;
+            this.openCageConfiguratorButton.Text = "Open Cage Configurator";
+            this.openCageConfiguratorButton.UseVisualStyleBackColor = true;
+            this.openCageConfiguratorButton.Click += new System.EventHandler(this.openCageConfiguratorButton_Click);
+            // 
             // CageChooserForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(478, 329);
+            this.ClientSize = new System.Drawing.Size(478, 276);
+            this.Controls.Add(this.openCageConfiguratorButton);
             this.Controls.Add(this.openButton);
             this.Controls.Add(this.configBrowseButton);
             this.Controls.Add(this.configChooseLabel);
             this.Controls.Add(this.configPath);
             this.Controls.Add(this.lruConfigsLabel);
             this.Controls.Add(this.lruConfigs);
-            this.Controls.Add(this.secureSecondaryPrograms);
-            this.Controls.Add(this.secureSecondaryApplicationLabel);
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.Name = "CageChooserForm";
             this.Text = "Shark Cage";
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.CageChooser_FormClosed);
@@ -141,14 +128,13 @@
         }
 
         #endregion
-        private System.Windows.Forms.Label secureSecondaryApplicationLabel;
-        private System.Windows.Forms.ComboBox secureSecondaryPrograms;
         private System.Windows.Forms.ListBox lruConfigs;
         private System.Windows.Forms.Label lruConfigsLabel;
         private System.Windows.Forms.TextBox configPath;
         private System.Windows.Forms.Label configChooseLabel;
         private System.Windows.Forms.Button configBrowseButton;
         private System.Windows.Forms.Button openButton;
+        private System.Windows.Forms.Button openCageConfiguratorButton;
     }
 }
 
