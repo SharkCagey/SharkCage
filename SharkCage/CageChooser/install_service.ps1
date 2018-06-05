@@ -54,6 +54,22 @@ else
         New-Service  -Name $serviceName -BinaryPathName (Join-Path $copyPath "CageService.exe") | out-null;
         Start-Service -Name $serviceName | out-null;
     
+        $registry_path = "HKLM:\SOFTWARE\";
+        $registry_key = "SharkCage";
+        if (-not (Test-Path (Join-Path -Path $registry_path -ChildPath $registry_key)))
+        {
+            New-Item -Path $registry_path -Name $registry_key;
+        }
+        
+        if (Get-ItemProperty -Path (Join-Path -Path $registry_path -ChildPath $registry_key) -Name "InstallDir")
+        {
+            Set-ItemProperty -Path (Join-Path -Path $registry_path -ChildPath $registry_key) -Name "InstallDir" -Value $copyPath;
+        }
+        else
+        {
+            New-ItemProperty -Path (Join-Path -Path $registry_path -ChildPath $registry_key) -Name "InstallDir" -Value $copyPath -PropertyType "String" | out-null;
+        }
+    
         Write-Host "Service successfully created!" -ForegroundColor darkgreen;
     }
     Catch
