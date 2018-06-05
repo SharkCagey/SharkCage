@@ -52,7 +52,7 @@
             this.openCageChooserButton.Location = new System.Drawing.Point(12, 425);
             this.openCageChooserButton.Name = "openCageChooserButton";
             this.openCageChooserButton.Size = new System.Drawing.Size(221, 24);
-            this.openCageChooserButton.TabIndex = 0;
+            this.openCageChooserButton.TabIndex = 10;
             this.openCageChooserButton.Text = "Open Cage Chooser";
             this.openCageChooserButton.UseVisualStyleBackColor = true;
             this.openCageChooserButton.Click += new System.EventHandler(this.openCageChooserButton_Click);
@@ -71,7 +71,7 @@
             this.saveButton.Location = new System.Drawing.Point(251, 425);
             this.saveButton.Name = "saveButton";
             this.saveButton.Size = new System.Drawing.Size(221, 24);
-            this.saveButton.TabIndex = 2;
+            this.saveButton.TabIndex = 11;
             this.saveButton.Text = "Save configuration ...";
             this.saveButton.UseVisualStyleBackColor = true;
             this.saveButton.Click += new System.EventHandler(this.saveButton_Click);
@@ -84,7 +84,7 @@
             this.menuStrip.Location = new System.Drawing.Point(0, 0);
             this.menuStrip.Name = "menuStrip";
             this.menuStrip.Size = new System.Drawing.Size(484, 24);
-            this.menuStrip.TabIndex = 3;
+            this.menuStrip.TabIndex = 0;
             this.menuStrip.Text = "menuStrip";
             // 
             // newToolStripMenuItem
@@ -106,7 +106,7 @@
             this.applicationBrowseButton.Location = new System.Drawing.Point(376, 54);
             this.applicationBrowseButton.Name = "applicationBrowseButton";
             this.applicationBrowseButton.Size = new System.Drawing.Size(96, 24);
-            this.applicationBrowseButton.TabIndex = 4;
+            this.applicationBrowseButton.TabIndex = 3;
             this.applicationBrowseButton.Text = "Browse ...";
             this.applicationBrowseButton.UseVisualStyleBackColor = true;
             this.applicationBrowseButton.Click += new System.EventHandler(this.applicationBrowseButton_Click);
@@ -116,7 +116,7 @@
             this.applicationPath.Location = new System.Drawing.Point(12, 56);
             this.applicationPath.Name = "applicationPath";
             this.applicationPath.Size = new System.Drawing.Size(354, 20);
-            this.applicationPath.TabIndex = 5;
+            this.applicationPath.TabIndex = 2;
             this.applicationPath.Leave += new System.EventHandler(this.applicationPath_Leave);
             // 
             // secureSecondaryProgramLabel
@@ -125,7 +125,7 @@
             this.secureSecondaryProgramLabel.Location = new System.Drawing.Point(12, 103);
             this.secureSecondaryProgramLabel.Name = "secureSecondaryProgramLabel";
             this.secureSecondaryProgramLabel.Size = new System.Drawing.Size(236, 13);
-            this.secureSecondaryProgramLabel.TabIndex = 6;
+            this.secureSecondaryProgramLabel.TabIndex = 4;
             this.secureSecondaryProgramLabel.Text = "Select (secure) application to be opened as well:";
             // 
             // secureSecondaryPrograms
@@ -138,7 +138,7 @@
             this.secureSecondaryPrograms.Location = new System.Drawing.Point(254, 100);
             this.secureSecondaryPrograms.Name = "secureSecondaryPrograms";
             this.secureSecondaryPrograms.Size = new System.Drawing.Size(218, 21);
-            this.secureSecondaryPrograms.TabIndex = 7;
+            this.secureSecondaryPrograms.TabIndex = 5;
             this.secureSecondaryPrograms.SelectedIndexChanged += new System.EventHandler(this.secureSecondaryPrograms_SelectedIndexChanged);
             // 
             // tokenLabel
@@ -147,7 +147,7 @@
             this.tokenLabel.Location = new System.Drawing.Point(12, 142);
             this.tokenLabel.Name = "tokenLabel";
             this.tokenLabel.Size = new System.Drawing.Size(251, 13);
-            this.tokenLabel.TabIndex = 8;
+            this.tokenLabel.TabIndex = 6;
             this.tokenLabel.Text = "Select (picture) token associated with configuration:";
             // 
             // tokenBrowseButton
@@ -165,7 +165,7 @@
             this.tokenWebcamButton.Location = new System.Drawing.Point(274, 382);
             this.tokenWebcamButton.Name = "tokenWebcamButton";
             this.tokenWebcamButton.Size = new System.Drawing.Size(96, 24);
-            this.tokenWebcamButton.TabIndex = 10;
+            this.tokenWebcamButton.TabIndex = 8;
             this.tokenWebcamButton.Text = "Use webcam";
             this.tokenWebcamButton.UseVisualStyleBackColor = true;
             this.tokenWebcamButton.Click += new System.EventHandler(this.tokenWebcamButton_Click);
@@ -188,7 +188,8 @@
             this.videoSources.Location = new System.Drawing.Point(12, 383);
             this.videoSources.Name = "videoSources";
             this.videoSources.Size = new System.Drawing.Size(256, 21);
-            this.videoSources.TabIndex = 12;
+            this.videoSources.TabIndex = 7;
+            this.videoSources.TabStop = false;
             this.videoSources.Visible = false;
             // 
             // CageConfiguratorForm

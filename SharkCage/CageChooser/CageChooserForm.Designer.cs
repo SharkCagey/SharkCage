@@ -43,7 +43,7 @@
             this.lruConfigs.Location = new System.Drawing.Point(16, 86);
             this.lruConfigs.Name = "lruConfigs";
             this.lruConfigs.Size = new System.Drawing.Size(446, 134);
-            this.lruConfigs.TabIndex = 3;
+            this.lruConfigs.TabIndex = 4;
             this.lruConfigs.SelectedIndexChanged += new System.EventHandler(this.lruConfigs_SelectedIndexChanged);
             this.lruConfigs.KeyUp += new System.Windows.Forms.KeyEventHandler(this.lruConfigs_KeyUp);
             // 
@@ -53,7 +53,7 @@
             this.lruConfigsLabel.Location = new System.Drawing.Point(13, 70);
             this.lruConfigsLabel.Name = "lruConfigsLabel";
             this.lruConfigsLabel.Size = new System.Drawing.Size(147, 13);
-            this.lruConfigsLabel.TabIndex = 4;
+            this.lruConfigsLabel.TabIndex = 3;
             this.lruConfigsLabel.Text = "Recently used configurations:";
             // 
             // configChooseLabel
@@ -62,7 +62,7 @@
             this.configChooseLabel.Location = new System.Drawing.Point(13, 16);
             this.configChooseLabel.Name = "configChooseLabel";
             this.configChooseLabel.Size = new System.Drawing.Size(137, 13);
-            this.configChooseLabel.TabIndex = 6;
+            this.configChooseLabel.TabIndex = 0;
             this.configChooseLabel.Text = "Selected config to execute:";
             // 
             // configBrowseButton
@@ -70,7 +70,7 @@
             this.configBrowseButton.Location = new System.Drawing.Point(366, 30);
             this.configBrowseButton.Name = "configBrowseButton";
             this.configBrowseButton.Size = new System.Drawing.Size(96, 24);
-            this.configBrowseButton.TabIndex = 7;
+            this.configBrowseButton.TabIndex = 2;
             this.configBrowseButton.Text = "Browse ...";
             this.configBrowseButton.UseVisualStyleBackColor = true;
             this.configBrowseButton.Click += new System.EventHandler(this.configBrowseButton_Click);
@@ -80,7 +80,7 @@
             this.openButton.Location = new System.Drawing.Point(249, 238);
             this.openButton.Name = "openButton";
             this.openButton.Size = new System.Drawing.Size(213, 23);
-            this.openButton.TabIndex = 8;
+            this.openButton.TabIndex = 6;
             this.openButton.Text = "Start";
             this.openButton.UseVisualStyleBackColor = true;
             this.openButton.Click += new System.EventHandler(this.openButton_Click);
@@ -91,7 +91,7 @@
             this.configPath.Location = new System.Drawing.Point(16, 32);
             this.configPath.Name = "configPath";
             this.configPath.Size = new System.Drawing.Size(340, 20);
-            this.configPath.TabIndex = 5;
+            this.configPath.TabIndex = 1;
             this.configPath.Text = global::CageChooser.Properties.Settings.Default.PersistentConfigPath;
             this.configPath.Leave += new System.EventHandler(this.configPath_Leave);
             // 
@@ -100,7 +100,7 @@
             this.openCageConfiguratorButton.Location = new System.Drawing.Point(16, 238);
             this.openCageConfiguratorButton.Name = "openCageConfiguratorButton";
             this.openCageConfiguratorButton.Size = new System.Drawing.Size(213, 23);
-            this.openCageConfiguratorButton.TabIndex = 9;
+            this.openCageConfiguratorButton.TabIndex = 5;
             this.openCageConfiguratorButton.Text = "Open Cage Configurator";
             this.openCageConfiguratorButton.UseVisualStyleBackColor = true;
             this.openCageConfiguratorButton.Click += new System.EventHandler(this.openCageConfiguratorButton_Click);
