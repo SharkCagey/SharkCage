@@ -119,7 +119,7 @@
             this.Controls.Add(this.lruConfigs);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.Name = "CageChooserForm";
-            this.Text = "Shark Cage";
+            this.Text = "Cage Chooser";
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.CageChooser_FormClosed);
             this.Load += new System.EventHandler(this.CageChooser_Load);
             this.ResumeLayout(false);
