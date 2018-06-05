@@ -42,6 +42,7 @@
             this.tokenBrowseButton = new System.Windows.Forms.Button();
             this.tokenWebcamButton = new System.Windows.Forms.Button();
             this.tokenBox = new System.Windows.Forms.PictureBox();
+            this.videoSources = new System.Windows.Forms.ComboBox();
             this.menuStrip.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.tokenBox)).BeginInit();
             this.SuspendLayout();
@@ -167,6 +168,7 @@
             this.tokenWebcamButton.TabIndex = 10;
             this.tokenWebcamButton.Text = "Use webcam";
             this.tokenWebcamButton.UseVisualStyleBackColor = true;
+            this.tokenWebcamButton.Click += new System.EventHandler(this.tokenWebcamButton_Click);
             // 
             // tokenBox
             // 
@@ -178,11 +180,23 @@
             this.tokenBox.TabIndex = 11;
             this.tokenBox.TabStop = false;
             // 
+            // videoSources
+            // 
+            this.videoSources.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.videoSources.FormattingEnabled = true;
+            this.videoSources.ItemHeight = 13;
+            this.videoSources.Location = new System.Drawing.Point(12, 383);
+            this.videoSources.Name = "videoSources";
+            this.videoSources.Size = new System.Drawing.Size(256, 21);
+            this.videoSources.TabIndex = 12;
+            this.videoSources.Visible = false;
+            // 
             // CageConfiguratorForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(484, 461);
+            this.Controls.Add(this.videoSources);
             this.Controls.Add(this.tokenBox);
             this.Controls.Add(this.tokenWebcamButton);
             this.Controls.Add(this.tokenBrowseButton);
@@ -199,6 +213,7 @@
             this.MainMenuStrip = this.menuStrip;
             this.Name = "CageConfiguratorForm";
             this.Text = "Cage Configurator";
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.CageConfiguratorForm_FormClosing);
             this.menuStrip.ResumeLayout(false);
             this.menuStrip.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.tokenBox)).EndInit();
@@ -223,6 +238,7 @@
         private System.Windows.Forms.Button tokenBrowseButton;
         private System.Windows.Forms.Button tokenWebcamButton;
         private System.Windows.Forms.PictureBox tokenBox;
+        private System.Windows.Forms.ComboBox videoSources;
     }
 }
 

@@ -1,9 +1,11 @@
-﻿using CageConfigurator.Properties;
+﻿using AForge.Video.DirectShow;
+using CageConfigurator.Properties;
 using Microsoft.Win32;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Diagnostics;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
@@ -21,8 +23,12 @@ namespace CageConfigurator
         const string ADDITIONAL_APP_NAME_PROPERTY = "additional_application";
         const string ADDITIONAL_APP_PATH_PROPERTY = "additional_application_path";
 
+
+        private FilterInfoCollection video_device_list;
+        private VideoCaptureDevice video_device;
+
         private bool unsaved_data = false;
-        private string current_config = "unsaved";
+        private string current_config_name = "unsaved";
 
         public CageConfiguratorForm(string config_to_load)
         {
@@ -41,11 +47,18 @@ namespace CageConfigurator
 
         private void InitializeInputs()
         {
-            current_config = "unsaved";
+            current_config_name = "unsaved";
             secureSecondaryPrograms.SelectedIndex = 0;
             applicationPath.ResetText();
             tokenBox.Image = null;
             SetUnsavedData(false);
+
+            video_device_list = new FilterInfoCollection(FilterCategory.VideoInputDevice);
+            foreach (FilterInfo device in video_device_list)
+            {
+                videoSources.Items.Add(device.Name);
+            }
+            videoSources.SelectedIndex = 0;
         }
 
         private void CheckPath(string path, string file_type, Action<string> onSuccess)
@@ -85,7 +98,12 @@ namespace CageConfigurator
         {
             this.unsaved_data = unsaved_data;
             var title_modifier = unsaved_data ? "*" : "";
-            Text = $"Cage Configurator - {title_modifier}{current_config}";
+            Text = $"Cage Configurator - {title_modifier}{current_config_name}";
+        }
+
+        private void CageConfiguratorForm_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            StopWebcam();
         }
 
         #endregion
@@ -178,8 +196,8 @@ namespace CageConfigurator
             applicationPath.Text = application_path;
             tokenBox.Image = GetImageFromBase64(token);
             LoadAdditionalApp(additional_app, additional_app_path);
-            current_config = config_path;
-            Text = $"Cage Configurator - {current_config}";
+            current_config_name = config_path;
+            Text = $"Cage Configurator - {current_config_name}";
         }
 
         private void LoadAdditionalApp(string additional_app, string additional_app_path)
@@ -266,6 +284,45 @@ namespace CageConfigurator
             }
         }
 
+        private void tokenWebcamButton_Click(object sender, EventArgs e)
+        {
+            // FIXME denied access with the Windows 10 privacy options
+            // is not yet detectable and could lead to bugs -> find a solution
+            if (video_device == null || !video_device.IsRunning)
+            {
+                InitializeWebcam();
+            }
+            else
+            {
+                StopWebcam();
+            }
+        }
+
+        private void InitializeWebcam()
+        {
+            video_device = new VideoCaptureDevice(video_device_list[videoSources.SelectedIndex].MonikerString);
+            video_device.NewFrame += (s, args) =>
+            {
+                var frame = args.Frame.Clone() as Bitmap;
+                tokenBox.Image = frame;
+            };
+            video_device.Start();
+
+            videoSources.Visible = true;
+            tokenWebcamButton.Text = "Capture Frame";
+        }
+
+        private void StopWebcam()
+        {
+            if (video_device != null)
+            {
+                video_device.Stop();
+                video_device = null;
+                videoSources.Visible = false;
+                tokenWebcamButton.Text = "Use webcam";
+            }
+        }
+
         #endregion
 
         #region CageChooser
@@ -327,7 +384,7 @@ namespace CageConfigurator
                     writer.WritePropertyName(APPLICATION_PATH_PROPERTY);
                     writer.WriteValue(applicationPath.Text);
                     writer.WritePropertyName("has_signature");
-                    writer.WriteValue(IsSigned(applicationPath.Text));
+                    writer.WriteValue(IsFileSigned(applicationPath.Text));
                     writer.WritePropertyName("binary_hash");
                     writer.WriteValue(GetSha512Hash(applicationPath.Text));
                     writer.WritePropertyName(TOKEN_PROPERTY);
@@ -347,7 +404,7 @@ namespace CageConfigurator
 
                 File.WriteAllText(file_dialog.FileName, sb.ToString());
 
-                current_config = file_dialog.FileName;
+                current_config_name = file_dialog.FileName;
                 SetUnsavedData(false);
             }
         }
@@ -385,7 +442,7 @@ namespace CageConfigurator
             }
         }
 
-        private bool IsSigned(string file_path)
+        private bool IsFileSigned(string file_path)
         {
             try
             {
