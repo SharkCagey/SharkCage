@@ -143,13 +143,11 @@ std::vector<char> NetworkManager::ToCharVector(const std::wstring &string)
 	return message;
 }
 
-extern "C" DLLEXPORT void SendConfigAndExternalProgram(const wchar_t *config_path, const wchar_t *secondary_program_name)
+extern "C" DLLEXPORT void SendConfigAndExternalProgram(const wchar_t *config_path)
 {
 	if (config_path)
 	{
 		std::wstring config(config_path);
-		// for now, do nothing with secondary_program_name
-		// if (secondary_program_name) { also send to service for evaluation }
 
 		std::wostringstream ss;
 		ss << ServiceMessageToString(ServiceMessage::START_PC) << " " << config_path;
