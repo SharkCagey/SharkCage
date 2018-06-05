@@ -50,7 +50,7 @@
             // 
             this.openCageChooserButton.Location = new System.Drawing.Point(12, 425);
             this.openCageChooserButton.Name = "openCageChooserButton";
-            this.openCageChooserButton.Size = new System.Drawing.Size(219, 24);
+            this.openCageChooserButton.Size = new System.Drawing.Size(221, 24);
             this.openCageChooserButton.TabIndex = 0;
             this.openCageChooserButton.Text = "Open Cage Chooser";
             this.openCageChooserButton.UseVisualStyleBackColor = true;
@@ -67,9 +67,9 @@
             // 
             // saveButton
             // 
-            this.saveButton.Location = new System.Drawing.Point(249, 425);
+            this.saveButton.Location = new System.Drawing.Point(251, 425);
             this.saveButton.Name = "saveButton";
-            this.saveButton.Size = new System.Drawing.Size(219, 24);
+            this.saveButton.Size = new System.Drawing.Size(221, 24);
             this.saveButton.TabIndex = 2;
             this.saveButton.Text = "Save configuration ...";
             this.saveButton.UseVisualStyleBackColor = true;
@@ -102,7 +102,7 @@
             // 
             // applicationBrowseButton
             // 
-            this.applicationBrowseButton.Location = new System.Drawing.Point(372, 54);
+            this.applicationBrowseButton.Location = new System.Drawing.Point(376, 54);
             this.applicationBrowseButton.Name = "applicationBrowseButton";
             this.applicationBrowseButton.Size = new System.Drawing.Size(96, 24);
             this.applicationBrowseButton.TabIndex = 4;
@@ -136,7 +136,7 @@
             "Keepass"});
             this.secureSecondaryPrograms.Location = new System.Drawing.Point(254, 100);
             this.secureSecondaryPrograms.Name = "secureSecondaryPrograms";
-            this.secureSecondaryPrograms.Size = new System.Drawing.Size(214, 21);
+            this.secureSecondaryPrograms.Size = new System.Drawing.Size(218, 21);
             this.secureSecondaryPrograms.TabIndex = 7;
             this.secureSecondaryPrograms.SelectedIndexChanged += new System.EventHandler(this.secureSecondaryPrograms_SelectedIndexChanged);
             // 
@@ -151,7 +151,7 @@
             // 
             // tokenBrowseButton
             // 
-            this.tokenBrowseButton.Location = new System.Drawing.Point(372, 382);
+            this.tokenBrowseButton.Location = new System.Drawing.Point(376, 382);
             this.tokenBrowseButton.Name = "tokenBrowseButton";
             this.tokenBrowseButton.Size = new System.Drawing.Size(96, 24);
             this.tokenBrowseButton.TabIndex = 9;
@@ -161,7 +161,7 @@
             // 
             // tokenWebcamButton
             // 
-            this.tokenWebcamButton.Location = new System.Drawing.Point(270, 382);
+            this.tokenWebcamButton.Location = new System.Drawing.Point(274, 382);
             this.tokenWebcamButton.Name = "tokenWebcamButton";
             this.tokenWebcamButton.Size = new System.Drawing.Size(96, 24);
             this.tokenWebcamButton.TabIndex = 10;
@@ -173,7 +173,7 @@
             this.tokenBox.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.tokenBox.Location = new System.Drawing.Point(12, 158);
             this.tokenBox.Name = "tokenBox";
-            this.tokenBox.Size = new System.Drawing.Size(456, 218);
+            this.tokenBox.Size = new System.Drawing.Size(460, 218);
             this.tokenBox.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
             this.tokenBox.TabIndex = 11;
             this.tokenBox.TabStop = false;
