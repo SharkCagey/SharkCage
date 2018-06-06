@@ -6,6 +6,7 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Diagnostics;
 using System.Drawing;
+using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
@@ -413,7 +414,8 @@ namespace CageConfigurator
         {
             using (MemoryStream ms = new MemoryStream())
             {
-                image.Save(ms, image.RawFormat);
+                ImageFormat format = ImageFormat.MemoryBmp.Equals(image.RawFormat) ? ImageFormat.Bmp : image.RawFormat;
+                image.Save(ms, format);
                 byte[] image_bytes = ms.ToArray();
 
                 string base64 = Convert.ToBase64String(image_bytes);
