@@ -1,4 +1,5 @@
 ﻿using CageChooser.Properties;
+using Microsoft.Win32;
 using System;
 using System.IO;
 using System.Runtime.InteropServices;
@@ -15,16 +16,16 @@ namespace CageChooser
 
             [DllImport("CageNetwork.dll", CallingConvention = CallingConvention.Cdecl)]
             public static extern void SendConfigAndExternalProgram(
-                [MarshalAs(UnmanagedType.LPWStr)] string config_path,
-                [MarshalAs(UnmanagedType.LPWStr)] string external_program_name
+                [MarshalAs(UnmanagedType.LPWStr)] string config_path
             );
         }
 
         public CageChooserForm()
         {
             InitializeComponent();
-            secureSecondaryPrograms.SelectedIndex = 0;
         }
+
+        #region General
 
         private void CageChooser_Load(object sender, EventArgs e)
         {
@@ -54,6 +55,10 @@ namespace CageChooser
             Settings.Default.Save();
         }
 
+        #endregion
+
+        #region Config
+
         private void configBrowseButton_Click(object sender, EventArgs e)
         {
             var file_dialog = new OpenFileDialog();
@@ -63,7 +68,7 @@ namespace CageChooser
             if (result == DialogResult.OK)
             {
                 var chosen_file = file_dialog.FileName;
-                checkConfigPath(chosen_file, (string path) =>
+                CheckConfigPath(chosen_file, (string path) =>
                 {
                     configPath.Text = path;
                     addToLRUconfigs(path);
@@ -73,6 +78,33 @@ namespace CageChooser
                 });
             }
         }
+
+        private void configPath_Leave(object sender, EventArgs e)
+        {
+            CheckConfigPath(configPath.Text, addToLRUconfigs);
+        }
+
+        private void CheckConfigPath(string config_path, Action<string> onSuccess)
+        {
+            if (config_path.Length == 0)
+            {
+                return;
+            }
+
+            if (config_path.EndsWith(".sconfig") && File.Exists(config_path))
+            {
+                onSuccess(config_path);
+            }
+            else
+            {
+                MessageBox.Show("Can only choose existing .sconfig files!", "Shark Cage", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                configPath.Focus();
+            }
+        }
+
+        #endregion
+
+        #region Last Recently Used List
 
         private void lruConfigs_SelectedIndexChanged(object sender, EventArgs e)
         {
@@ -84,11 +116,6 @@ namespace CageChooser
                 configPath.SelectionStart = configPath.Text.Length;
                 configPath.ScrollToCaret();
             }
-        }
-
-        private void configPath_Leave(object sender, EventArgs e)
-        {
-            checkConfigPath(configPath.Text, addToLRUconfigs);
         }
 
         private void addToLRUconfigs(string config_path)
@@ -104,49 +131,17 @@ namespace CageChooser
             lruConfigs.Items.Insert(0, config_path);
         }
 
-        private void checkConfigPath(string config_path, Action<string> onSuccess)
+        private void lruConfigs_KeyUp(object sender, KeyEventArgs e)
         {
-            if (config_path.Length == 0)
+            if (e.KeyCode == Keys.Delete && lruConfigs.SelectedItem != null)
             {
-                return;
-            }
-
-            if (/*FIXME comment this back in once service can handle config filesconfig_path.EndsWith(".sconfig") &&*/ File.Exists(config_path))
-            {
-                onSuccess(config_path);
-            }
-            else
-            {
-                MessageBox.Show("Can only choose existing .sconfig files!", "Shark Cage", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                configPath.Focus();
+                lruConfigs.Items.Remove(lruConfigs.SelectedItem);
             }
         }
 
-        private void secureSecondaryPrograms_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            if (secureSecondaryPrograms.SelectedIndex != 0)
-            {
-                switch (secureSecondaryPrograms.SelectedItem.ToString())
-                {
-                    case "Keepass":
-                        if (Settings.Default.PeristentKeepassPath.Length == 0)
-                        {
-                            MessageBox.Show("There is no path saved for this program, please select it now.", "Shark Cage", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                            var keepass_file_dialog = new OpenFileDialog();
-                            keepass_file_dialog.CheckFileExists = true;
-                            keepass_file_dialog.Filter = "Keepass|Keepass.exe";
-                            var result = keepass_file_dialog.ShowDialog();
-                            if (result == DialogResult.OK)
-                            {
-                                Settings.Default.PeristentKeepassPath = keepass_file_dialog.FileName;
-                            }
-                        }
-                        break;
-                    default:
-                        break;
-                }
-            }
-        }
+        #endregion
+
+        #region Cage Service
 
         private void openButton_Click(object sender, EventArgs e)
         {
@@ -155,8 +150,7 @@ namespace CageChooser
                 if (configPath.Text != String.Empty)
                 {
                     NativeMethods.StartCageManager();
-                    var secondary_program = secureSecondaryPrograms.Text == "None" ? null : secureSecondaryPrograms.Text;
-                    NativeMethods.SendConfigAndExternalProgram(configPath.Text, secondary_program);
+                    NativeMethods.SendConfigAndExternalProgram(configPath.Text);
 
                     // bring the form back in focus
                     Activate();
@@ -168,12 +162,27 @@ namespace CageChooser
             }
         }
 
-        private void lruConfigs_KeyUp(object sender, KeyEventArgs e)
+        #endregion
+
+        #region CageConfigurator
+
+        private void openCageConfiguratorButton_Click(object sender, EventArgs e)
         {
-            if (e.KeyCode == Keys.Delete && lruConfigs.SelectedItem != null)
+            const string registry_key = @"HKEY_LOCAL_MACHINE\SOFTWARE\SharkCage";
+            var install_dir = Registry.GetValue(registry_key, "InstallDir", "") as string;
+
+            if (install_dir.Length == 0)
             {
-                lruConfigs.Items.Remove(lruConfigs.SelectedItem);
+                MessageBox.Show("Could not read installation directory from registry, opening CageConfigurator not possible", "Shark Cage", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
             }
+
+            var p = new System.Diagnostics.Process();
+            p.StartInfo.FileName = $@"{install_dir}\CageConfigurator.exe";
+            p.StartInfo.Arguments = $@"""{configPath.Text}""";
+            p.Start();
         }
+
+        #endregion
     }
 }

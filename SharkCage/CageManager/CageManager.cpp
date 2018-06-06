@@ -25,6 +25,8 @@
 
 #pragma comment(lib, "netapi32.lib")
 
+const char APPLICATION_PATH_PROPERTY[] = "application_path";
+
 template<typename T>
 auto local_free_deleter = [&](T resource) { ::LocalFree(resource); };
 
@@ -159,7 +161,7 @@ std::optional<std::wstring> ParseStartProcessMessage(const std::wstring &file_pa
 			nlohmann::json json_config;
 			config_stream >> json_config;
 
-			auto path = json_config["binary_path"].get<std::string>();
+			auto path = json_config[APPLICATION_PATH_PROPERTY].get<std::string>();
 
 			// no suitable alternative in c++ standard yet, so it is safe to use for now
 			// warning is suppressed by a define in project settings: _SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING
