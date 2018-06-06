@@ -93,12 +93,16 @@ DLLEXPORT std::wstring NetworkManager::Listen()
 	return converter.from_bytes(narrow_string);
 }
 
-// ports lisened to: ui 1337, service 1338, manager 1339
+// ports listened to: ui 1337, service 1338, manager 1339
 bool NetworkManager::InitUi()
 {
 	tcp::resolver resolver(io_service);
 	tcp::resolver::query query(tcp::v4(), "localhost", "1338");
 	send_endpoint = *resolver.resolve(query);
+
+	// should me not nessessarry this two lines
+	acceptor.set_option(asio::ip::tcp::acceptor::reuse_address(true));
+	acceptor = tcp::acceptor(io_service, tcp::endpoint(tcp::v4(), 1337));
 
 	return true;
 }
@@ -117,6 +121,10 @@ bool NetworkManager::InitService()
 
 bool NetworkManager::InitManager()
 {
+	tcp::resolver resolver(io_service);
+	tcp::resolver::query query(tcp::v4(), "localhost", "1338");
+	send_endpoint = *resolver.resolve(query);
+
 	acceptor.set_option(asio::ip::tcp::acceptor::reuse_address(true));
 	acceptor = tcp::acceptor(io_service, tcp::endpoint(tcp::v4(), 1339));
 

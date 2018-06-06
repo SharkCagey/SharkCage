@@ -9,30 +9,54 @@ using namespace std;
 using namespace Gdiplus;
 #pragma comment (lib, "Gdiplus.lib")
 
-void DisplayTokenInCageWindow(HWND *hwnd);
-bool GetBottomFromMonitor(int &monitor_bottom);
-bool ShowExitButton(HWND &hwnd);
-bool ShowConfigMetadata(HWND &hwnd);
+#include "../CageNetwork/NetworkManager.h"
+#include "../CageNetwork/MsgManager.h"
+#include "../CageNetwork/MsgService.h"
+#include "base64.h"
 
-HWND gotodesk_button;
-HWND keepass_title;
-HWND cryptomator_title;
+static void DisplayTokenInCageWindow(HWND *hwnd);
+static bool GetBottomFromMonitor(int &monitor_bottom);
+static bool ShowExitButton(HWND &hwnd);
+static bool ShowConfigMetadata(HWND &hwnd);
+
+static HWND gotodesk_button;
+static HWND app_name_title;
+static HWND app_name_restart_button;
+static HWND keepass_app_title;
+static HWND keepass_restart_button;
+
+static std::wstring app_names;
+static std::wstring app_tokens;
+static std::wstring additional_apps;
+static int cage_size;
 
 static HBRUSH h_brush = ::CreateSolidBrush(RGB(255, 255, 255));
+
+NetworkManager network_manager(ExecutableType::MANAGER);
 
 class CageLabeler
 {
 public:
 	CageLabeler();
+	CageLabeler(std::wstring app_name, std::wstring app_token, std::wstring additional_app, const int &cage_sizes);
 	bool Init();
 private:
 	bool ShowCageWindow();
 	void InitGdipPlisLib();
 };
 
+
 CageLabeler::CageLabeler()
 {
+}
+
+CageLabeler::CageLabeler(std::wstring app_name, std::wstring app_token, std::wstring additional_app, const int &cage_sizes)
+{
 	InitGdipPlisLib();
+	app_names = app_name;
+	cage_size = cage_sizes;
+	app_tokens = app_token;
+	additional_apps = additional_app;
 }
 
 void CageLabeler::InitGdipPlisLib()
@@ -64,11 +88,29 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM w_param, LPARAM l_param)
 	}
 	case WM_COMMAND:
 	{
-		if (l_param == (LPARAM)gotodesk_button)
+		if (l_param == (LPARAM) gotodesk_button)
 		{
 			std::cout << "Close window" << std::endl;
 			::DestroyWindow(hwnd);
 			break;
+		}
+		else if (l_param == (LPARAM) app_name_restart_button)
+		{
+			if (!network_manager.Send(ManagerMessageToString(ManagerMessage::RESTART_MAIN_APP)))
+			{
+				std::cout << "Failed to send restart default app to Manager" << std::endl;
+				break;
+			}
+			return ::DefWindowProc(hwnd, msg, w_param, l_param);
+		}
+		else if (l_param == (LPARAM) keepass_restart_button)
+		{
+			if (!network_manager.Send(ManagerMessageToString(ManagerMessage::RESTART_ADDITIONAL_APP)))
+			{
+				std::cout << "Failed to send restart default app to Manager" << std::endl;
+				break;
+			}
+			return ::DefWindowProc(hwnd, msg, w_param, l_param);
 		}
 		else
 		{
@@ -93,7 +135,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM w_param, LPARAM l_param)
 	}
 	case WM_CTLCOLORSTATIC:
 	{
-		if (cryptomator_title == (HWND)l_param || keepass_title == (HWND)l_param)
+		if (keepass_app_title == (HWND)l_param || app_name_title == (HWND)l_param)
 		{
 			HDC hdc_static = (HDC)w_param;
 			::SetTextColor(hdc_static, RGB(0, 0, 0));
@@ -137,7 +179,7 @@ bool CageLabeler::ShowCageWindow()
 		WS_POPUPWINDOW | WS_VISIBLE | WS_CLIPCHILDREN,
 		CW_USEDEFAULT,
 		CW_USEDEFAULT,
-		500,
+		cage_size,
 		bottom,
 		NULL,
 		NULL,
@@ -169,16 +211,28 @@ bool CageLabeler::ShowCageWindow()
 	return true;
 }
 
-void DisplayTokenInCageWindow(HWND *hwnd)
+static void DisplayTokenInCageWindow(HWND *hwnd)
 {
 	std::wcout << L"starting display image" << std::endl;
+
+	const std::string token_string(app_tokens.begin(), app_tokens.end());
+
+	std::string decoded_image = base64_decode(token_string);
+
+	DWORD imageSize = decoded_image.length();
+	HGLOBAL hMem = ::GlobalAlloc(GMEM_MOVEABLE, imageSize);
+	LPVOID pImage = ::GlobalLock(hMem);
+	memcpy(pImage, decoded_image.c_str(), imageSize);
+
+	IStream* pStream = NULL;
+	::CreateStreamOnHGlobal(hMem, FALSE, &pStream);
 
 	HDC hdc = ::GetDC(*hwnd);
 
 	Graphics graphics(hdc);
-	Image image(L"C:\\Users\\Juli\\segeln.jpg"); // TODO change path to a file in your env and later, read path from config
+	Image image(pStream);
 
-	double available_width = 500, available_height = 500;
+	double available_width = (double) cage_size, available_height = (double) cage_size;
 	double image_height = (double) image.GetHeight() * (available_width / (double) image.GetWidth());
 	double image_width = available_width;
 
@@ -194,7 +248,7 @@ void DisplayTokenInCageWindow(HWND *hwnd)
 }
 
 // Write util to remove this duplicated function (same in FullWorkArea.h)
-bool GetBottomFromMonitor(int &monitor_bottom)
+static bool GetBottomFromMonitor(int &monitor_bottom)
 {
 	HMONITOR monitor = ::MonitorFromWindow(NULL, MONITOR_DEFAULTTONEAREST);
 	if (monitor == NULL)
@@ -217,7 +271,7 @@ bool GetBottomFromMonitor(int &monitor_bottom)
 	return true;
 }
 
-bool ShowExitButton(HWND &hwnd)
+static bool ShowExitButton(HWND &hwnd)
 {
 	int bottom;
 	if (!GetBottomFromMonitor(bottom))
@@ -231,10 +285,10 @@ bool ShowExitButton(HWND &hwnd)
 		L"BUTTON",
 		L"Exit",
 		WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
-		-1,
-		bottom - 80,
-		500,
-		80,
+		10,
+		bottom - 44,
+		cage_size - 23,
+		34,
 		hwnd,
 		NULL,
 		NULL,
@@ -254,15 +308,15 @@ bool ShowExitButton(HWND &hwnd)
 	return true;
 }
 
-bool ShowConfigMetadata(HWND &hwnd)
+static bool ShowConfigMetadata(HWND &hwnd)
 {
-	keepass_title = ::CreateWindowEx(
+	app_name_title = ::CreateWindowEx(
 		NULL,
 		TEXT("STATIC"),
-		L"Keepass",
+		app_names.c_str(),
 		SS_LEFT | WS_VISIBLE | WS_CHILD,
-		0,
-		615,
+		10,
+		cage_size + 115,
 		150,
 		34,
 		hwnd,
@@ -270,27 +324,27 @@ bool ShowConfigMetadata(HWND &hwnd)
 		NULL,
 		NULL);
 
-	HWND keepass_button = ::CreateWindowEx(
+	app_name_restart_button = ::CreateWindowEx(
 		NULL,
 		L"BUTTON",
 		L"Restart",
 		WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
-		350,
-		608,
-		150,
+		cage_size - 112,
+		cage_size + 106,
+		100,
 		34,
 		hwnd,
 		NULL,
 		NULL,
 		NULL);
 
-	cryptomator_title = ::CreateWindowEx(
+	keepass_app_title = ::CreateWindowEx(
 		NULL,
 		TEXT("STATIC"),
-		L"Cryptomator",
+		additional_apps.c_str(),
 		SS_LEFT | WS_VISIBLE | WS_CHILD,
-		0,
-		655,
+		10,
+		cage_size + 155,
 		150,
 		34,
 		hwnd,
@@ -298,25 +352,25 @@ bool ShowConfigMetadata(HWND &hwnd)
 		NULL,
 		NULL);
 
-	HWND cryptomator_button = ::CreateWindowEx(
+	keepass_restart_button = ::CreateWindowEx(
 		NULL,
 		L"BUTTON",
 		L"Restart",
 		WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
-		350,
-		648,
-		150,
+		cage_size - 112,
+		cage_size + 148,
+		100,
 		34,
 		hwnd,
 		NULL,
 		NULL,
 		NULL);
 
-	if (keepass_title != NULL && keepass_button != NULL 
-		&& cryptomator_title != NULL && cryptomator_button != NULL)
+	if (app_name_title != NULL && app_name_restart_button != NULL 
+		&& keepass_app_title != NULL && keepass_restart_button != NULL)
 	{
 		HFONT h_font = ::CreateFont(
-			18,
+			17,
 			0,
 			0,
 			0,
@@ -331,10 +385,10 @@ bool ShowConfigMetadata(HWND &hwnd)
 			DEFAULT_PITCH | FF_SWISS,
 			NULL);
 
-		::SendMessage(keepass_title, WM_SETFONT, (WPARAM) h_font, TRUE);
-		::SendMessage(keepass_button, BM_SETIMAGE, NULL, NULL);
-		::SendMessage(cryptomator_title, WM_SETFONT, (WPARAM) h_font, TRUE);
-		::SendMessage(cryptomator_button, BM_SETIMAGE, NULL, NULL);
+		::SendMessage(app_name_title, WM_SETFONT, (WPARAM) h_font, TRUE);
+		::SendMessage(app_name_restart_button, BM_SETIMAGE, NULL, NULL);
+		::SendMessage(keepass_app_title, WM_SETFONT, (WPARAM) h_font, TRUE);
+		::SendMessage(keepass_restart_button, BM_SETIMAGE, NULL, NULL);
 	}
 	else
 	{

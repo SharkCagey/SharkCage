@@ -4,13 +4,27 @@
 class FullWorkArea
 {
 public:
+	FullWorkArea(const int &cage_size);
 	~FullWorkArea();
 	bool Init();
 private:
 	RECT rect;
 	bool GetBottomFromMonitor(int &monitor_bottom);
+	int cage_size;
 };
 
+FullWorkArea::FullWorkArea(const int &cage_size)
+{
+	this->cage_size = cage_size;
+}
+
+FullWorkArea::~FullWorkArea()
+{
+	if (!::SystemParametersInfo(SPI_SETWORKAREA, 0, &rect, SPIF_UPDATEINIFILE))
+	{
+		std::cout << "Failed to update work area. Error " << ::GetLastError() << std::endl;
+	}
+}
 
 bool FullWorkArea::Init()
 {
@@ -24,7 +38,7 @@ bool FullWorkArea::Init()
 	if (GetBottomFromMonitor(bottom))
 	{
 		RECT cage_rect;
-		cage_rect.left = 500;
+		cage_rect.left = cage_size;
 		cage_rect.bottom = bottom;
 		cage_rect.right = rect.right;
 		cage_rect.top = rect.top;
@@ -42,14 +56,6 @@ bool FullWorkArea::Init()
 	}
 
 	return true;
-}
-
-FullWorkArea::~FullWorkArea()
-{
-	if (!::SystemParametersInfo(SPI_SETWORKAREA, 0, &rect, SPIF_UPDATEINIFILE))
-	{
-		std::cout << "Failed to update work area. Error " << ::GetLastError() << std::endl;
-	}
 }
 
 bool FullWorkArea::GetBottomFromMonitor(int &monitor_bottom)

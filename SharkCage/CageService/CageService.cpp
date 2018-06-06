@@ -7,6 +7,7 @@
 
 #include "CageService.h"
 #include "../CageNetwork/MsgService.h"
+#include "../CageNetwork/MsgManager.h"
 
 const std::wstring CAGE_MANAGER_NAME = L"CageManager.exe";
 
@@ -201,6 +202,24 @@ void CageService::HandleMessage(const std::wstring &message, NetworkManager* mgr
 	}
 	else if (BeginsWith(message, ServiceMessageToString(ServiceMessage::STOP_PC)))
 	{
+		// Forward to cage manager
+		mgr->Send(message);
+	}
+	else if (BeginsWith(message, ManagerMessageToString(ManagerMessage::RESTART_ADDITIONAL_APP)))
+	{
+		std::wostringstream os;
+		os << L"Service received restart add app";
+		::OutputDebugString(os.str().c_str());
+
+		// Forward to cage manager
+		mgr->Send(message);
+	}
+	else if (BeginsWith(message, ManagerMessageToString(ManagerMessage::RESTART_MAIN_APP)))
+	{
+		std::wostringstream os;
+		os << L"Service received restart add app";
+		::OutputDebugString(os.str().c_str());
+
 		// Forward to cage manager
 		mgr->Send(message);
 	}

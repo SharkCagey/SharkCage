@@ -15,7 +15,8 @@ enum class DLLEXPORT ExecutableType
 {
 	UI,      // for the front end contacting the service
 	SERVICE, // for the CageService
-	MANAGER  // for the CageManager
+	MANAGER,  // for the CageManager
+	LABELER // can be later removed and use instead UI
 };
 
 class NetworkManager
@@ -27,7 +28,7 @@ private:
 	tcp::socket socket;
 
 	tcp::endpoint send_endpoint;
-	tcp::endpoint send_endpoint_ui; // this is only used by service to give feedback to ui - not implemented so far
+	tcp::endpoint send_endpoint_ui;
 	tcp::endpoint rec_endpoint;
 
 	tcp::acceptor acceptor; // accepting tcp connections
@@ -58,6 +59,8 @@ public:
 	**/
 	DLLEXPORT bool Send(const std::wstring &msg);
 
+	DLLEXPORT bool SendToService(const std::wstring &msg);
+
 	/**
 	* function used by all components to listen for messages
 	*  #blocking call
@@ -66,7 +69,7 @@ public:
 	DLLEXPORT std::wstring Listen();
 
 private:
-	// ports lisened to: ui 1337, service 1338, manager 1339
+	// ports listened to: ui 1337, service 1338, manager 1339
 	bool InitUi();
 
 	bool InitService();

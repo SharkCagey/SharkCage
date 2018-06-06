@@ -7,17 +7,18 @@
 class CageDesktop
 {
 public:
-	CageDesktop(PSECURITY_DESCRIPTOR p_sd);
+	CageDesktop(PSECURITY_DESCRIPTOR p_sd, std::wstring app_name, std::wstring app_token, std::wstring additional_app);
 	~CageDesktop();
 	bool Init();
 private:
+	int cage_default_size = 300;
 	HDESK old_desktop;
 	HDESK new_desktop;
-	FullWorkArea full_work_area;
+	FullWorkArea full_work_area = FullWorkArea(cage_default_size);
 	CageLabeler cage_labeler;
 };
 
-CageDesktop::CageDesktop(PSECURITY_DESCRIPTOR p_sd)
+CageDesktop::CageDesktop(PSECURITY_DESCRIPTOR p_sd, std::wstring app_name, std::wstring app_token, std::wstring additional_app)
 {
 	old_desktop = ::GetThreadDesktop(GetCurrentThreadId());
 
@@ -40,6 +41,8 @@ CageDesktop::CageDesktop(PSECURITY_DESCRIPTOR p_sd)
 	sa.bInheritHandle = FALSE;
 
 	new_desktop = ::CreateDesktop(TEXT("shark_cage_desktop"), NULL, NULL, NULL, desk_access_mask, &sa);
+
+	cage_labeler = CageLabeler(app_name, app_token, additional_app, cage_default_size);
 }
 
 CageDesktop::~CageDesktop()

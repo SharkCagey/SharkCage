@@ -15,7 +15,7 @@ namespace CageChooser
         static void Main()
         {
             // comment out '&& FALSE' to install service on application start
-#if DEBUG && FALSE
+#if DEBUG //&& FALSE
             var p = new System.Diagnostics.Process();
             p.StartInfo.FileName = "Powershell.exe";
             p.StartInfo.Verb = "runAs";
