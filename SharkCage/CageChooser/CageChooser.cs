@@ -15,7 +15,7 @@ namespace CageChooser
         static void Main()
         {
             // comment out '&& FALSE' to install service on application start
-#if DEBUG //&& FALSE
+#if DEBUG
             var p = new System.Diagnostics.Process();
             p.StartInfo.FileName = "Powershell.exe";
             p.StartInfo.Verb = "runAs";
@@ -23,8 +23,12 @@ namespace CageChooser
             var scriptDir = rootDir.FullName + "\\install_service.ps1";
 
             p.StartInfo.Arguments = "-ExecutionPolicy Unrestricted -File \"" + scriptDir + "\" -DontStartNewContext";
-            p.Start();
-            p.WaitForExit();
+            try
+            {
+                p.Start();
+                p.WaitForExit();
+            }
+            catch { /* not accepting the admin prompt causes an exception*/ }
 #endif
 
             // check if service is running
