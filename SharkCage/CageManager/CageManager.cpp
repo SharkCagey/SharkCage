@@ -26,13 +26,17 @@
 #pragma comment(lib, "netapi32.lib")
 
 const char APPLICATION_PATH_PROPERTY[] = "application_path";
+const char APPLICATION_NAME_PROPERTY[] = "application_name";
+const char APPLICATION_TOKEN_PROPERTY[] = "token";
+const char APPLICATION_HASH_PROPERTY[] = "binary_hash";
+const char ADDITIONAL_APPLICATION_NAME_PROPERTY[] = "additional_application";
+const char ADDITIONAL_APPLICATION_PATH_PROPERTY[] = "additional_application_path";
 
 template<typename T>
 auto local_free_deleter = [&](T resource) { ::LocalFree(resource); };
 
 std::unique_ptr<PSID, decltype(local_free_deleter<PSID>)> CreateSID();
 bool CreateACL(std::unique_ptr<PSID, decltype(local_free_deleter<PSID>)> group_sid);
-boolean ParseStartProcessMessage(const std::wstring &file_path, std::wstring &app_path, std::wstring &app_name);
 std::optional<std::wstring> WaitForMessage(const std::wstring &message);
 bool BeginsWith(const std::wstring &string, const std::wstring &prefix);
 HANDLE g_manager_stop_event = INVALID_HANDLE_VALUE;
@@ -162,8 +166,9 @@ boolean ParseStartProcessMessage(
 	std::wstring &app_path, 
 	std::wstring &app_name, 
 	std::wstring &app_token, 
-	std::wstring &additional_app, 
-	std::wstring &additional_app_path)
+	std::wstring &app_hash,
+	std::optional<std::wstring> &additional_app,
+	std::optional<std::wstring> &additional_app_path)
 {
 	std::ifstream config_stream;
 	config_stream.open(file_path);
@@ -176,10 +181,11 @@ boolean ParseStartProcessMessage(
 			config_stream >> json_config;
 
 			auto path = json_config[APPLICATION_PATH_PROPERTY].get<std::string>();
-			auto application_name = json_config["application_name"].get<std::string>();
-			auto token = json_config["token"].get<std::string>();
-			auto additional_application = json_config["additional_application"].get<std::string>();
-			auto additional_application_path = json_config["additional_application_path"].get<std::string>();
+			auto application_name = json_config[APPLICATION_NAME_PROPERTY].get<std::string>();
+			auto token = json_config[APPLICATION_TOKEN_PROPERTY].get<std::string>();
+			auto hash = json_config[APPLICATION_HASH_PROPERTY].get<std::string>();
+			auto additional_application = json_config[ADDITIONAL_APPLICATION_NAME_PROPERTY].get<std::string>();
+			auto additional_application_path = json_config[ADDITIONAL_APPLICATION_PATH_PROPERTY].get<std::string>();
 
 			// no suitable alternative in c++ standard yet, so it is safe to use for now
 			// warning is suppressed by a define in project settings: _SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING
@@ -188,8 +194,14 @@ boolean ParseStartProcessMessage(
 			app_path = converter.from_bytes(path);
 			app_name = converter.from_bytes(application_name);
 			app_token = converter.from_bytes(token);
+			app_hash = converter.from_bytes(hash);
 			additional_app = converter.from_bytes(additional_application);
 			additional_app_path = converter.from_bytes(additional_application_path);
+
+			if (additional_app.has_value() && additional_app.value().compare(L"None") == 0)
+			{
+				additional_app.reset();
+			}
 	
 			return true;
 		}
@@ -207,9 +219,15 @@ void StartCageDesktop(
 	PSECURITY_DESCRIPTOR security_descriptor,
 	const std::wstring &app_name,
 	const std::wstring &app_token,
-	const std::wstring &additional_app)
+	const std::wstring &app_hash,
+	const std::optional<std::wstring> &additional_app)
 {
-	CageDesktop cage_desktop = CageDesktop::CageDesktop(security_descriptor, app_name, app_token, additional_app);
+	CageDesktop cage_desktop = CageDesktop::CageDesktop(
+		security_descriptor, 
+		app_name, 
+		app_token, 
+		app_hash, 
+		additional_app);
 	if (!cage_desktop.Init())
 	{
 		std::cout << "Failed to create/launch the cage desktop" << std::endl;
@@ -223,9 +241,6 @@ bool CreateACL(std::unique_ptr<PSID, decltype(local_free_deleter<PSID>)> group_s
 	PSECURITY_DESCRIPTOR security_descriptor = NULL;
 	SECURITY_ATTRIBUTES security_attributes;
 	//Listen for the message
-	
-	network_manager.Send(L"lalalal1");
-
 	std::wstring message = network_manager.Listen();
 	auto message_result = WaitForMessage(message);
 
@@ -235,14 +250,20 @@ bool CreateACL(std::unique_ptr<PSID, decltype(local_free_deleter<PSID>)> group_s
 		return false;
 	}
 
-	network_manager.Send(L"lalalal2");
-
 	std::wstring path;
 	std::wstring app_name;
 	std::wstring app_token;
-	std::wstring additional_app;
-	std::wstring additional_app_path;
-	if (!ParseStartProcessMessage(message_result.value(), path, app_name, app_token, additional_app, additional_app_path))
+	std::wstring app_hash;
+	std::optional<std::wstring> additional_app;
+	std::optional<std::wstring> additional_app_path;
+	if (!ParseStartProcessMessage(
+		message_result.value(),
+		path, 
+		app_name, 
+		app_token, 
+		app_hash, 
+		additional_app, 
+		additional_app_path))
 	{
 		std::cout << "Could not process start process message" << std::endl;
 		return false;
@@ -327,6 +348,7 @@ bool CreateACL(std::unique_ptr<PSID, decltype(local_free_deleter<PSID>)> group_s
 		security_descriptor, 
 		app_name,
 		app_token,
+		app_hash,
 		additional_app
 	);
 
@@ -355,32 +377,23 @@ bool CreateACL(std::unique_ptr<PSID, decltype(local_free_deleter<PSID>)> group_s
 		std::cout << "Failed to start process. Err " << ::GetLastError() << std::endl;
 	}
 
-	/*message = network_manager.Listen();
-	message_result = WaitForMessage(message);
-
-	if (message_result.has_value())
+	std::optional<PROCESS_INFORMATION> process_info_additional_app;
+	if (additional_app.has_value() && additional_app_path.has_value())
 	{
-		if (BeginsWith(message_result.value(), ManagerMessageToString(ManagerMessage::RESTART_ADDITIONAL_APP)))
-		{
-			std::wstring new_desktop_name = L"shark_cage_desktop";
-			std::vector<wchar_t> new_desktop_name_buf(new_desktop_name.begin(), new_desktop_name.end());
-			new_desktop_name_buf.push_back(0);*/
-
-			std::vector<wchar_t> path_buf_keepass(additional_app_path.begin(), additional_app_path.end());
+			std::vector<wchar_t> path_buf_keepass(additional_app_path.value().begin(), additional_app_path.value().end());
 			path_buf_keepass.push_back(0);
-			PROCESS_INFORMATION process_info_keepass = { 0 };
-			STARTUPINFO info_keepass = { 0 };
-			info_keepass.lpDesktop = new_desktop_name_buf.data();
+			process_info_additional_app = { 0 };
+			STARTUPINFO info_additional_app = { 0 };
+			info_additional_app.lpDesktop = new_desktop_name_buf.data();
 
-			if (::CreateProcess(NULL, path_buf_keepass.data(), NULL, NULL, TRUE, 0, NULL, NULL, &info_keepass, &process_info_keepass))
+			if (::CreateProcess(NULL, path_buf_keepass.data(), NULL, NULL, TRUE, 0, NULL, NULL, &info_additional_app, &process_info_additional_app.value()))
 			{
 				std::cout << "Failed to start process in lalalalal. Err " << GetLastError() << std::endl;
 			}
-			/*}
-	}*/
+	}
 
 	// Start a thread that will perform the main task of the service
-	worker_thread = ::CreateThread(NULL, 0, ManagerWorkerThread, NULL, 0, NULL);
+	//worker_thread = ::CreateThread(NULL, 0, ManagerWorkerThread, NULL, 0, NULL);
 	//::WaitForSingleObject(worker_thread, INFINITE);
 
 	desktop_thread.join();
@@ -388,6 +401,11 @@ bool CreateACL(std::unique_ptr<PSID, decltype(local_free_deleter<PSID>)> group_s
 
 	//::SendMessage(nullptr /*main handle of new process*/, WM_CLOSE, NULL);
 	// with timeout, if nothing happens, terminate process
+	if (process_info_additional_app.has_value() && !::TerminateProcess(process_info_additional_app.value().hProcess, 0))
+	{
+		std::cout << "Failed to terminate process Err " << ::GetLastError() << std::endl;
+	}
+
 	if (!::TerminateProcess(process_info.hProcess, 0))
 	{
 		std::cout << "Failed to terminate process Err " << ::GetLastError() << std::endl;
@@ -395,9 +413,16 @@ bool CreateACL(std::unique_ptr<PSID, decltype(local_free_deleter<PSID>)> group_s
 
 	// wait for the process to exit
 	::WaitForSingleObject(process_info.hProcess, INFINITE);
+	
+	if (process_info_additional_app.has_value())
+	{
+		::CloseHandle(process_info_additional_app.value().hProcess);
+		::CloseHandle(process_info_additional_app.value().hThread);
+	}
+
 	::CloseHandle(process_info.hProcess);
 	::CloseHandle(process_info.hThread);
-	
+
 	return true;
 }
 
@@ -431,8 +456,6 @@ DWORD WINAPI ManagerWorkerThread(LPVOID)
 					std::cout << "Failed to start process in lalalalal. Err " << GetLastError() << std::endl;
 				}
 			}
-			// fixme app restarted
-			//::SendMessage(hwnd, HIDE_ADDITIONAL_RESTART_BUTTON)
 		}
 	}
 

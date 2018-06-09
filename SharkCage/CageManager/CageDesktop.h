@@ -7,7 +7,12 @@
 class CageDesktop
 {
 public:
-	CageDesktop(PSECURITY_DESCRIPTOR p_sd, std::wstring app_name, std::wstring app_token, std::wstring additional_app);
+	CageDesktop(
+		PSECURITY_DESCRIPTOR p_sd, 
+		const std::wstring &app_name, 
+		const std::wstring &app_token, 
+		const std::wstring &app_hash, 
+		const std::optional<std::wstring> &additional_app);
 	~CageDesktop();
 	bool Init();
 private:
@@ -18,7 +23,12 @@ private:
 	CageLabeler cage_labeler;
 };
 
-CageDesktop::CageDesktop(PSECURITY_DESCRIPTOR p_sd, std::wstring app_name, std::wstring app_token, std::wstring additional_app)
+CageDesktop::CageDesktop(
+	PSECURITY_DESCRIPTOR p_sd, 
+	const std::wstring &app_name, 
+	const std::wstring &app_token, 
+	const std::wstring &app_hash, 
+	const std::optional<std::wstring> &additional_app)
 {
 	old_desktop = ::GetThreadDesktop(GetCurrentThreadId());
 
@@ -42,7 +52,7 @@ CageDesktop::CageDesktop(PSECURITY_DESCRIPTOR p_sd, std::wstring app_name, std::
 
 	new_desktop = ::CreateDesktop(TEXT("shark_cage_desktop"), NULL, NULL, NULL, desk_access_mask, &sa);
 
-	cage_labeler = CageLabeler(app_name, app_token, additional_app, cage_default_size);
+	cage_labeler = CageLabeler(app_name, app_token, app_hash, additional_app, cage_default_size);
 }
 
 CageDesktop::~CageDesktop()

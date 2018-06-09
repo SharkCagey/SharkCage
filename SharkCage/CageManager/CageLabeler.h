@@ -14,7 +14,9 @@ using namespace Gdiplus;
 #include "../CageNetwork/MsgService.h"
 #include "base64.h"
 
-static void DisplayTokenInCageWindow(HWND *hwnd);
+#include <optional>
+
+static bool DisplayTokenInCageWindow(HWND *hwnd);
 static bool GetBottomFromMonitor(int &monitor_bottom);
 static bool ShowExitButton(HWND &hwnd);
 static bool ShowConfigMetadata(HWND &hwnd);
@@ -22,12 +24,15 @@ static bool ShowConfigMetadata(HWND &hwnd);
 static HWND gotodesk_button;
 static HWND app_name_title;
 static HWND app_name_restart_button;
-static HWND keepass_app_title;
-static HWND keepass_restart_button;
+static HWND additional_app_app_title;
+static HWND additional_app_restart_button;
+static HWND app_hash_text_title;
+static HWND app_hash_text;
 
 static std::wstring app_names;
 static std::wstring app_tokens;
-static std::wstring additional_apps;
+static std::wstring app_hashs;
+static std::optional<std::wstring> additional_app_name;
 static int cage_size;
 
 static HBRUSH h_brush = ::CreateSolidBrush(RGB(255, 255, 255));
@@ -38,7 +43,12 @@ class CageLabeler
 {
 public:
 	CageLabeler();
-	CageLabeler(std::wstring app_name, std::wstring app_token, std::wstring additional_app, const int &cage_sizes);
+	CageLabeler(
+		const std::wstring &app_name,
+		const std::wstring &app_token,
+		const std::wstring &app_hash,
+		const std::optional<std::wstring> &additional_app,
+		const int &cage_sizes);
 	bool Init();
 private:
 	bool ShowCageWindow();
@@ -50,13 +60,23 @@ CageLabeler::CageLabeler()
 {
 }
 
-CageLabeler::CageLabeler(std::wstring app_name, std::wstring app_token, std::wstring additional_app, const int &cage_sizes)
+CageLabeler::CageLabeler(
+	const std::wstring &app_name,
+	const std::wstring &app_token,
+	const std::wstring &app_hash,
+	const std::optional<std::wstring> &additional_app,
+	const int &cage_sizes)
 {
 	InitGdipPlisLib();
 	app_names = app_name;
 	cage_size = cage_sizes;
 	app_tokens = app_token;
-	additional_apps = additional_app;
+	additional_app_name = additional_app;
+
+	// truncate hash
+	const std::string hash_string(app_hash.begin(), app_hash.end());
+	auto sub_hash = hash_string.substr(0, 20);
+	app_hashs = std::wstring(sub_hash.begin(), sub_hash.end());
 }
 
 void CageLabeler::InitGdipPlisLib()
@@ -103,7 +123,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM w_param, LPARAM l_param)
 			}
 			return ::DefWindowProc(hwnd, msg, w_param, l_param);
 		}
-		else if (l_param == (LPARAM) keepass_restart_button)
+		else if (l_param == (LPARAM) additional_app_restart_button)
 		{
 			if (!network_manager.Send(ManagerMessageToString(ManagerMessage::RESTART_ADDITIONAL_APP)))
 			{
@@ -135,7 +155,11 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM w_param, LPARAM l_param)
 	}
 	case WM_CTLCOLORSTATIC:
 	{
-		if (keepass_app_title == (HWND)l_param || app_name_title == (HWND)l_param)
+		if (additional_app_app_title == (HWND) l_param 
+			|| app_name_title == (HWND) l_param
+			|| app_hash_text_title == (HWND) l_param
+			|| app_hash_text == (HWND) l_param
+		)
 		{
 			HDC hdc_static = (HDC)w_param;
 			::SetTextColor(hdc_static, RGB(0, 0, 0));
@@ -211,26 +235,71 @@ bool CageLabeler::ShowCageWindow()
 	return true;
 }
 
-static void DisplayTokenInCageWindow(HWND *hwnd)
+static bool GetImageInputStreamFromBase64(IStream* p_stream)
 {
-	std::wcout << L"starting display image" << std::endl;
-
 	const std::string token_string(app_tokens.begin(), app_tokens.end());
 
 	std::string decoded_image = base64_decode(token_string);
 
-	DWORD imageSize = decoded_image.length();
-	HGLOBAL hMem = ::GlobalAlloc(GMEM_MOVEABLE, imageSize);
-	LPVOID pImage = ::GlobalLock(hMem);
-	memcpy(pImage, decoded_image.c_str(), imageSize);
+	DWORD image_size = decoded_image.length();
 
-	IStream* pStream = NULL;
-	::CreateStreamOnHGlobal(hMem, FALSE, &pStream);
+	HGLOBAL h_memory = ::GlobalAlloc(GMEM_MOVEABLE, image_size);
+	if (h_memory == NULL)
+	{
+		std::cout << "Failed to allocate memory for token image. Error " << ::GetLastError() << std::endl;
+		return false;
+	}
+
+
+	LPVOID p_image = ::GlobalLock(h_memory);
+	if (p_image == NULL)
+	{
+		std::cout << "Failed to allocate memory for token image. Error " << ::GetLastError() << std::endl;
+		return false;
+	}
+
+	::memcpy(p_image, decoded_image.c_str(), image_size);
+
+	return ::CreateStreamOnHGlobal(h_memory, FALSE, &p_stream) ? S_OK : true, false;
+}
+
+static bool DisplayTokenInCageWindow(HWND *hwnd)
+{
+	std::wcout << L"starting display image" << std::endl;
+	
+	const std::string token_string(app_tokens.begin(), app_tokens.end());
+
+	std::string decoded_image = base64_decode(token_string);
+
+	DWORD image_size = decoded_image.length();
+
+	HGLOBAL h_memory = ::GlobalAlloc(GMEM_MOVEABLE, image_size);
+	if (h_memory == NULL)
+	{
+		std::cout << "Failed to allocate memory for token image. Error " << ::GetLastError() << std::endl;
+		return false;
+	}
+
+	LPVOID p_image = ::GlobalLock(h_memory);
+	if (p_image == NULL)
+	{
+		std::cout << "Failed to allocate memory for token image. Error " << ::GetLastError() << std::endl;
+		return false;
+	}
+
+	::memcpy(p_image, decoded_image.c_str(), image_size);
+
+	IStream* p_stream = NULL;
+	if (::CreateStreamOnHGlobal(h_memory, FALSE, &p_stream) != S_OK)
+	{
+		std::cout << "Failed to create image stream from string for cage token. Error " << ::GetLastError() << std::endl;
+		return false;
+	}
 
 	HDC hdc = ::GetDC(*hwnd);
 
 	Graphics graphics(hdc);
-	Image image(pStream);
+	Image image(p_stream);
 
 	double available_width = (double) cage_size, available_height = (double) cage_size;
 	double image_height = (double) image.GetHeight() * (available_width / (double) image.GetWidth());
@@ -245,6 +314,8 @@ static void DisplayTokenInCageWindow(HWND *hwnd)
 	graphics.DrawImage(&image, 0, 0, (int)image_width, (int)image_height);
 
 	std::wcout << L"Finished display cage" << std::endl;
+
+	return true;
 }
 
 // Write util to remove this duplicated function (same in FullWorkArea.h)
@@ -338,38 +409,68 @@ static bool ShowConfigMetadata(HWND &hwnd)
 		NULL,
 		NULL);
 
-	keepass_app_title = ::CreateWindowEx(
+	if (additional_app_name.has_value())
+	{
+		additional_app_app_title = ::CreateWindowEx(
+			NULL,
+			TEXT("STATIC"),
+			additional_app_name.value().c_str(),
+			SS_LEFT | WS_VISIBLE | WS_CHILD,
+			10,
+			cage_size + 155,
+			150,
+			34,
+			hwnd,
+			NULL,
+			NULL,
+			NULL);
+
+		additional_app_restart_button = ::CreateWindowEx(
+			NULL,
+			L"BUTTON",
+			L"Restart",
+			WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
+			cage_size - 112,
+			cage_size + 148,
+			100,
+			34,
+			hwnd,
+			NULL,
+			NULL,
+			NULL);
+	}
+
+	app_hash_text_title = ::CreateWindowEx(
 		NULL,
 		TEXT("STATIC"),
-		additional_apps.c_str(),
+		L"App SHA-512 (truncated):",
 		SS_LEFT | WS_VISIBLE | WS_CHILD,
 		10,
-		cage_size + 155,
-		150,
+		cage_size + 250,
+		cage_size - 20,
 		34,
 		hwnd,
 		NULL,
 		NULL,
 		NULL);
 
-	keepass_restart_button = ::CreateWindowEx(
+	app_hash_text = ::CreateWindowEx(
 		NULL,
-		L"BUTTON",
-		L"Restart",
-		WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
-		cage_size - 112,
-		cage_size + 148,
-		100,
+		TEXT("STATIC"),
+		app_hashs.c_str(),
+		SS_LEFT | WS_VISIBLE | WS_CHILD,
+		10,
+		cage_size + 275,
+		cage_size - 30,
 		34,
 		hwnd,
 		NULL,
 		NULL,
 		NULL);
 
-	if (app_name_title != NULL && app_name_restart_button != NULL 
-		&& keepass_app_title != NULL && keepass_restart_button != NULL)
+	if (app_name_title != NULL && app_name_restart_button != NULL)
 	{
-		HFONT h_font = ::CreateFont(
+		HFONT default_font = ::CreateFont(
 			17,
 			0,
 			0,
@@ -381,14 +482,36 @@ static bool ShowConfigMetadata(HWND &hwnd)
 			ANSI_CHARSET,
 			OUT_DEFAULT_PRECIS,
 			CLIP_DEFAULT_PRECIS,
+			DRAFT_QUALITY,
+			DEFAULT_PITCH | FF_SWISS,
+			NULL);
+
+		HFONT italic_font = ::CreateFont(
+			17,
+			0,
+			0,
+			0,
+			FW_MEDIUM,
+			TRUE,
+			FALSE,
+			FALSE,
+			ANSI_CHARSET,
+			OUT_DEFAULT_PRECIS,
+			CLIP_DEFAULT_PRECIS,
 			DEFAULT_QUALITY,
 			DEFAULT_PITCH | FF_SWISS,
 			NULL);
 
-		::SendMessage(app_name_title, WM_SETFONT, (WPARAM) h_font, TRUE);
+		::SendMessage(app_name_title, WM_SETFONT, (WPARAM) default_font, TRUE);
 		::SendMessage(app_name_restart_button, BM_SETIMAGE, NULL, NULL);
-		::SendMessage(keepass_app_title, WM_SETFONT, (WPARAM) h_font, TRUE);
-		::SendMessage(keepass_restart_button, BM_SETIMAGE, NULL, NULL);
+		::SendMessage(app_hash_text_title, WM_SETFONT, (WPARAM) default_font, TRUE);
+		::SendMessage(app_hash_text, WM_SETFONT, (WPARAM) italic_font, TRUE);
+
+		if (additional_app_name.has_value())
+		{
+			::SendMessage(additional_app_app_title, WM_SETFONT, (WPARAM)default_font, TRUE);
+			::SendMessage(additional_app_restart_button, BM_SETIMAGE, NULL, NULL);
+		}
 	}
 	else
 	{
