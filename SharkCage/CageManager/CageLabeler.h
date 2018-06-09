@@ -235,34 +235,6 @@ bool CageLabeler::ShowCageWindow()
 	return true;
 }
 
-static bool GetImageInputStreamFromBase64(IStream* p_stream)
-{
-	const std::string token_string(app_tokens.begin(), app_tokens.end());
-
-	std::string decoded_image = base64_decode(token_string);
-
-	DWORD image_size = decoded_image.length();
-
-	HGLOBAL h_memory = ::GlobalAlloc(GMEM_MOVEABLE, image_size);
-	if (h_memory == NULL)
-	{
-		std::cout << "Failed to allocate memory for token image. Error " << ::GetLastError() << std::endl;
-		return false;
-	}
-
-
-	LPVOID p_image = ::GlobalLock(h_memory);
-	if (p_image == NULL)
-	{
-		std::cout << "Failed to allocate memory for token image. Error " << ::GetLastError() << std::endl;
-		return false;
-	}
-
-	::memcpy(p_image, decoded_image.c_str(), image_size);
-
-	return ::CreateStreamOnHGlobal(h_memory, FALSE, &p_stream) ? S_OK : true, false;
-}
-
 static bool DisplayTokenInCageWindow(HWND *hwnd)
 {
 	std::wcout << L"starting display image" << std::endl;

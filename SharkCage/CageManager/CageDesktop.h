@@ -16,7 +16,7 @@ public:
 	~CageDesktop();
 	bool Init();
 private:
-	int cage_default_size = 300;
+	const int cage_default_size = 300;
 	HDESK old_desktop;
 	HDESK new_desktop;
 	FullWorkArea full_work_area = FullWorkArea(cage_default_size);
