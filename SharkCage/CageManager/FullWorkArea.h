@@ -4,7 +4,7 @@
 class FullWorkArea
 {
 public:
-	FullWorkArea(const int &cage_size);
+	FullWorkArea(const int &cage_width);
 	~FullWorkArea();
 	bool Init();
 private:
