@@ -29,11 +29,11 @@ static HWND additional_app_restart_button;
 static HWND app_hash_text_title;
 static HWND app_hash_text;
 
-static std::wstring app_names;
-static std::wstring app_tokens;
-static std::wstring app_hashs;
+static std::wstring app_name;
+static std::wstring app_token;
+static std::wstring app_hash;
 static std::optional<std::wstring> additional_app_name;
-static int cage_size;
+static int cage_width;
 
 static HBRUSH h_brush = ::CreateSolidBrush(RGB(255, 255, 255));
 
@@ -47,8 +47,8 @@ public:
 		const std::wstring &app_name,
 		const std::wstring &app_token,
 		const std::wstring &app_hash,
-		const std::optional<std::wstring> &additional_app,
-		const int &cage_sizes);
+		const std::optional<std::wstring> &additional_app_name,
+		const int &cage_width);
 	bool Init();
 private:
 	bool ShowCageWindow();
@@ -61,22 +61,22 @@ CageLabeler::CageLabeler()
 }
 
 CageLabeler::CageLabeler(
-	const std::wstring &app_name,
-	const std::wstring &app_token,
-	const std::wstring &app_hash,
-	const std::optional<std::wstring> &additional_app,
-	const int &cage_sizes)
+	const std::wstring &_app_name,
+	const std::wstring &_app_token,
+	const std::wstring &_app_hash,
+	const std::optional<std::wstring> &_additional_app_name,
+	const int &_cage_width)
 {
 	InitGdipPlisLib();
-	app_names = app_name;
-	cage_size = cage_sizes;
-	app_tokens = app_token;
-	additional_app_name = additional_app;
+	app_name = _app_name;
+	cage_width = _cage_width;
+	app_token = _app_token;
+	additional_app_name = _additional_app_name;
 
 	// truncate hash
-	const std::string hash_string(app_hash.begin(), app_hash.end());
+	const std::string hash_string(_app_hash.begin(), _app_hash.end());
 	auto sub_hash = hash_string.substr(0, 20);
-	app_hashs = std::wstring(sub_hash.begin(), sub_hash.end());
+	app_hash = std::wstring(sub_hash.begin(), sub_hash.end());
 }
 
 void CageLabeler::InitGdipPlisLib()
@@ -155,11 +155,11 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM w_param, LPARAM l_param)
 	}
 	case WM_CTLCOLORSTATIC:
 	{
-		if (additional_app_app_title == (HWND) l_param 
-			|| app_name_title == (HWND) l_param
-			|| app_hash_text_title == (HWND) l_param
-			|| app_hash_text == (HWND) l_param
-		)
+		HWND current_hwnd = reinterpret_cast<HWND>(l_param);
+		if (additional_app_app_title == current_hwnd
+			|| app_name_title == current_hwnd
+			|| app_hash_text_title == current_hwnd
+			|| app_hash_text == current_hwnd)
 		{
 			HDC hdc_static = (HDC)w_param;
 			::SetTextColor(hdc_static, RGB(0, 0, 0));
@@ -203,7 +203,7 @@ bool CageLabeler::ShowCageWindow()
 		WS_POPUPWINDOW | WS_VISIBLE | WS_CLIPCHILDREN,
 		CW_USEDEFAULT,
 		CW_USEDEFAULT,
-		cage_size,
+		cage_width,
 		bottom,
 		NULL,
 		NULL,
@@ -239,7 +239,7 @@ static bool DisplayTokenInCageWindow(HWND *hwnd)
 {
 	std::wcout << L"starting display image" << std::endl;
 	
-	const std::string token_string(app_tokens.begin(), app_tokens.end());
+	const std::string token_string(app_token.begin(), app_token.end());
 
 	std::string decoded_image = base64_decode(token_string);
 
@@ -273,19 +273,24 @@ static bool DisplayTokenInCageWindow(HWND *hwnd)
 	Graphics graphics(hdc);
 	Image image(p_stream);
 
-	double available_width = (double) cage_size, available_height = (double) cage_size;
+	double available_width = (double) cage_width, available_height = (double) cage_width;
 	double image_height = (double) image.GetHeight() * (available_width / (double) image.GetWidth());
 	double image_width = available_width;
-
 	if (image_height > available_height)
 	{
 		image_width = image_width * (available_height / image_height);
 		image_height = available_height;
 	}
 
-	graphics.DrawImage(&image, 0, 0, (int)image_width, (int)image_height);
+	if (graphics.DrawImage(&image, 0, 0, (int)image_width, (int)image_height) != Gdiplus::Status::Ok)
+	{
+		std::wcout << L"Failed to draw token in cage" << std::endl;
+		return false;
+	}
 
-	std::wcout << L"Finished display cage" << std::endl;
+	p_stream->Release();
+	GlobalUnlock(h_memory);
+	GlobalFree(h_memory);
 
 	return true;
 }
@@ -330,7 +335,7 @@ static bool ShowExitButton(HWND &hwnd)
 		WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
 		10,
 		bottom - 44,
-		cage_size - 23,
+		cage_width - 23,
 		34,
 		hwnd,
 		NULL,
@@ -356,10 +361,10 @@ static bool ShowConfigMetadata(HWND &hwnd)
 	app_name_title = ::CreateWindowEx(
 		NULL,
 		TEXT("STATIC"),
-		app_names.c_str(),
+		app_name.c_str(),
 		SS_LEFT | WS_VISIBLE | WS_CHILD,
 		10,
-		cage_size + 115,
+		cage_width + 115,
 		150,
 		34,
 		hwnd,
@@ -372,8 +377,8 @@ static bool ShowConfigMetadata(HWND &hwnd)
 		L"BUTTON",
 		L"Restart",
 		WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
-		cage_size - 112,
-		cage_size + 106,
+		cage_width - 112,
+		cage_width + 106,
 		100,
 		34,
 		hwnd,
@@ -389,7 +394,7 @@ static bool ShowConfigMetadata(HWND &hwnd)
 			additional_app_name.value().c_str(),
 			SS_LEFT | WS_VISIBLE | WS_CHILD,
 			10,
-			cage_size + 155,
+			cage_width + 155,
 			150,
 			34,
 			hwnd,
@@ -402,8 +407,8 @@ static bool ShowConfigMetadata(HWND &hwnd)
 			L"BUTTON",
 			L"Restart",
 			WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
-			cage_size - 112,
-			cage_size + 148,
+			cage_width - 112,
+			cage_width + 148,
 			100,
 			34,
 			hwnd,
@@ -418,8 +423,8 @@ static bool ShowConfigMetadata(HWND &hwnd)
 		L"App SHA-512 (truncated):",
 		SS_LEFT | WS_VISIBLE | WS_CHILD,
 		10,
-		cage_size + 250,
-		cage_size - 20,
+		cage_width + 250,
+		cage_width - 20,
 		34,
 		hwnd,
 		NULL,
@@ -429,11 +434,11 @@ static bool ShowConfigMetadata(HWND &hwnd)
 	app_hash_text = ::CreateWindowEx(
 		NULL,
 		TEXT("STATIC"),
-		app_hashs.c_str(),
+		app_hash.c_str(),
 		SS_LEFT | WS_VISIBLE | WS_CHILD,
 		10,
-		cage_size + 275,
-		cage_size - 30,
+		cage_width + 275,
+		cage_width - 30,
 		34,
 		hwnd,
 		NULL,

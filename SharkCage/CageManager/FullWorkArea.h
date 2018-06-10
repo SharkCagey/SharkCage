@@ -10,12 +10,12 @@ public:
 private:
 	RECT rect;
 	bool GetBottomFromMonitor(int &monitor_bottom);
-	int cage_size;
+	int cage_width;
 };
 
-FullWorkArea::FullWorkArea(const int &cage_size)
+FullWorkArea::FullWorkArea(const int &cage_width)
 {
-	this->cage_size = cage_size;
+	this->cage_width = cage_width;
 }
 
 FullWorkArea::~FullWorkArea()
@@ -38,7 +38,7 @@ bool FullWorkArea::Init()
 	if (GetBottomFromMonitor(bottom))
 	{
 		RECT cage_rect;
-		cage_rect.left = cage_size;
+		cage_rect.left = cage_width;
 		cage_rect.bottom = bottom;
 		cage_rect.right = rect.right;
 		cage_rect.top = rect.top;

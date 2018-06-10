@@ -39,12 +39,6 @@ std::unique_ptr<PSID, decltype(local_free_deleter<PSID>)> CreateSID();
 bool CreateACL(std::unique_ptr<PSID, decltype(local_free_deleter<PSID>)> group_sid);
 std::optional<std::wstring> WaitForMessage(const std::wstring &message);
 bool BeginsWith(const std::wstring &string, const std::wstring &prefix);
-HANDLE g_manager_stop_event = INVALID_HANDLE_VALUE;
-DWORD WINAPI ManagerWorkerThread(LPVOID);
-
-HANDLE worker_thread;
-
-boolean receiving_messages = true;
 
 int main()
 {
@@ -167,7 +161,7 @@ boolean ParseStartProcessMessage(
 	std::wstring &app_name, 
 	std::wstring &app_token, 
 	std::wstring &app_hash,
-	std::optional<std::wstring> &additional_app,
+	std::optional<std::wstring> &additional_app_name,
 	std::optional<std::wstring> &additional_app_path)
 {
 	std::ifstream config_stream;
@@ -195,12 +189,12 @@ boolean ParseStartProcessMessage(
 			app_name = converter.from_bytes(application_name);
 			app_token = converter.from_bytes(token);
 			app_hash = converter.from_bytes(hash);
-			additional_app = converter.from_bytes(additional_application);
+			additional_app_name = converter.from_bytes(additional_application);
 			additional_app_path = converter.from_bytes(additional_application_path);
 
-			if (additional_app.has_value() && additional_app.value().compare(L"None") == 0)
+			if (additional_app_name.has_value() && additional_app_name.value().compare(L"None") == 0)
 			{
-				additional_app.reset();
+				additional_app_name.reset();
 			}
 	
 			return true;
@@ -254,7 +248,7 @@ bool CreateACL(std::unique_ptr<PSID, decltype(local_free_deleter<PSID>)> group_s
 	std::wstring app_name;
 	std::wstring app_token;
 	std::wstring app_hash;
-	std::optional<std::wstring> additional_app;
+	std::optional<std::wstring> additional_app_name;
 	std::optional<std::wstring> additional_app_path;
 	if (!ParseStartProcessMessage(
 		message_result.value(),
@@ -262,7 +256,7 @@ bool CreateACL(std::unique_ptr<PSID, decltype(local_free_deleter<PSID>)> group_s
 		app_name, 
 		app_token, 
 		app_hash, 
-		additional_app, 
+		additional_app_name,
 		additional_app_path))
 	{
 		std::cout << "Could not process start process message" << std::endl;
@@ -349,7 +343,7 @@ bool CreateACL(std::unique_ptr<PSID, decltype(local_free_deleter<PSID>)> group_s
 		app_name,
 		app_token,
 		app_hash,
-		additional_app
+		additional_app_name
 	);
 
 	//PETER´S ACCESS TOKEN THINGS
@@ -378,41 +372,34 @@ bool CreateACL(std::unique_ptr<PSID, decltype(local_free_deleter<PSID>)> group_s
 	}
 
 	std::optional<PROCESS_INFORMATION> process_info_additional_app;
-	if (additional_app.has_value() && additional_app_path.has_value())
+	if (additional_app_name.has_value() && additional_app_path.has_value())
 	{
-			std::vector<wchar_t> path_buf_keepass(additional_app_path.value().begin(), additional_app_path.value().end());
-			path_buf_keepass.push_back(0);
-			process_info_additional_app = { 0 };
-			STARTUPINFO info_additional_app = { 0 };
-			info_additional_app.lpDesktop = new_desktop_name_buf.data();
+		std::vector<wchar_t> additional_app_path_buf(additional_app_path.value().begin(), additional_app_path.value().end());
+		additional_app_path_buf.push_back(0);
+		process_info_additional_app = { 0 };
+		STARTUPINFO info_additional_app = { 0 };
+		info_additional_app.lpDesktop = new_desktop_name_buf.data();
 
-			if (::CreateProcess(NULL, path_buf_keepass.data(), NULL, NULL, TRUE, 0, NULL, NULL, &info_additional_app, &process_info_additional_app.value()))
-			{
-				std::cout << "Failed to start process in lalalalal. Err " << GetLastError() << std::endl;
-			}
-	}
-
-	// Start a thread that will perform the main task of the service
-	//worker_thread = ::CreateThread(NULL, 0, ManagerWorkerThread, NULL, 0, NULL);
-	//::WaitForSingleObject(worker_thread, INFINITE);
-
-	desktop_thread.join();
-	receiving_messages = false;
-
-	//::SendMessage(nullptr /*main handle of new process*/, WM_CLOSE, NULL);
-	// with timeout, if nothing happens, terminate process
-	if (process_info_additional_app.has_value() && !::TerminateProcess(process_info_additional_app.value().hProcess, 0))
-	{
-		std::cout << "Failed to terminate process Err " << ::GetLastError() << std::endl;
-	}
-
-	if (!::TerminateProcess(process_info.hProcess, 0))
-	{
-		std::cout << "Failed to terminate process Err " << ::GetLastError() << std::endl;
+		if (::CreateProcess(NULL, additional_app_path_buf.data(), NULL, NULL, TRUE, 0, NULL, NULL, &info_additional_app, &process_info_additional_app.value()))
+		{
+			std::cout << "Failed to start additional process. Err " << GetLastError() << std::endl;
+		}
 	}
 
 	// wait for the process to exit
 	::WaitForSingleObject(process_info.hProcess, INFINITE);
+
+	desktop_thread.join();
+
+	if (!::TerminateProcess(process_info.hProcess, 0))
+	{
+		std::cout << "Failed to terminate process. Err " << ::GetLastError() << std::endl;
+	}
+
+	if (process_info_additional_app.has_value() && !::TerminateProcess(process_info_additional_app.value().hProcess, 0))
+	{
+		std::cout << "Failed to terminate additional process. Err " << ::GetLastError() << std::endl;
+	}
 	
 	if (process_info_additional_app.has_value())
 	{
@@ -424,40 +411,4 @@ bool CreateACL(std::unique_ptr<PSID, decltype(local_free_deleter<PSID>)> group_s
 	::CloseHandle(process_info.hThread);
 
 	return true;
-}
-
-DWORD WINAPI ManagerWorkerThread(LPVOID)
-{
-	// periodically check if the service has been requested to stop
-	// But does not work properly because netwirkMgr.listen() is a blocking call.
-	while (receiving_messages)
-	{
-		// Look for messages and parse them
-		auto message = network_manager.Listen();
-		auto message_result = WaitForMessage(message);
-
-		if (message_result.has_value())
-		{
-			if (BeginsWith(message_result.value(), ManagerMessageToString(ManagerMessage::RESTART_ADDITIONAL_APP)))
-			{
-				std::wstring new_desktop_name = L"shark_cage_desktop";
-				std::vector<wchar_t> new_desktop_name_buf(new_desktop_name.begin(), new_desktop_name.end());
-				new_desktop_name_buf.push_back(0);
-
-				std::wstring path_keepass = L"C:\\Program Files (x86)\\KeePass Password Safe 2\\KeePass.exe";
-				std::vector<wchar_t> path_buf_keepass(path_keepass.begin(), path_keepass.end());
-				path_buf_keepass.push_back(0);
-				PROCESS_INFORMATION process_info_keepass = { 0 };
-				STARTUPINFO info_keepass = { 0 };
-				info_keepass.lpDesktop = new_desktop_name_buf.data();
-
-				if (::CreateProcess(NULL, path_buf_keepass.data(), NULL, NULL, TRUE, 0, NULL, NULL, &info_keepass, &process_info_keepass))
-				{
-					std::cout << "Failed to start process in lalalalal. Err " << GetLastError() << std::endl;
-				}
-			}
-		}
-	}
-
-	return ERROR_SUCCESS;
 }

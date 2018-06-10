@@ -100,10 +100,6 @@ bool NetworkManager::InitUi()
 	tcp::resolver::query query(tcp::v4(), "localhost", "1338");
 	send_endpoint = *resolver.resolve(query);
 
-	// should me not nessessarry this two lines
-	acceptor.set_option(asio::ip::tcp::acceptor::reuse_address(true));
-	acceptor = tcp::acceptor(io_service, tcp::endpoint(tcp::v4(), 1337));
-
 	return true;
 }
 
