@@ -50,14 +50,6 @@ public:
 	 */
 	void HandleMessage(const std::wstring &message, NetworkManager *mgr);
 
-	/*
-	* Reads the specifies configuration file and set the value of the image index accordingly.
-	* config.txt must be in the directory of the service executable.
-	*/
-	void ReadConfigFile();
-
-	int GetImageIndex();
-
 private:
 	// Process ID of the Cage Manager (Used for closing the Cage Manager)
 	DWORD cage_manager_process_id;
@@ -66,11 +58,4 @@ private:
 	DWORD dialog_process_id;
 
 	std::wstring GetLastErrorAsString(DWORD error_id);
-
-	int image_index = -1;    // Initialize with error code
-
-	/*
-	 * Accepts strings that are more than 8 characters long and returns the number at the end as int.
-	 */
-	int GetPictureIndexFromLine(const std::wstring &line);
 };

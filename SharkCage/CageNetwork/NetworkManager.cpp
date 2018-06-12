@@ -68,6 +68,9 @@ DLLEXPORT bool NetworkManager::Send(const std::wstring &msg)
 DLLEXPORT std::wstring NetworkManager::Listen()
 {
 	tcp::socket temp_socket(io_service);
+
+	// should switch to accept_async and change all relevant code which
+	// relies / is prevented from functioning correctly on the blocking nature of this
 	acceptor.accept(temp_socket);
 
 	asio::streambuf buffer;
