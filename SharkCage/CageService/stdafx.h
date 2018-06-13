@@ -6,8 +6,7 @@
 #pragma once
 
 #include "targetver.h"
-#define BOOST_TEST_MODULE existCageService
-#define BOOST_TEST_MODULE cageManagerRunning
+#define BOOST_TEST_MODULE cageServiceTest
 #include <stdio.h>
 #include <tchar.h>
 
