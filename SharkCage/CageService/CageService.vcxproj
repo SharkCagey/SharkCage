@@ -203,6 +203,7 @@ xcopy /y "$(OutDir)$(TargetName).pdb" "$(SolutionDir)post_build_output\"
   <ItemGroup>
     <ClCompile Include="CageService.cpp" />
     <ClCompile Include="CageServiceMain.cpp" />
+    <ClCompile Include="Test.cpp"/>
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
