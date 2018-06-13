@@ -46,9 +46,6 @@ DWORD CageService::StartCageManager(const std::wstring &app_name, DWORD session_
 // Must be part of the service
 DWORD CageService::StartCageManager(const std::wstring &app_name, const std::optional<std::wstring> &desktop_name, DWORD session_id)
 {
-	HANDLE service_token_handle;
-	HANDLE user_session_token_handle;
-
 	STARTUPINFO si = { sizeof si };
 	if (desktop_name.has_value())
 	{
@@ -64,11 +61,13 @@ DWORD CageService::StartCageManager(const std::wstring &app_name, const std::opt
 	PROCESS_INFORMATION pi;
 	DWORD process_id = -1;
 
+	// FIXME security descriptors must contain the new SID and token of newly created group so the manager can access the new desktop (after #21)
 	SECURITY_ATTRIBUTES sa;
 	sa.nLength = sizeof(SECURITY_ATTRIBUTES);
 	sa.lpSecurityDescriptor = nullptr;
 	sa.bInheritHandle = true;
 
+	// FIXME review the impersonation and token information after cage manager gets started on new desktop (after #21)
 	// Use new token with privileges for the trusting computing base
 	if (!::ImpersonateSelf(SecurityImpersonation))
 	{
@@ -78,6 +77,7 @@ DWORD CageService::StartCageManager(const std::wstring &app_name, const std::opt
 		return process_id;
 	}
 
+	HANDLE service_token_handle;
 	if (!::OpenThreadToken(::GetCurrentThread(), TOKEN_ALL_ACCESS, false, &service_token_handle))
 	{
 		std::wostringstream os;
@@ -86,6 +86,7 @@ DWORD CageService::StartCageManager(const std::wstring &app_name, const std::opt
 		return process_id;
 	}
 
+	HANDLE user_session_token_handle;
 	if (!::DuplicateTokenEx(service_token_handle, MAXIMUM_ALLOWED, NULL, SecurityImpersonation, TokenPrimary, &user_session_token_handle))
 	{
 		std::wostringstream os;
@@ -109,7 +110,7 @@ DWORD CageService::StartCageManager(const std::wstring &app_name, const std::opt
 		NULL,
 		&sa,  // <- Process Attributes
 		NULL,  // Thread Attributes
-		false, // Inheritaion flags
+		false, // Inheritance flags
 		0,     // Creation flags
 		NULL,  // Environment
 		NULL,  // Current directory

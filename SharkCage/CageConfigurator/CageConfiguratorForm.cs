@@ -9,8 +9,10 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
+using System.Security.AccessControl;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
+using System.Security.Principal;
 using System.Text;
 using System.Windows.Forms;
 
@@ -403,7 +405,26 @@ namespace CageConfigurator
                     writer.WriteEndObject();
                 }
 
-                File.WriteAllText(file_dialog.FileName, sb.ToString());
+                // generate acl for config (only admin group has access)
+                IdentityReference built_in_administrators = new SecurityIdentifier(WellKnownSidType.BuiltinAdministratorsSid, null);
+                var file_security = new FileSecurity();
+                file_security.SetOwner(built_in_administrators);
+                foreach (FileSystemAccessRule fs_access_rule in file_security.GetAccessRules(true, true, typeof(SecurityIdentifier)))
+                {
+                    file_security.RemoveAccessRule(fs_access_rule);
+                }
+                file_security.AddAccessRule(new FileSystemAccessRule(built_in_administrators, FileSystemRights.FullControl, AccessControlType.Allow));
+                file_security.SetAccessRuleProtection(true, false);
+
+                // create file with acl
+                using (var file_stream = File.Create(file_dialog.FileName, 1024, FileOptions.None, file_security))
+                {
+                    // write to file
+                    using (var stream_writer = new StreamWriter(file_stream))
+                    {
+                        stream_writer.Write(sb.ToString());
+                    }
+                }
 
                 current_config_name = file_dialog.FileName;
                 SetUnsavedData(false);

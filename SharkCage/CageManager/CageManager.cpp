@@ -189,10 +189,6 @@ void StartCageDesktop(PSECURITY_DESCRIPTOR security_descriptor)
 
 bool CreateACL(std::unique_ptr<PSID, decltype(local_free_deleter<PSID>)> group_sid)
 {
-	DWORD result;
-	PACL acl = NULL;
-	PSECURITY_DESCRIPTOR security_descriptor = NULL;
-	SECURITY_ATTRIBUTES security_attributes;
 	//Listen for the message
 	std::wstring message = network_manager.Listen();
 	auto message_result = WaitForMessage(message);
@@ -218,7 +214,7 @@ bool CreateACL(std::unique_ptr<PSID, decltype(local_free_deleter<PSID>)> group_s
 	EXPLICIT_ACCESS explicit_access_group = { 0 };
 	EXPLICIT_ACCESS explicit_access_admin = { 0 };
 
-	// EXPLICIT_ACCESS for created groupc 
+	// EXPLICIT_ACCESS for created group (this allows the new group everything (GENERIC_ALL + SET_ACCESS))
 	explicit_access_group.grfAccessPermissions = GENERIC_ALL;
 	explicit_access_group.grfAccessMode = SET_ACCESS;
 	explicit_access_group.grfInheritance = NO_INHERITANCE;
@@ -231,9 +227,9 @@ bool CreateACL(std::unique_ptr<PSID, decltype(local_free_deleter<PSID>)> group_s
 
 	explicit_access_group.Trustee.ptstrName = group_sid_string.get();
 
-	// EXPLICIT_ACCESS with second ACE for admin group
+	// EXPLICIT_ACCESS with second ACE for admin group (this denies the adming group everything (GENERIC_ALL + DENY_ACCESS))
 	explicit_access_admin.grfAccessPermissions = GENERIC_ALL;
-	explicit_access_admin.grfAccessMode = SET_ACCESS; //DENY_ACCES
+	explicit_access_admin.grfAccessMode = DENY_ACCESS;
 	explicit_access_admin.grfInheritance = NO_INHERITANCE;
 	explicit_access_admin.Trustee.TrusteeForm = TRUSTEE_IS_SID;
 	explicit_access_admin.Trustee.TrusteeType = TRUSTEE_IS_GROUP;
@@ -244,7 +240,9 @@ bool CreateACL(std::unique_ptr<PSID, decltype(local_free_deleter<PSID>)> group_s
 
 	explicit_access_admin.Trustee.ptstrName = admin_sid_string.get();
 
-	// Create a new ACL that contains the new ACEs.
+	// Create a new ACL that contains the new ACEs
+	DWORD result;
+	PACL acl = nullptr;
 	EXPLICIT_ACCESS ea[2] = { explicit_access_group, explicit_access_admin };
 	result = ::SetEntriesInAcl(2, ea, NULL, &acl);
 	if (result != ERROR_SUCCESS)
@@ -252,8 +250,8 @@ bool CreateACL(std::unique_ptr<PSID, decltype(local_free_deleter<PSID>)> group_s
 		std::cout << "SetEntriesInAcl Error: " << ::GetLastError() << std::endl;
 	}
 
-	// Initialize a security descriptor.  
-	security_descriptor = const_cast<PSECURITY_DESCRIPTOR>(::LocalAlloc(LPTR, SECURITY_DESCRIPTOR_MIN_LENGTH));
+	// Initialize a security descriptor
+	PSECURITY_DESCRIPTOR security_descriptor = const_cast<PSECURITY_DESCRIPTOR>(::LocalAlloc(LPTR, SECURITY_DESCRIPTOR_MIN_LENGTH));
 	if (security_descriptor == nullptr)
 	{
 		std::cout << "LocalAlloc Error: " << ::GetLastError() << std::endl;
@@ -265,7 +263,7 @@ bool CreateACL(std::unique_ptr<PSID, decltype(local_free_deleter<PSID>)> group_s
 		std::cout << "InitializeSecurityDescriptor Error: " << ::GetLastError() << std::endl;
 	}
 
-	// Add the ACL to the security descriptor. 
+	// Add the ACL to the security descriptor 
 	if (!::SetSecurityDescriptorDacl(security_descriptor,
 		TRUE,     // bDaclPresent flag   
 		acl,
@@ -274,33 +272,35 @@ bool CreateACL(std::unique_ptr<PSID, decltype(local_free_deleter<PSID>)> group_s
 		std::cout << "SetSecurityDescriptorDacl Error: " << ::GetLastError() << std::endl;
 	}
 
-	// Initialize a security attributes structure.
+	// Initialize a security attributes structure
+	SECURITY_ATTRIBUTES security_attributes = { 0 };
 	security_attributes.nLength = sizeof(SECURITY_ATTRIBUTES);
 	security_attributes.lpSecurityDescriptor = security_descriptor;
 	security_attributes.bInheritHandle = FALSE;
 
+	// =======================================
+	// ===   PETER´S ACCESS TOKEN THINGS   ===
+	// =======================================
+
+
 	std::thread desktop_thread(StartCageDesktop, security_descriptor);
 
-	//PETER´S ACCESS TOKEN THINGS
-
-	// We need in order to create the process.
-	STARTUPINFO info = { };
+	// We need in order to create the process 
+	STARTUPINFO info = { 0 };
 	info.dwFlags = STARTF_USESHOWWINDOW;
 	info.wShowWindow = SW_MAXIMIZE;
 
-	// The desktop's name where we are going to start the application. In this case, our new desktop.
+	// The desktop's name where we are going to start the application. In this case, our new desktop 
 	std::wstring new_desktop_name = L"shark_cage_desktop";
 	std::vector<wchar_t> new_desktop_name_buf(new_desktop_name.begin(), new_desktop_name.end());
 	new_desktop_name_buf.push_back(0);
 	info.lpDesktop = new_desktop_name_buf.data();
 
-	// PETER´S ACCESS TOKEN THINGS
-
-	// Create the process.
+	// Create the process 
 	PROCESS_INFORMATION process_info = {};
 	std::vector<wchar_t> path_buf(path.begin(), path.end());
 	path_buf.push_back(0);
-	if (::CreateProcess(NULL, path_buf.data(), NULL, NULL, TRUE, 0, NULL, NULL, &info, &process_info))
+	if (::CreateProcess(path_buf.data(), NULL, &security_attributes, NULL, false, 0, NULL, NULL, &info, &process_info))
 	{
 		std::cout << "Failed to start process. Err " << ::GetLastError() << std::endl;
 	}
