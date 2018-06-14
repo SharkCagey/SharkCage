@@ -103,13 +103,15 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM w_param, LPARAM l_param)
 	}
 	case WM_COMMAND:
 	{
-		if (l_param == (LPARAM) gotodesk_button)
+		HWND current_hwnd = reinterpret_cast<HWND>(l_param);
+
+		if (current_hwnd == gotodesk_button)
 		{
 			std::cout << "Close window" << std::endl;
 			::DestroyWindow(hwnd);
 			break;
 		}
-		else if (l_param == (LPARAM) app_name_restart_button)
+		else if (current_hwnd == app_name_restart_button)
 		{
 			if (!network_manager.Send(ManagerMessageToString(ManagerMessage::RESTART_MAIN_APP)))
 			{
@@ -118,7 +120,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM w_param, LPARAM l_param)
 			}
 			return ::DefWindowProc(hwnd, msg, w_param, l_param);
 		}
-		else if (l_param == (LPARAM) additional_app_restart_button)
+		else if (current_hwnd == additional_app_restart_button)
 		{
 			if (!network_manager.Send(ManagerMessageToString(ManagerMessage::RESTART_ADDITIONAL_APP)))
 			{
@@ -156,10 +158,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM w_param, LPARAM l_param)
 			|| app_hash_text_title == current_hwnd
 			|| app_hash_text == current_hwnd)
 		{
-			HDC hdc_static = (HDC)w_param;
+			HDC hdc_static = (HDC) w_param;
 			::SetTextColor(hdc_static, RGB(0, 0, 0));
 			::SetBkColor(hdc_static, RGB(255, 255, 255));
-			return (INT_PTR)h_brush;
+			return (INT_PTR) h_brush;
 		}
 	}
 	default:
@@ -284,7 +286,7 @@ static bool DisplayTokenInCageWindow(HWND *hwnd)
 		image_height = available_height;
 	}
 
-	if (graphics.DrawImage(&image, 0, 0, (int)image_width, (int)image_height) != Gdiplus::Status::Ok)
+	if (graphics.DrawImage(&image, 0, 0, (int) image_width, (int) image_height) != Gdiplus::Status::Ok)
 	{
 		std::wcout << L"Failed to draw token in cage" << std::endl;
 
@@ -493,7 +495,7 @@ static bool ShowConfigMetadata(HWND &hwnd)
 
 		if (additional_app_name.has_value())
 		{
-			::SendMessage(additional_app_app_title, WM_SETFONT, (WPARAM)default_font, TRUE);
+			::SendMessage(additional_app_app_title, WM_SETFONT, (WPARAM) default_font, TRUE);
 			::SendMessage(additional_app_restart_button, BM_SETIMAGE, NULL, NULL);
 		}
 	}
