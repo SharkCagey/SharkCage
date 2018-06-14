@@ -15,6 +15,7 @@ using namespace Gdiplus;
 #include "base64.h"
 
 #include <optional>
+#include <cstring>
 
 static bool DisplayTokenInCageWindow(HWND *hwnd);
 static bool GetBottomFromMonitor(int &monitor_bottom);
@@ -42,7 +43,6 @@ NetworkManager network_manager(ExecutableType::MANAGER);
 class CageLabeler
 {
 public:
-	CageLabeler();
 	CageLabeler(
 		const std::wstring &app_name,
 		const std::wstring &app_token,
@@ -54,11 +54,6 @@ private:
 	bool ShowCageWindow();
 	void InitGdipPlisLib();
 };
-
-
-CageLabeler::CageLabeler()
-{
-}
 
 CageLabeler::CageLabeler(
 	const std::wstring &_app_name,
@@ -256,15 +251,22 @@ static bool DisplayTokenInCageWindow(HWND *hwnd)
 	if (p_image == NULL)
 	{
 		std::cout << "Failed to allocate memory for token image. Error " << ::GetLastError() << std::endl;
+
+		::GlobalFree(h_memory);
+
 		return false;
 	}
 
-	::memcpy(p_image, decoded_image.c_str(), image_size);
+	std::memcpy(p_image, decoded_image.c_str(), image_size);
 
 	IStream* p_stream = NULL;
 	if (::CreateStreamOnHGlobal(h_memory, FALSE, &p_stream) != S_OK)
 	{
 		std::cout << "Failed to create image stream from string for cage token. Error " << ::GetLastError() << std::endl;
+
+		::GlobalUnlock(h_memory);
+		::GlobalFree(h_memory);
+
 		return false;
 	}
 
@@ -285,12 +287,17 @@ static bool DisplayTokenInCageWindow(HWND *hwnd)
 	if (graphics.DrawImage(&image, 0, 0, (int)image_width, (int)image_height) != Gdiplus::Status::Ok)
 	{
 		std::wcout << L"Failed to draw token in cage" << std::endl;
+
+		p_stream->Release();
+		::GlobalUnlock(h_memory);
+		::GlobalFree(h_memory);
+
 		return false;
 	}
 
 	p_stream->Release();
-	GlobalUnlock(h_memory);
-	GlobalFree(h_memory);
+	::GlobalUnlock(h_memory);
+	::GlobalFree(h_memory);
 
 	return true;
 }

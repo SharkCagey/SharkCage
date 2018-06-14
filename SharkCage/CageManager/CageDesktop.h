@@ -29,7 +29,8 @@ CageDesktop::CageDesktop(
 	const std::wstring &app_token, 
 	const std::wstring &app_hash, 
 	const std::optional<std::wstring> &additional_app_name):
-	full_work_area(cage_default_width)
+	full_work_area(cage_default_width),
+	cage_labeler(app_name, app_token, app_hash, additional_app_name, cage_default_width)
 {
 	old_desktop = ::GetThreadDesktop(GetCurrentThreadId());
 
@@ -52,8 +53,6 @@ CageDesktop::CageDesktop(
 	sa.bInheritHandle = FALSE;
 
 	new_desktop = ::CreateDesktop(TEXT("shark_cage_desktop"), NULL, NULL, NULL, desk_access_mask, &sa);
-
-	cage_labeler = CageLabeler(app_name, app_token, app_hash, additional_app_name, cage_default_width);
 }
 
 CageDesktop::~CageDesktop()

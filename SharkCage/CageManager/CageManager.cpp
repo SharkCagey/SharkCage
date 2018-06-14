@@ -386,29 +386,27 @@ bool CreateACL(std::unique_ptr<PSID, decltype(local_free_deleter<PSID>)> group_s
 		}
 	}
 
-	// wait for the process to exit
-	::WaitForSingleObject(process_info.hProcess, INFINITE);
-
-	desktop_thread.join();
-
 	if (!::TerminateProcess(process_info.hProcess, 0))
 	{
 		std::cout << "Failed to terminate process. Err " << ::GetLastError() << std::endl;
 	}
 
-	if (process_info_additional_app.has_value() && !::TerminateProcess(process_info_additional_app.value().hProcess, 0))
-	{
-		std::cout << "Failed to terminate additional process. Err " << ::GetLastError() << std::endl;
-	}
-	
+	::CloseHandle(process_info.hProcess);
+	::CloseHandle(process_info.hThread);
+
+
 	if (process_info_additional_app.has_value())
 	{
+		if (!::TerminateProcess(process_info_additional_app.value().hProcess, 0))
+		{
+			std::cout << "Failed to terminate additional process. Err " << ::GetLastError() << std::endl;
+		}
+
 		::CloseHandle(process_info_additional_app.value().hProcess);
 		::CloseHandle(process_info_additional_app.value().hThread);
 	}
 
-	::CloseHandle(process_info.hProcess);
-	::CloseHandle(process_info.hThread);
+	desktop_thread.join();
 
 	return true;
 }
