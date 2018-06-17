@@ -9,17 +9,14 @@
 
 DLLEXPORT NetworkManager::NetworkManager(ContextType receive_for_type)
 {	
-	int receive_port = -1;
+	auto receive_port = GetPort(receive_for_type);
 
-	receive_port = GetPort(receive_for_type);
-
-	if (receive_port == -1)
+	if (!receive_port.has_value())
 	{
-		::OutputDebugString(L"except");
 		throw std::exception("Failed to initialize network manager");
 	}
 
-	acceptor = std::make_unique<tcp::acceptor>(io_context, tcp::endpoint(tcp::v4(), receive_port));
+	acceptor = std::make_unique<tcp::acceptor>(io_context, tcp::endpoint(tcp::v4(), receive_port.value()));
 	acceptor->set_option(asio::ip::tcp::acceptor::reuse_address(true));
 }
 
@@ -31,8 +28,14 @@ DLLEXPORT bool NetworkManager::Send(const std::wstring &msg, ContextType send_to
 
 	try
 	{
+		auto send_port = GetPort(send_to_type);
+		if (!send_port.has_value())
+		{
+			throw std::exception("Unknown receiver, send failed");
+		}
+
 		tcp::resolver resolver(io_context);
-		tcp::resolver::query query(tcp::v4(), "localhost", std::to_string(GetPort(send_to_type)));
+		tcp::resolver::query query(tcp::v4(), "localhost", std::to_string(send_port.value()));
 		tcp::endpoint send_endpoint = *resolver.resolve(query);
 
 		tcp::socket socket(io_context);

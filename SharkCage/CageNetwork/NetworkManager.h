@@ -11,6 +11,7 @@
 #include <codecvt>
 #include <vector>
 #include <sstream>
+#include <optional>
 
 enum class DLLEXPORT ContextType
 {
@@ -58,7 +59,7 @@ private:
 
 	std::vector<char> StringToVec(const std::wstring &string);
 
-	int GetPort(ContextType type)
+	std::optional<const int> GetPort(ContextType type)
 	{
 		switch (type)
 		{
@@ -69,7 +70,7 @@ private:
 		case ContextType::CHOOSER:
 			return LISTEN_PORT_CHOOSER;
 		default:
-			return -1;
+			return std::nullopt;
 		}
 	}
 };
