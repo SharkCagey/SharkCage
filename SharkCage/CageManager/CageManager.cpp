@@ -33,10 +33,10 @@ auto local_free_deleter = [&](T resource) { ::LocalFree(resource); };
 std::unique_ptr<PSID, decltype(local_free_deleter<PSID>)> CreateSID();
 bool CreateACL(std::unique_ptr<PSID, decltype(local_free_deleter<PSID>)> group_sid);
 std::optional<std::wstring> ParseStartProcessMessage(const std::wstring &file_path);
-std::optional<std::wstring> WaitForMessage(const std::wstring &message);
+std::optional<std::wstring> ParseMessage(const std::wstring &message);
 bool BeginsWith(const std::wstring &string, const std::wstring &prefix);
 
-NetworkManager network_manager(ExecutableType::MANAGER);
+NetworkManager network_manager(ContextType::MANAGER);
 
 int main()
 {
@@ -115,7 +115,7 @@ bool BeginsWith(const std::wstring &string_to_search, const std::wstring &prefix
 
 // Function to decode the message and do a respective action
 // "START_PC" "path/to.exe"
-std::optional<std::wstring> WaitForMessage(const std::wstring &message)
+std::optional<std::wstring> ParseMessage(const std::wstring &message)
 {
 	if (BeginsWith(message, ManagerMessageToString(ManagerMessage::START_PROCESS)))
 	{
@@ -123,7 +123,6 @@ std::optional<std::wstring> WaitForMessage(const std::wstring &message)
 		auto message_cmd_length = ManagerMessageToString(ManagerMessage::START_PROCESS).length();
 		auto stripped_message = message.substr(message_cmd_length);
 		
-		// FIXME maybe make a function for this?
 		// trim whitespace at beginning
 		stripped_message.erase(stripped_message.begin(), std::find_if(stripped_message.begin(), stripped_message.end(), [](wchar_t c)
 		{
@@ -194,8 +193,8 @@ bool CreateACL(std::unique_ptr<PSID, decltype(local_free_deleter<PSID>)> group_s
 	PSECURITY_DESCRIPTOR security_descriptor = NULL;
 	SECURITY_ATTRIBUTES security_attributes;
 	//Listen for the message
-	std::wstring message = network_manager.Listen();
-	auto message_result = WaitForMessage(message);
+	std::wstring message = network_manager.Listen(10);
+	auto message_result = ParseMessage(message);
 	
 	if (!message_result.has_value())
 	{

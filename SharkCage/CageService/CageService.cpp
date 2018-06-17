@@ -190,7 +190,7 @@ void CageService::HandleMessage(const std::wstring &message, NetworkManager* mgr
 	else if (BeginsWith(message, ServiceMessageToString(ServiceMessage::START_PC)))
 	{
 		// Forward to cage manager
-		mgr->Send(message);
+		mgr->Send(message, ContextType::MANAGER);
 
 		// Wait for the cageManager to close before receiving the next message
 		// This causes that only one cageManager can run a process at a time
@@ -202,7 +202,7 @@ void CageService::HandleMessage(const std::wstring &message, NetworkManager* mgr
 	else if (BeginsWith(message, ServiceMessageToString(ServiceMessage::STOP_PC)))
 	{
 		// Forward to cage manager
-		mgr->Send(message);
+		mgr->Send(message, ContextType::MANAGER);
 	}
 	else
 	{

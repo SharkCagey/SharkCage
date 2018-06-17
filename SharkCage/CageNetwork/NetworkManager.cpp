@@ -5,55 +5,40 @@
 #include "NetworkManager.h"
 #include "MsgService.h"
 
+#include <chrono>
 
-DLLEXPORT NetworkManager::NetworkManager(ExecutableType type) : io_service(), socket(io_service), acceptor(io_service, tcp::endpoint(tcp::v4(), 1338))
-{
-	switch (type)
+DLLEXPORT NetworkManager::NetworkManager(ContextType receive_for_type)
+{	
+	int receive_port = -1;
+
+	receive_port = GetPort(receive_for_type);
+
+	if (receive_port == -1)
 	{
-	case ExecutableType::UI:
-		InitUi();
-		break;
-	case ExecutableType::SERVICE:
-		InitService();
-		break;
-	case ExecutableType::MANAGER:
-		InitManager();
-		break;
-	default:
-		break;
+		::OutputDebugString(L"except");
+		throw std::exception("Failed to initialize network manager");
 	}
+
+	acceptor = std::make_unique<tcp::acceptor>(io_context, tcp::endpoint(tcp::v4(), receive_port));
+	acceptor->set_option(asio::ip::tcp::acceptor::reuse_address(true));
 }
 
-DLLEXPORT std::wstring NetworkManager::Receive()
+DLLEXPORT bool NetworkManager::Send(const std::wstring &msg, ContextType send_to_type)
 {
-	rec_buf.clear();
-	rec_buf.resize(1024);
-	try
-	{
-		size_t len = socket.receive(asio::buffer(rec_buf));
-		rec_buf.resize(len);
-	}
-	catch (std::system_error e)
-	{
-		std::wostringstream os;
-		os << e.what();
-		::OutputDebugString(os.str().c_str());
-	}
-	return ToString(rec_buf);
-}
+	io_context.restart();
 
-
-DLLEXPORT bool NetworkManager::Send(const std::wstring &msg)
-{
-	std::vector<char> message = ToCharVector(msg);
+	std::vector<char> message = StringToVec(msg);
 
 	try
 	{
-		tcp::socket tmp_socket(io_service);
-		tmp_socket.connect(send_endpoint);
+		tcp::resolver resolver(io_context);
+		tcp::resolver::query query(tcp::v4(), "localhost", std::to_string(GetPort(send_to_type)));
+		tcp::endpoint send_endpoint = *resolver.resolve(query);
+
+		tcp::socket socket(io_context);
+		socket.connect(send_endpoint);
 		send_buf = message;
-		tmp_socket.write_some(asio::buffer(send_buf));
-		tmp_socket.close();
+		socket.write_some(asio::buffer(send_buf));
 		return true;
 	}
 	catch (std::system_error e)
@@ -61,20 +46,56 @@ DLLEXPORT bool NetworkManager::Send(const std::wstring &msg)
 		std::wostringstream os;
 		os << e.what();
 		::OutputDebugString(os.str().c_str());
-		return false;
 	}
+
+	return false;
 }
 
-DLLEXPORT std::wstring NetworkManager::Listen()
+DLLEXPORT std::wstring NetworkManager::Listen(long timeout_seconds)
 {
-	tcp::socket temp_socket(io_service);
-	acceptor.accept(temp_socket);
+	io_context.restart();
 
+	tcp::socket socket(io_context);
 	asio::streambuf buffer;
 
 	try
 	{
-		size_t len = asio::read_until(temp_socket, buffer, '\n');
+		asio::error_code err_code;
+		auto async_read_handler = [&err_code](const asio::error_code& ec, size_t)
+		{
+			err_code = ec;
+		};
+
+		auto async_accept_handler = [&socket, &buffer, &err_code, &async_read_handler](const asio::error_code& ec)
+		{
+			err_code = ec;
+			if (!ec)
+			{
+				asio::async_read_until(socket, buffer, '\n', async_read_handler);
+			}
+		};
+
+		acceptor->async_accept(socket, async_accept_handler);
+
+		if (timeout_seconds < 0)
+		{
+			io_context.run();
+		}
+		else
+		{
+			io_context.run_for(std::chrono::seconds::duration(timeout_seconds));
+
+			if (!io_context.stopped())
+			{
+				acceptor->cancel();
+				io_context.run();
+			}
+		}
+
+		if (err_code)
+		{
+			throw std::system_error(err_code);
+		}
 	}
 	catch (std::system_error e)
 	{
@@ -83,9 +104,9 @@ DLLEXPORT std::wstring NetworkManager::Listen()
 		::OutputDebugString(os.str().c_str());
 	}
 
-	std::istream str(&buffer);
+	std::istream istr(&buffer);
 	std::string narrow_string;
-	std::getline(str, narrow_string);
+	std::getline(istr, narrow_string);
 
 	// no suitable alternative in c++ standard yet, so it is safe to use for now
 	// warning is suppressed by a define in project settings: _SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING
@@ -93,37 +114,7 @@ DLLEXPORT std::wstring NetworkManager::Listen()
 	return converter.from_bytes(narrow_string);
 }
 
-// ports lisened to: ui 1337, service 1338, manager 1339
-bool NetworkManager::InitUi()
-{
-	tcp::resolver resolver(io_service);
-	tcp::resolver::query query(tcp::v4(), "localhost", "1338");
-	send_endpoint = *resolver.resolve(query);
-
-	return true;
-}
-
-bool NetworkManager::InitService()
-{
-	tcp::resolver resolver(io_service);
-	tcp::resolver::query query(tcp::v4(), "localhost", "1339");
-	send_endpoint = *resolver.resolve(query);
-
-	acceptor.set_option(asio::ip::tcp::acceptor::reuse_address(true));
-	acceptor = tcp::acceptor(io_service, tcp::endpoint(tcp::v4(), 1338));
-
-	return true;
-}
-
-bool NetworkManager::InitManager()
-{
-	acceptor.set_option(asio::ip::tcp::acceptor::reuse_address(true));
-	acceptor = tcp::acceptor(io_service, tcp::endpoint(tcp::v4(), 1339));
-
-	return true;
-}
-
-std::wstring NetworkManager::ToString(const std::vector<char> &message)
+std::wstring NetworkManager::VecToString(const std::vector<char> &message)
 {
 	// no suitable alternative in c++ standard yet, so it is safe to use for now
 	// warning is suppressed by a define in project settings: _SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING
@@ -131,7 +122,7 @@ std::wstring NetworkManager::ToString(const std::vector<char> &message)
 	return converter.from_bytes(message.data());
 }
 
-std::vector<char> NetworkManager::ToCharVector(const std::wstring &string)
+std::vector<char> NetworkManager::StringToVec(const std::wstring &string)
 {
 	// no suitable alternative in c++ standard yet, so it is safe to use for now
 	// warning is suppressed by a define in project settings: _SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING
@@ -152,14 +143,14 @@ extern "C" DLLEXPORT void SendConfigAndExternalProgram(const wchar_t *config_pat
 		std::wostringstream ss;
 		ss << ServiceMessageToString(ServiceMessage::START_PC) << " " << config_path;
 
-		NetworkManager mgr(ExecutableType::UI);
-		mgr.Send(ss.str());
+		NetworkManager mgr(ContextType::CHOOSER);
+		mgr.Send(ss.str(), ContextType::SERVICE);
 	}
 }
 
 // FIXME this method should be deleted after #21 is solved
 extern "C" DLLEXPORT void StartCageManager()
 {
-	NetworkManager mgr(ExecutableType::UI);
-	mgr.Send(ServiceMessageToString(ServiceMessage::START_CM));
+	NetworkManager mgr(ContextType::CHOOSER);
+	mgr.Send(ServiceMessageToString(ServiceMessage::START_CM), ContextType::SERVICE);
 }
