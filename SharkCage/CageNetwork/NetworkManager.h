@@ -11,12 +11,13 @@
 #include <codecvt>
 #include <vector>
 #include <sstream>
+#include <optional>
 
-enum class DLLEXPORT ExecutableType
+enum class DLLEXPORT ContextType
 {
-	UI,      // for the front end contacting the service
-	SERVICE, // for the CageService
-	MANAGER  // for the CageManager
+	SERVICE,
+	MANAGER,
+	CHOOSER
 };
 
 class NetworkManager
@@ -24,59 +25,54 @@ class NetworkManager
 	using tcp = asio::ip::tcp;
 
 private:
-	asio::io_service io_service;
-	tcp::socket socket;
-
-	tcp::endpoint send_endpoint;
-	tcp::endpoint send_endpoint_ui; // this is only used by service to give feedback to ui - not implemented so far
-	tcp::endpoint rec_endpoint;
-
-	tcp::acceptor acceptor; // accepting tcp connections
+	asio::io_service io_context;
+	std::unique_ptr<tcp::acceptor> acceptor;
 
 	std::vector<char> send_buf;
-	std::vector<char> rec_buf;
+
+	const int LISTEN_PORT_SERVICE = 51234;
+	const int LISTEN_PORT_MANAGER = 51235;
+	const int LISTEN_PORT_CHOOSER = 51236;
 
 public:
 	/*
 	* Constructor
 	* type variable says in what role network manager should be initialized
 	*/
-	DLLEXPORT NetworkManager(ExecutableType type);
-
-
-	/**
-	* DO NOT USE - OBSOLETE FUNCTION
-	* Function to be used by UI and cageManager to listen for messages from service
-	* max lenth of message is 1024 characters  - evey message must end with '\n' character
-	**/
-	DLLEXPORT std::wstring Receive();
-
+	DLLEXPORT NetworkManager(ContextType context);
 
 	/**
 	* Function to be used to send messages
 	* max message lenght is 1024 characters
 	*
 	**/
-	DLLEXPORT bool Send(const std::wstring &msg);
+	DLLEXPORT bool Send(const std::wstring &msg, ContextType context);
 
 	/**
 	* function used by all components to listen for messages
-	*  #blocking call
 	*
 	**/
-	DLLEXPORT std::wstring Listen();
+	DLLEXPORT std::wstring Listen(long timeout_seconds = -1);
 
 private:
-	// ports listened to: ui 1337, service 1338, manager 1339
-	bool InitUi();
+	std::wstring VecToString(const std::vector<char> &message);
 
-	bool InitService();
+	std::vector<char> StringToVec(const std::wstring &string);
 
-	bool InitManager();
-
-	std::wstring ToString(const std::vector<char> &message);
-
-	std::vector<char> ToCharVector(const std::wstring &string);
+	std::optional<const int> GetPort(ContextType type)
+	{
+		switch (type)
+		{
+		case ContextType::SERVICE:
+			return LISTEN_PORT_SERVICE;
+		case ContextType::MANAGER:
+			return LISTEN_PORT_MANAGER;
+		case ContextType::CHOOSER:
+			return LISTEN_PORT_CHOOSER;
+		default:
+			return std::nullopt;
+		}
+	}
 };
 
 // make a pinvoke callable interface which is just able to send

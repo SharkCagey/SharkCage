@@ -67,8 +67,6 @@ private:
 
 	std::wstring GetLastErrorAsString(DWORD error_id);
 
-	int image_index = -1;    // Initialize with error code
-
 	/*
 	 * Accepts strings that are more than 8 characters long and returns the number at the end as int.
 	 */

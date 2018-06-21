@@ -1,9 +1,9 @@
 #include "stdafx.h"
 
 #include "../CageNetwork/NetworkManager.h"
+#include "../CageNetwork/MsgManager.h"
 
 #define byte WIN_BYTE_OVERRIDE
-#include "CageDesktop.h"
 
 #include "stdio.h"
 #include "Aclapi.h"
@@ -19,34 +19,74 @@
 #include <cwctype>
 #include <regex>
 
-#include "../CageNetwork/MsgManager.h"
+#include "CageManager.h"
+#include "CageLabeler.h"
+#include "CageDesktop.h"
 
-#include "json.hpp"
-
-#pragma comment(lib, "netapi32.lib")
-
-const char APPLICATION_PATH_PROPERTY[] = "application_path";
-const char APPLICATION_NAME_PROPERTY[] = "application_name";
-const char APPLICATION_TOKEN_PROPERTY[] = "token";
-const char APPLICATION_HASH_PROPERTY[] = "binary_hash";
-const char ADDITIONAL_APPLICATION_NAME_PROPERTY[] = "additional_application";
-const char ADDITIONAL_APPLICATION_PATH_PROPERTY[] = "additional_application_path";
-
-template<typename T>
-auto local_free_deleter = [&](T resource) { ::LocalFree(resource); };
-
-std::unique_ptr<PSID, decltype(local_free_deleter<PSID>)> CreateSID();
-bool CreateACL(std::unique_ptr<PSID, decltype(local_free_deleter<PSID>)> group_sid);
-std::optional<std::wstring> WaitForMessage(const std::wstring &message);
-bool BeginsWith(const std::wstring &string, const std::wstring &prefix);
+NetworkManager network_manager(ContextType::MANAGER);
 
 int main()
 {
-	auto group_sid = CreateSID();
-	return CreateACL(std::move(group_sid)) ? 0 : 1;
+	CageManager cage_manager;
+	auto group_sid = cage_manager.CreateSID();
+
+	auto security_attributes = cage_manager.CreateACL(std::move(group_sid));
+
+	if (!security_attributes.has_value())
+	{
+		return 1;
+	}
+
+	// listen for the message
+	std::wstring message = network_manager.Listen(10);
+	auto parse_result = cage_manager.ParseMessage(message);
+
+	if (!parse_result.has_value() || parse_result != ManagerMessage::START_PROCESS)
+	{
+		std::cout << "Could not process incoming message" << std::endl;
+		return 1;
+	}
+
+	CageData cage_data = { message };
+	if (!cage_manager.ParseStartProcessMessage(cage_data))
+	{
+		std::cout << "Could not process start process message" << std::endl;
+		return 1;
+	}
+
+	std::thread desktop_thread(
+		&CageManager::StartCage,
+		cage_manager,
+		security_attributes->lpSecurityDescriptor,
+		cage_data
+	);
+
+	desktop_thread.join();
+
+	return 0;
 }
 
-std::unique_ptr<PSID, decltype(local_free_deleter<PSID>)> CreateSID()
+// FIXME: move this and other duplicate functions and their respective implementation in cage service to its own helper class or something like that
+bool BeginsWith(const std::wstring &string_to_search, const std::wstring &prefix)
+{
+	if (prefix.length() > string_to_search.length())
+	{
+		throw std::invalid_argument("prefix longer than the actual string");
+	}
+	else
+	{
+		if (string_to_search.compare(0, prefix.length(), prefix) == 0)
+		{
+			return true;
+		}
+		else
+		{
+			return false;
+		}
+	}
+}
+
+std::unique_ptr<PSID, decltype(local_free_deleter<PSID>)> CageManager::CreateSID()
 {
 	std::wstring group_name = L"shark_cage_group";
 	LOCALGROUP_INFO_0 localgroup_info;
@@ -94,59 +134,34 @@ std::unique_ptr<PSID, decltype(local_free_deleter<PSID>)> CreateSID()
 	return sid;
 }
 
-// FIXME: move this and other duplicate functions and their respective implementation in cage service to its own helper class or something like that
-bool BeginsWith(const std::wstring &string_to_search, const std::wstring &prefix)
-{
-	if (prefix.length() > string_to_search.length())
-	{
-		return false;
-		// Throw Exception "Bad parameters: prefix longer than the actual string"
-	}
-	else
-	{
-		if (string_to_search.compare(0, prefix.length(), prefix) == 0)
-		{
-			return true;
-		}
-		else
-		{
-			return false;
-		}
-	}
-}
-
 // Function to decode the message and do a respective action
 // "START_PC" "path/to.exe"
-std::optional<std::wstring> WaitForMessage(const std::wstring &message)
+std::optional<ManagerMessage> CageManager::ParseMessage(std::wstring &message)
 {
 	if (BeginsWith(message, ManagerMessageToString(ManagerMessage::START_PROCESS)))
 	{
 		// read config
 		auto message_cmd_length = ManagerMessageToString(ManagerMessage::START_PROCESS).length();
-		auto stripped_message = message.substr(message_cmd_length);
+		message = message.substr(message_cmd_length);
 		
-		// FIXME maybe make a function for this?
 		// trim whitespace at beginning
-		stripped_message.erase(stripped_message.begin(), std::find_if(stripped_message.begin(), stripped_message.end(), [](wchar_t c)
+		message.erase(message.begin(), std::find_if(message.begin(), message.end(), [](wchar_t c)
 		{
 			return !std::iswspace(c);
 		}));
 
 		// trim whitespace at end
-		stripped_message.erase(std::find_if(stripped_message.rbegin(), stripped_message.rend(), [](wchar_t c)
+		message.erase(std::find_if(message.rbegin(), message.rend(), [](wchar_t c)
 		{
 			return !std::iswspace(c);
-		}).base(), stripped_message.end());
+		}).base(), message.end());
 
-		return stripped_message;
+		return ManagerMessage::START_PROCESS;
 	}
 	else if (BeginsWith(message, ManagerMessageToString(ManagerMessage::STOP_PROCESS)))
 	{
 		// Stop process
-	}
-	else if (BeginsWith(message, ManagerMessageToString(ManagerMessage::RESTART_ADDITIONAL_APP)))
-	{
-		return ManagerMessageToString(ManagerMessage::RESTART_ADDITIONAL_APP);
+		return ManagerMessage::STOP_PROCESS;
 	}
 	else
 	{
@@ -155,17 +170,10 @@ std::optional<std::wstring> WaitForMessage(const std::wstring &message)
 	return std::nullopt;
 }
 
-boolean ParseStartProcessMessage(
-	const std::wstring &file_path, 
-	std::wstring &app_path, 
-	std::wstring &app_name, 
-	std::wstring &app_token, 
-	std::wstring &app_hash,
-	std::optional<std::wstring> &additional_app_name,
-	std::optional<std::wstring> &additional_app_path)
+bool CageManager::ParseStartProcessMessage(CageData &cage_data)
 {
 	std::ifstream config_stream;
-	config_stream.open(file_path);
+	config_stream.open(cage_data.config_path);
 	
 	if (config_stream.is_open())
 	{	
@@ -185,16 +193,17 @@ boolean ParseStartProcessMessage(
 			// warning is suppressed by a define in project settings: _SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING
 			std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
 
-			app_path = converter.from_bytes(path);
-			app_name = converter.from_bytes(application_name);
-			app_token = converter.from_bytes(token);
-			app_hash = converter.from_bytes(hash);
-			additional_app_name = converter.from_bytes(additional_application);
-			additional_app_path = converter.from_bytes(additional_application_path);
+			cage_data.app_path = converter.from_bytes(path);
+			cage_data.app_name = converter.from_bytes(application_name);
+			cage_data.app_token = converter.from_bytes(token);
+			cage_data.app_hash = converter.from_bytes(hash);
+			cage_data.additional_app_name = converter.from_bytes(additional_application);
+			cage_data.additional_app_path = converter.from_bytes(additional_application_path);
 
-			if (additional_app_name.has_value() && additional_app_name.value().compare(L"None") == 0)
+			if (!cage_data.hasAdditionalAppInfo() || cage_data.additional_app_name->compare(L"None") == 0)
 			{
-				additional_app_name.reset();
+				cage_data.additional_app_name.reset();
+				cage_data.additional_app_path.reset();
 			}
 	
 			return true;
@@ -209,67 +218,184 @@ boolean ParseStartProcessMessage(
 	return false;
 }
 
-void StartCageDesktop(
-	PSECURITY_DESCRIPTOR security_descriptor,
-	const std::wstring &app_name,
-	const std::wstring &app_token,
-	const std::wstring &app_hash,
-	const std::optional<std::wstring> &additional_app)
+void CageManager::StartCageLabeler(
+	HDESK desktop_handle,
+	const CageData &cage_data,
+	const int work_area_width,
+	const std::wstring &labeler_window_class_name)
 {
-	CageDesktop cage_desktop = CageDesktop::CageDesktop(
+	::SetThreadDesktop(desktop_handle);
+	CageLabeler cage_labeler = CageLabeler(cage_data, work_area_width, labeler_window_class_name);
+	cage_labeler.Init();
+}
+
+void CageManager::StartCage(PSECURITY_DESCRIPTOR security_descriptor, const CageData &cage_data)
+{
+	const std::wstring DESKTOP_NAME = L"shark_cage_desktop";
+	const int work_area_width = 300;
+	CageDesktop cage_desktop(
 		security_descriptor, 
-		app_name, 
-		app_token, 
-		app_hash, 
-		additional_app);
-	if (!cage_desktop.Init())
+		cage_data,
+		work_area_width,
+		DESKTOP_NAME);
+
+	HDESK desktop_handle;
+	if (!cage_desktop.Init(desktop_handle))
 	{
 		std::cout << "Failed to create/launch the cage desktop" << std::endl;
+		return;
+	}
+
+	const std::wstring LABELER_WINDOW_CLASS_NAME = L"shark_cage_token_window";
+	std::thread labeler_thread(
+		&CageManager::StartCageLabeler,
+		this,
+		desktop_handle,
+		cage_data,
+		work_area_width,
+		LABELER_WINDOW_CLASS_NAME
+	);
+
+
+	//PETER´S ACCESS TOKEN THINGS
+
+	// We need in order to create the process.
+	STARTUPINFO info = {};
+	info.dwFlags = STARTF_USESHOWWINDOW;
+	info.wShowWindow = SW_MAXIMIZE;
+
+	// The desktop's name where we are going to start the application. In this case, our new desktop.
+	info.lpDesktop = const_cast<LPWSTR>(DESKTOP_NAME.c_str());
+
+	// Create the process.
+	PROCESS_INFORMATION process_info = {};
+	std::vector<wchar_t> path_buf(cage_data.app_path.begin(), cage_data.app_path.end());
+	path_buf.push_back(0);
+
+	if (!::CreateProcess(NULL, path_buf.data(), NULL, NULL, TRUE, 0, NULL, NULL, &info, &process_info))
+	{
+		std::cout << "Failed to start process. Err " << ::GetLastError() << std::endl;
+	}
+
+	std::optional<PROCESS_INFORMATION> process_info_additional_app;
+	if (cage_data.hasAdditionalAppInfo())
+	{
+		std::vector<wchar_t> additional_app_path_buf(cage_data.additional_app_path->begin(), cage_data.additional_app_path->end());
+		additional_app_path_buf.push_back(0);
+		process_info_additional_app = { 0 };
+		STARTUPINFO info_additional_app = { 0 };
+		info_additional_app.lpDesktop = const_cast<LPWSTR>(DESKTOP_NAME.c_str());
+
+		if (!::CreateProcess(NULL, additional_app_path_buf.data(), NULL, NULL, TRUE, 0, NULL, NULL, &info_additional_app, &process_info_additional_app.value()))
+		{
+			std::cout << "Failed to start additional process. Err " << GetLastError() << std::endl;
+		}
+	}
+
+	bool keep_cage_running = true;
+	bool app_running = true;
+	bool additional_app_running = false;
+	std::vector<HANDLE> handles = { labeler_thread.native_handle(), process_info.hProcess };
+
+	if (process_info_additional_app.has_value())
+	{
+		additional_app_running = true;
+		handles.push_back(process_info_additional_app->hProcess);
+	}
+
+	while (keep_cage_running)
+	{
+		DWORD res = -1;
+		res = ::WaitForMultipleObjects(handles.size(), handles.data(), FALSE, 500);
+
+		if (res != WAIT_TIMEOUT)
+		{
+			if (res == WAIT_OBJECT_0)
+			{
+				keep_cage_running = false;
+			}
+			else if ((!app_running && res == WAIT_OBJECT_0 + 1) || res == WAIT_OBJECT_0 + 2)
+			{
+				additional_app_running = false;
+				handles = { labeler_thread.native_handle(), process_info.hProcess };
+			}
+			else if (res == WAIT_OBJECT_0 + 1)
+			{
+				app_running = false;
+				handles = { labeler_thread.native_handle(), process_info_additional_app->hProcess };
+			}
+		}
+
+		if (!keep_cage_running || (!app_running && !additional_app_running))
+		{
+			// labeler still running, tell it to shut down
+			if (keep_cage_running)
+			{
+				auto labeler_hwnd = ::FindWindow(LABELER_WINDOW_CLASS_NAME.c_str(), nullptr);
+				if (labeler_hwnd)
+				{
+					::SendMessage(labeler_hwnd, WM_CLOSE, NULL, NULL);
+				}
+				else
+				{
+					// FIXME: last resort, there might be a better alternative to just exiting the message loop? (e.g. synchronization object)
+					::PostThreadMessage(::GetThreadId(labeler_thread.native_handle()), WM_QUIT, NULL, NULL);
+				}
+			}
+			labeler_thread.join();
+			break;
+		}
+	}
+
+	std::vector<HANDLE> process_handles;
+	if (app_running)
+	{
+		::EnumWindows(&CageManager::SendWMCLoseToProcessWindows, static_cast<LPARAM>(process_info.dwProcessId));
+		process_handles.push_back(process_info.hProcess);
+	}
+
+	if (additional_app_running)
+	{
+		::EnumWindows(&CageManager::SendWMCLoseToProcessWindows, static_cast<LPARAM>(process_info_additional_app->dwProcessId));
+		process_handles.push_back(process_info_additional_app->hProcess);
+	}
+
+	// give users up to 5s to react to close prompt of process, maybe increase this?
+	if (::WaitForMultipleObjects(process_handles.size(), process_handles.data(), TRUE, 5000) != WAIT_OBJECT_0)
+	{
+		if (app_running)
+		{
+			if (!::TerminateProcess(process_info.hProcess, 0))
+			{
+				std::cout << "Failed to terminate process, error: " << ::GetLastError() << std::endl;
+			}
+
+			::CloseHandle(process_info.hProcess);
+			::CloseHandle(process_info.hThread);
+		}
+
+		if (additional_app_running)
+		{
+			if (!::TerminateProcess(process_info_additional_app->hProcess, 0))
+			{
+				std::cout << "Failed to terminate additional process. Err " << ::GetLastError() << std::endl;
+			}
+		}
+
+		::CloseHandle(process_info_additional_app->hProcess);
+		::CloseHandle(process_info_additional_app->hThread);
 	}
 }
 
-bool CreateACL(std::unique_ptr<PSID, decltype(local_free_deleter<PSID>)> group_sid)
+std::optional<SECURITY_ATTRIBUTES> CageManager::CreateACL(std::unique_ptr<PSID, decltype(local_free_deleter<PSID>)> group_sid)
 {
-	DWORD result;
-	PACL acl = NULL;
-	PSECURITY_DESCRIPTOR security_descriptor = NULL;
-	SECURITY_ATTRIBUTES security_attributes;
-	//Listen for the message
-	std::wstring message = network_manager.Listen();
-	auto message_result = WaitForMessage(message);
-
-	if (!message_result.has_value())
-	{
-		std::cout << "Could not process incoming message" << std::endl;
-		return false;
-	}
-
-	std::wstring path;
-	std::wstring app_name;
-	std::wstring app_token;
-	std::wstring app_hash;
-	std::optional<std::wstring> additional_app_name;
-	std::optional<std::wstring> additional_app_path;
-	if (!ParseStartProcessMessage(
-		message_result.value(),
-		path, 
-		app_name, 
-		app_token, 
-		app_hash, 
-		additional_app_name,
-		additional_app_path))
-	{
-		std::cout << "Could not process start process message" << std::endl;
-		return false;
-	}
-
 	// create SID for BUILTIN\Administrators group
-	PSID sid_admin = NULL;
+	PSID sid_admin;
 	SID_IDENTIFIER_AUTHORITY sid_authnt = SECURITY_NT_AUTHORITY;
 	if (!::AllocateAndInitializeSid(&sid_authnt, 2, SECURITY_BUILTIN_DOMAIN_RID, DOMAIN_ALIAS_RID_ADMINS, 0, 0, 0, 0, 0, 0, &sid_admin))
 	{
-		std::cout << "Obtain Admin SID Error: " << ::GetLastError() << std::endl;
-		return false;
+		std::cout << "Obtain admin SID error: " << ::GetLastError() << std::endl;
+		return std::nullopt;
 	}
 
 	// create EXPLICIT_ACCESS structure for an ACE
@@ -282,12 +408,9 @@ bool CreateACL(std::unique_ptr<PSID, decltype(local_free_deleter<PSID>)> group_s
 	explicit_access_group.grfInheritance = NO_INHERITANCE;
 	explicit_access_group.Trustee.TrusteeForm = TRUSTEE_IS_SID;
 	explicit_access_group.Trustee.TrusteeType = TRUSTEE_IS_GROUP;
-
-	wchar_t *group_sid_tmp;
-	::ConvertSidToStringSid(group_sid.get(), &group_sid_tmp);
-	std::unique_ptr<wchar_t, decltype(local_free_deleter<wchar_t*>)> group_sid_string(group_sid_tmp, local_free_deleter<wchar_t*>);
-
-	explicit_access_group.Trustee.ptstrName = group_sid_string.get();
+	// if TrusteeForm is TRUSTEE_IS_SID, the ptstrName must point to the binary representation of the SID (do NOT convert to string!)
+	PSID group_sid_raw = group_sid.get();
+	explicit_access_group.Trustee.ptstrName = static_cast<LPWSTR>(group_sid_raw);
 
 	// EXPLICIT_ACCESS with second ACE for admin group
 	explicit_access_admin.grfAccessPermissions = GENERIC_ALL;
@@ -295,32 +418,31 @@ bool CreateACL(std::unique_ptr<PSID, decltype(local_free_deleter<PSID>)> group_s
 	explicit_access_admin.grfInheritance = NO_INHERITANCE;
 	explicit_access_admin.Trustee.TrusteeForm = TRUSTEE_IS_SID;
 	explicit_access_admin.Trustee.TrusteeType = TRUSTEE_IS_GROUP;
-
-	wchar_t *admin_sid_tmp;
-	::ConvertSidToStringSid(group_sid.get(), &admin_sid_tmp);
-	std::unique_ptr<wchar_t, decltype(local_free_deleter<wchar_t*>)> admin_sid_string(admin_sid_tmp, local_free_deleter<wchar_t*>);
-
-	explicit_access_admin.Trustee.ptstrName = admin_sid_string.get();
+	// if TrusteeForm is TRUSTEE_IS_SID, the ptstrName must point to the binary representation of the SID (do NOT convert to string!)
+	explicit_access_admin.Trustee.ptstrName = static_cast<LPWSTR>(sid_admin);
 
 	// Create a new ACL that contains the new ACEs.
+	PACL acl = NULL;
 	EXPLICIT_ACCESS ea[2] = { explicit_access_group, explicit_access_admin };
-	result = ::SetEntriesInAcl(2, ea, NULL, &acl);
+	auto result = ::SetEntriesInAcl(2, ea, NULL, &acl);
 	if (result != ERROR_SUCCESS)
 	{
-		std::cout << "SetEntriesInAcl Error: " << ::GetLastError() << std::endl;
+		std::cout << "SetEntriesInAcl error: " << ::GetLastError() << std::endl;
+		return std::nullopt;
 	}
 
 	// Initialize a security descriptor.  
-	security_descriptor = const_cast<PSECURITY_DESCRIPTOR>(::LocalAlloc(LPTR, SECURITY_DESCRIPTOR_MIN_LENGTH));
+	PSECURITY_DESCRIPTOR security_descriptor = const_cast<PSECURITY_DESCRIPTOR>(::LocalAlloc(LPTR, SECURITY_DESCRIPTOR_MIN_LENGTH));
 	if (security_descriptor == nullptr)
 	{
-		std::cout << "LocalAlloc Error: " << ::GetLastError() << std::endl;
-		return false;
-	}
+		std::cout << "LocalAlloc error: " << ::GetLastError() << std::endl;
+		return std::nullopt;
+	};
 
 	if (!::InitializeSecurityDescriptor(security_descriptor, SECURITY_DESCRIPTOR_REVISION))
 	{
-		std::cout << "InitializeSecurityDescriptor Error: " << ::GetLastError() << std::endl;
+		std::cout << "InitializeSecurityDescriptor error: " << ::GetLastError() << std::endl;
+		return std::nullopt;
 	}
 
 	// Add the ACL to the security descriptor. 
@@ -329,84 +451,29 @@ bool CreateACL(std::unique_ptr<PSID, decltype(local_free_deleter<PSID>)> group_s
 		acl,
 		FALSE))   // not a default DACL 
 	{
-		std::cout << "SetSecurityDescriptorDacl Error: " << ::GetLastError() << std::endl;
+		std::cout << "SetSecurityDescriptorDacl error: " << ::GetLastError() << std::endl;
+		return std::nullopt;
 	}
 
-	// Initialize a security attributes structure.
+	// Initialize a security attributes structure
+	SECURITY_ATTRIBUTES security_attributes = { 0 };
 	security_attributes.nLength = sizeof(SECURITY_ATTRIBUTES);
 	security_attributes.lpSecurityDescriptor = security_descriptor;
 	security_attributes.bInheritHandle = FALSE;
 
-	std::thread desktop_thread(
-		StartCageDesktop, 
-		security_descriptor, 
-		app_name,
-		app_token,
-		app_hash,
-		additional_app_name
-	);
+	return security_attributes;
+}
 
-	//PETER´S ACCESS TOKEN THINGS
+BOOL CALLBACK CageManager::SendWMCLoseToProcessWindows(_In_ HWND hwnd, _In_ LPARAM l_param)
+{
+	DWORD process_id;
 
-	// We need in order to create the process.
-	STARTUPINFO info = { };
-	info.dwFlags = STARTF_USESHOWWINDOW;
-	info.wShowWindow = SW_MAXIMIZE;
+	::GetWindowThreadProcessId(hwnd, &process_id);
 
-	// The desktop's name where we are going to start the application. In this case, our new desktop.
-	std::wstring new_desktop_name = L"shark_cage_desktop";
-	std::vector<wchar_t> new_desktop_name_buf(new_desktop_name.begin(), new_desktop_name.end());
-	new_desktop_name_buf.push_back(0);
-	info.lpDesktop = new_desktop_name_buf.data();
-
-	// PETER´S ACCESS TOKEN THINGS
-
-	// Create the process.
-	PROCESS_INFORMATION process_info = {};
-	std::vector<wchar_t> path_buf(path.begin(), path.end());
-	path_buf.push_back(0);
-
-	if (::CreateProcess(NULL, path_buf.data(), NULL, NULL, TRUE, 0, NULL, NULL, &info, &process_info) != 0)
+	if (process_id == static_cast<DWORD>(l_param))
 	{
-		std::cout << "Failed to start process. Err " << ::GetLastError() << std::endl;
+		::PostMessage(hwnd, WM_CLOSE, 0, 0);
 	}
 
-	std::optional<PROCESS_INFORMATION> process_info_additional_app;
-	if (additional_app_name.has_value() && additional_app_path.has_value())
-	{
-		std::vector<wchar_t> additional_app_path_buf(additional_app_path.value().begin(), additional_app_path.value().end());
-		additional_app_path_buf.push_back(0);
-		process_info_additional_app = { 0 };
-		STARTUPINFO info_additional_app = { 0 };
-		info_additional_app.lpDesktop = new_desktop_name_buf.data();
-
-		if (::CreateProcess(NULL, additional_app_path_buf.data(), NULL, NULL, TRUE, 0, NULL, NULL, &info_additional_app, &process_info_additional_app.value()))
-		{
-			std::cout << "Failed to start additional process. Err " << GetLastError() << std::endl;
-		}
-	}
-
-	if (!::TerminateProcess(process_info.hProcess, 0))
-	{
-		std::cout << "Failed to terminate process. Err " << ::GetLastError() << std::endl;
-	}
-
-	::CloseHandle(process_info.hProcess);
-	::CloseHandle(process_info.hThread);
-
-
-	if (process_info_additional_app.has_value())
-	{
-		if (!::TerminateProcess(process_info_additional_app.value().hProcess, 0))
-		{
-			std::cout << "Failed to terminate additional process. Err " << ::GetLastError() << std::endl;
-		}
-
-		::CloseHandle(process_info_additional_app.value().hProcess);
-		::CloseHandle(process_info_additional_app.value().hThread);
-	}
-
-	desktop_thread.join();
-
-	return true;
+	return TRUE;
 }

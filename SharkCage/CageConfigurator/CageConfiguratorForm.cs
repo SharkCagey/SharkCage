@@ -188,17 +188,24 @@ namespace CageConfigurator
 
         private void LoadConfig(string config_path)
         {
-            var json = JObject.Parse(File.ReadAllText(config_path));
-            var application_path = json.GetValue(APPLICATION_PATH_PROPERTY).ToString();
-            var token = json.GetValue(TOKEN_PROPERTY).ToString();
-            var additional_app = json.GetValue(ADDITIONAL_APP_NAME_PROPERTY).ToString();
-            var additional_app_path = json.GetValue(ADDITIONAL_APP_PATH_PROPERTY).ToString();
+            try
+            {
+                var json = JObject.Parse(File.ReadAllText(config_path));
+                var application_path = json.GetValue(APPLICATION_PATH_PROPERTY).ToString();
+                var token = json.GetValue(TOKEN_PROPERTY).ToString();
+                var additional_app = json.GetValue(ADDITIONAL_APP_NAME_PROPERTY)?.ToString();
+                var additional_app_path = json.GetValue(ADDITIONAL_APP_PATH_PROPERTY)?.ToString();
 
-            applicationPath.Text = application_path;
-            tokenBox.Image = GetImageFromBase64(token);
-            LoadAdditionalApp(additional_app, additional_app_path);
-            current_config_name = config_path;
-            Text = $"Cage Configurator - {current_config_name}";
+                applicationPath.Text = application_path;
+                tokenBox.Image = GetImageFromBase64(token);
+                LoadAdditionalApp(additional_app, additional_app_path);
+                current_config_name = config_path;
+                Text = $"Cage Configurator - {current_config_name}";
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show($"Could not load config: {e.ToString()}");
+            }
         }
 
         private void LoadAdditionalApp(string additional_app, string additional_app_path)
@@ -216,13 +223,19 @@ namespace CageConfigurator
             }
         }
 
-        private System.Drawing.Image GetImageFromBase64(string base64)
+        private Image GetImageFromBase64(string base64)
         {
-            byte[] bytes = Convert.FromBase64String(base64);
-            var ms = new MemoryStream(bytes, 0, bytes.Length);
+            try
+            {
+                byte[] bytes = Convert.FromBase64String(base64);
+                var ms = new MemoryStream(bytes, 0, bytes.Length);
 
-            return System.Drawing.Image.FromStream(ms, true);
-
+                return Image.FromStream(ms, true);
+            }
+            catch (Exception)
+            {
+                return null;
+            }
         }
 
         #endregion
