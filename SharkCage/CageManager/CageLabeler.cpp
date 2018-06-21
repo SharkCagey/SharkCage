@@ -146,6 +146,7 @@ bool CageLabeler::ShowCageWindow()
 	wc.lpfnWndProc = WndProc;
 	wc.hInstance = nullptr;
 	wc.lpszClassName = window_class_name.c_str();
+	wc.hCursor = ::LoadCursor(nullptr, IDC_ARROW);
 
 	if (!::RegisterClass(&wc))
 	{
