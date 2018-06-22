@@ -31,5 +31,6 @@ private:
 		const CageData &cage_data,
 		const int work_area_width,
 		const std::wstring &labeler_window_class_name);
-	static BOOL CALLBACK SendWMCLoseToProcessWindows(_In_ HWND   hwnd, _In_ LPARAM lParam);
+	static BOOL CALLBACK GetOpenWindowHandles(_In_ HWND hwnd, _In_ LPARAM l_param);
+	static BOOL CALLBACK GetOpenProcesses(_In_ HWND hwnd, _In_ LPARAM l_param);
 };

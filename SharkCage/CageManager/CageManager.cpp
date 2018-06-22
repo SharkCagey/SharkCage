@@ -27,6 +27,7 @@ NetworkManager network_manager(ContextType::MANAGER);
 
 int main()
 {
+	//MessageBox(0, L"Attach", L"CageManager", 0);
 	CageManager cage_manager;
 	auto group_sid = cage_manager.CreateSID();
 
@@ -293,40 +294,43 @@ void CageManager::StartCage(PSECURITY_DESCRIPTOR security_descriptor, const Cage
 	}
 
 	bool keep_cage_running = true;
-	bool app_running = true;
-	bool additional_app_running = false;
 	std::vector<HANDLE> handles = { labeler_thread.native_handle(), process_info.hProcess };
-
 	if (process_info_additional_app.has_value())
 	{
-		additional_app_running = true;
 		handles.push_back(process_info_additional_app->hProcess);
 	}
-
+	
+	// wait for all open window handles on desktop + cage_labeler
 	while (keep_cage_running)
 	{
-		DWORD res = -1;
-		res = ::WaitForMultipleObjects(handles.size(), handles.data(), FALSE, 500);
+		DWORD res = ::WaitForMultipleObjects(handles.size(), handles.data(), FALSE, 500);
 
 		if (res != WAIT_TIMEOUT)
 		{
+			// this is always the labeler_thread
 			if (res == WAIT_OBJECT_0)
 			{
 				keep_cage_running = false;
 			}
-			else if ((!app_running && res == WAIT_OBJECT_0 + 1) || res == WAIT_OBJECT_0 + 2)
+			else
 			{
-				additional_app_running = false;
-				handles = { labeler_thread.native_handle(), process_info.hProcess };
-			}
-			else if (res == WAIT_OBJECT_0 + 1)
-			{
-				app_running = false;
-				handles = { labeler_thread.native_handle(), process_info_additional_app->hProcess };
+				std::cout << "other handle" << std::endl;
+				// check all other handles
+				for (size_t i = 1; i < handles.size(); ++i)
+				{
+					if (res == WAIT_OBJECT_0 + i)
+					{
+						std::cout << "removing" << std::endl;
+						// remove the handle we got an event for
+						auto iter = handles.begin();
+						std::advance(iter, i);
+						handles.erase(iter);
+					}
+				}
 			}
 		}
 
-		if (!keep_cage_running || (!app_running && !additional_app_running))
+		if (!keep_cage_running || handles.size() < 2)
 		{
 			// labeler still running, tell it to shut down
 			if (keep_cage_running)
@@ -347,41 +351,50 @@ void CageManager::StartCage(PSECURITY_DESCRIPTOR security_descriptor, const Cage
 		}
 	}
 
-	std::vector<HANDLE> process_handles;
-	if (app_running)
+
+	// we can't rely on the process handles to keep track of open processes on
+	// the secure desktop as programs (e.g. Internet Explorer) spawn multiple processes and 
+	// maybe even close the initial process we spawned ourselves
+	// Solution: enumerate all top level windows on the desktop not belonging to our process and message these handles
+	std::pair<DWORD, std::vector<HWND>*> callback_window_data;
+	std::vector<HWND> window_handles_to_signal;
+	callback_window_data.first = ::GetCurrentProcessId();
+	callback_window_data.second = &window_handles_to_signal;
+
+	::EnumDesktopWindows(desktop_handle, &CageManager::GetOpenWindowHandles, reinterpret_cast<LPARAM>(&callback_window_data));
+
+	for (HWND hwnd_handle : window_handles_to_signal)
 	{
-		::EnumWindows(&CageManager::SendWMCLoseToProcessWindows, static_cast<LPARAM>(process_info.dwProcessId));
-		process_handles.push_back(process_info.hProcess);
+		::SetLastError(0);
+		::PostMessage(hwnd_handle, WM_CLOSE, NULL, NULL);
+		std::cout << "Sending WM_CLOSE to window: " << hwnd_handle << ", last error: " << ::GetLastError() << std::endl;
 	}
 
-	if (additional_app_running)
-	{
-		::EnumWindows(&CageManager::SendWMCLoseToProcessWindows, static_cast<LPARAM>(process_info_additional_app->dwProcessId));
-		process_handles.push_back(process_info_additional_app->hProcess);
-	}
+	// and get all open process handles we have to wait for
+	std::pair<DWORD, std::vector<HANDLE>*> callback_process_data;
+	std::vector<HANDLE> process_handles_for_closing;
+	callback_process_data.first = ::GetCurrentProcessId();
+	callback_process_data.second = &process_handles_for_closing;
+
+	::EnumDesktopWindows(desktop_handle, &CageManager::GetOpenProcesses, reinterpret_cast<LPARAM>(&callback_process_data));
 
 	// give users up to 5s to react to close prompt of process, maybe increase this?
-	if (::WaitForMultipleObjects(process_handles.size(), process_handles.data(), TRUE, 5000) != WAIT_OBJECT_0)
+	if (::WaitForMultipleObjects(process_handles_for_closing.size(), process_handles_for_closing.data(), TRUE, 5000) != WAIT_OBJECT_0)
 	{
-		if (app_running)
+		for (HANDLE process_handle : process_handles_for_closing)
 		{
-			if (!::TerminateProcess(process_info.hProcess, 0))
-			{
-				std::cout << "Failed to terminate process, error: " << ::GetLastError() << std::endl;
-			}
+			::SetLastError(0);
+			::TerminateProcess(process_handle, 0);
+			std::cout << "Closing process: " << process_handle << ", last error: " << ::GetLastError() << std::endl;
+		}		
+	}
 
-			::CloseHandle(process_info.hProcess);
-			::CloseHandle(process_info.hThread);
-		}
+	// close our handles
+	::CloseHandle(process_info.hProcess);
+	::CloseHandle(process_info.hThread);
 
-		if (additional_app_running)
-		{
-			if (!::TerminateProcess(process_info_additional_app->hProcess, 0))
-			{
-				std::cout << "Failed to terminate additional process. Err " << ::GetLastError() << std::endl;
-			}
-		}
-
+	if (process_info_additional_app.has_value())
+	{
 		::CloseHandle(process_info_additional_app->hProcess);
 		::CloseHandle(process_info_additional_app->hThread);
 	}
@@ -464,15 +477,52 @@ std::optional<SECURITY_ATTRIBUTES> CageManager::CreateACL(std::unique_ptr<PSID, 
 	return security_attributes;
 }
 
-BOOL CALLBACK CageManager::SendWMCLoseToProcessWindows(_In_ HWND hwnd, _In_ LPARAM l_param)
+BOOL CALLBACK CageManager::GetOpenProcesses(_In_ HWND hwnd, _In_ LPARAM l_param)
 {
-	DWORD process_id;
+	auto data = reinterpret_cast<std::pair<DWORD, std::vector<HANDLE> *> *>(l_param);
+	auto current_process_id = data->first;
+	auto handles = data->second;
 
+	wchar_t title[300];
+	::GetWindowText(hwnd, title, 280);
+	wchar_t class_name[300];
+	::GetClassName(hwnd, class_name, 280);
+	std::wcout << L"enumerating window (process), title: " << title << ", class: " << class_name << std::endl;
+
+	DWORD process_id;
 	::GetWindowThreadProcessId(hwnd, &process_id);
 
-	if (process_id == static_cast<DWORD>(l_param))
+	if (process_id != current_process_id && ::IsWindowVisible(hwnd))
 	{
-		::PostMessage(hwnd, WM_CLOSE, 0, 0);
+		::SetLastError(0);
+		auto handle = ::OpenProcess(PROCESS_ALL_ACCESS, FALSE, process_id);
+		std::cout << "Push process, last error: " << ::GetLastError() << std::endl;
+		handles->push_back(handle);
+	}
+
+	return TRUE;
+}
+
+BOOL CALLBACK CageManager::GetOpenWindowHandles(_In_ HWND hwnd, _In_ LPARAM l_param)
+{
+	auto data = reinterpret_cast<std::pair<DWORD, std::vector<HWND> *> *>(l_param);
+	auto current_process_id = data->first;
+	auto hwnds = data->second;
+
+	wchar_t title[300];
+	::GetWindowText(hwnd, title, 280);
+	wchar_t class_name[300];
+	::GetClassName(hwnd, class_name, 280);
+	std::wcout << L"enumerating window (handle), title: " << title << ", class: " << class_name << std::endl;
+
+	::SetLastError(0);
+	DWORD process_id;
+	::GetWindowThreadProcessId(hwnd, &process_id);
+
+	if (process_id != current_process_id && ::IsWindowVisible(hwnd))
+	{
+		std::cout << "Push window, last error: " << ::GetLastError() << std::endl;
+		hwnds->push_back(hwnd);
 	}
 
 	return TRUE;
