@@ -51,6 +51,12 @@
         }
         "Entry"
         {
+        "MsmKey" = "8:_BAB1BE6158254201AD8D96854EFE3CF0"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_CA674F474D434799BF20DE8B939B0763"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -82,7 +88,7 @@
         "Entry"
         {
         "MsmKey" = "8:_FBA8493A64611F9DA84D53481DFA1E95"
-        "OwnerKey" = "8:_CA674F474D434799BF20DE8B939B0763"
+        "OwnerKey" = "8:_BAB1BE6158254201AD8D96854EFE3CF0"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -93,8 +99,14 @@
         }
         "Entry"
         {
+        "MsmKey" = "8:_FBA8493A64611F9DA84D53481DFA1E95"
+        "OwnerKey" = "8:_CA674F474D434799BF20DE8B939B0763"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_FBA8493A64611F9DA84D53481DFA1E95"
+        "OwnerKey" = "8:_CA674F474D434799BF20DE8B939B0763"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -130,7 +142,13 @@
         "Entry"
         {
         "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_CA674F474D434799BF20DE8B939B0763"
+        "OwnerKey" = "8:_BAB1BE6158254201AD8D96854EFE3CF0"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_UNDEFINED"
+        "OwnerKey" = "8:_FBA8493A64611F9DA84D53481DFA1E95"
         "MsmSig" = "8:_UNDEFINED"
         }
     }
@@ -151,6 +169,22 @@
         "PrivateKeyFile" = "8:"
         "TimeStampServer" = "8:"
         "InstallerBootstrapper" = "3:2"
+            "BootstrapperCfg:{63ACBE69-63AA-4F98-B2B6-99F9E24495F2}"
+            {
+            "Enabled" = "11:TRUE"
+            "PromptEnabled" = "11:TRUE"
+            "PrerequisitesLocation" = "2:1"
+            "Url" = "8:"
+            "ComponentsUrl" = "8:"
+                "Items"
+                {
+                    "{EDC2488A-8267-493A-A98E-7D9C3B36CDF3}:.NETFramework,Version=v4.6.1"
+                    {
+                    "Name" = "8:Microsoft .NET Framework 4.6.1 (x86 and x64)"
+                    "ProductCode" = "8:.NETFramework,Version=v4.6.1"
+                    }
+                }
+            }
         }
         "Release"
         {
@@ -167,12 +201,70 @@
         "PrivateKeyFile" = "8:"
         "TimeStampServer" = "8:"
         "InstallerBootstrapper" = "3:2"
+            "BootstrapperCfg:{63ACBE69-63AA-4F98-B2B6-99F9E24495F2}"
+            {
+            "Enabled" = "11:TRUE"
+            "PromptEnabled" = "11:TRUE"
+            "PrerequisitesLocation" = "2:1"
+            "Url" = "8:"
+            "ComponentsUrl" = "8:"
+                "Items"
+                {
+                    "{EDC2488A-8267-493A-A98E-7D9C3B36CDF3}:.NETFramework,Version=v4.6.1"
+                    {
+                    "Name" = "8:Microsoft .NET Framework 4.6.1 (x86 and x64)"
+                    "ProductCode" = "8:.NETFramework,Version=v4.6.1"
+                    }
+                }
+            }
         }
     }
     "Deployable"
     {
         "CustomAction"
         {
+            "{4AA51A2D-7D85-4A59-BA75-B0809FC8B380}:_1E008BA88B554713AF00F3FE2125C03F"
+            {
+            "Name" = "8:Primary output from CageServiceInstaller (Active)"
+            "Condition" = "8:"
+            "Object" = "8:_BAB1BE6158254201AD8D96854EFE3CF0"
+            "FileType" = "3:1"
+            "InstallAction" = "3:2"
+            "Arguments" = "8:"
+            "EntryPoint" = "8:"
+            "Sequence" = "3:1"
+            "Identifier" = "8:_B42C7EB1_46E9_4F31_849B_DE86B70F367C"
+            "InstallerClass" = "11:TRUE"
+            "CustomActionData" = "8:/DP_TargetDir=\"[TARGETDIR]CageService.exe\""
+            }
+            "{4AA51A2D-7D85-4A59-BA75-B0809FC8B380}:_A720E0160CFB4AA592C57759419C1B79"
+            {
+            "Name" = "8:Primary output from CageServiceInstaller (Active)"
+            "Condition" = "8:"
+            "Object" = "8:_BAB1BE6158254201AD8D96854EFE3CF0"
+            "FileType" = "3:1"
+            "InstallAction" = "3:1"
+            "Arguments" = "8:"
+            "EntryPoint" = "8:"
+            "Sequence" = "3:1"
+            "Identifier" = "8:_DCDED63B_54F6_4BED_99BD_1D5BC21E0C9F"
+            "InstallerClass" = "11:TRUE"
+            "CustomActionData" = "8:"
+            }
+            "{4AA51A2D-7D85-4A59-BA75-B0809FC8B380}:_E933A7CDB46F4750A8B6075797F10D76"
+            {
+            "Name" = "8:Primary output from CageServiceInstaller (Active)"
+            "Condition" = "8:"
+            "Object" = "8:_BAB1BE6158254201AD8D96854EFE3CF0"
+            "FileType" = "3:1"
+            "InstallAction" = "3:4"
+            "Arguments" = "8:"
+            "EntryPoint" = "8:"
+            "Sequence" = "3:1"
+            "Identifier" = "8:_D8BB37C7_6863_4BF9_9396_3BC28D4788E5"
+            "InstallerClass" = "11:TRUE"
+            "CustomActionData" = "8:"
+            }
         }
         "DefaultFeature"
         {
@@ -203,11 +295,6 @@
             "AssemblyAsmDisplayName" = "8:Newtonsoft.Json, Version=11.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL"
                 "ScatterAssemblies"
                 {
-                    "_09FC33C69A21B22C9FF3A748E0F64B86"
-                    {
-                    "Name" = "8:Newtonsoft.Json.dll"
-                    "Attributes" = "3:512"
-                    }
                 }
             "SourcePath" = "8:Newtonsoft.Json.dll"
             "TargetName" = "8:"
@@ -234,34 +321,9 @@
             "AssemblyAsmDisplayName" = "8:AForge.Video, Version=2.2.5.0, Culture=neutral, PublicKeyToken=cbfb6e07d173c401, processorArchitecture=MSIL"
                 "ScatterAssemblies"
                 {
-                    "_1D9F727B52E2B783D351D3A563978BE0"
-                    {
-                    "Name" = "8:AForge.Video.dll"
-                    "Attributes" = "3:512"
-                    }
                 }
             "SourcePath" = "8:AForge.Video.dll"
             "TargetName" = "8:"
-            "Tag" = "8:"
-            "Folder" = "8:_AF35AA7C0DA64CECA8201B61E6196592"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:TRUE"
-            "IsolateTo" = "8:"
-            }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_A62535A58545AB110BF0AED9ADCA4562"
-            {
-            "SourcePath" = "8:MSVCP140D.dll"
-            "TargetName" = "8:MSVCP140D.dll"
             "Tag" = "8:"
             "Folder" = "8:_AF35AA7C0DA64CECA8201B61E6196592"
             "Condition" = "8:"
@@ -285,11 +347,6 @@
             "AssemblyAsmDisplayName" = "8:AForge, Version=2.2.5.0, Culture=neutral, PublicKeyToken=c1db6ff4eaa06aeb, processorArchitecture=MSIL"
                 "ScatterAssemblies"
                 {
-                    "_EE48644F738FAF6F608738C768C19F32"
-                    {
-                    "Name" = "8:AForge.dll"
-                    "Attributes" = "3:512"
-                    }
                 }
             "SourcePath" = "8:AForge.dll"
             "TargetName" = "8:"
@@ -316,11 +373,6 @@
             "AssemblyAsmDisplayName" = "8:AForge.Video.DirectShow, Version=2.2.5.0, Culture=neutral, PublicKeyToken=61ea4348d43881b7, processorArchitecture=MSIL"
                 "ScatterAssemblies"
                 {
-                    "_EF4B6F1AF9FE8033470A716D32B9ACBD"
-                    {
-                    "Name" = "8:AForge.Video.DirectShow.dll"
-                    "Attributes" = "3:512"
-                    }
                 }
             "SourcePath" = "8:AForge.Video.DirectShow.dll"
             "TargetName" = "8:"
@@ -347,11 +399,6 @@
             "AssemblyAsmDisplayName" = "8:System.Net.Http, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a"
                 "ScatterAssemblies"
                 {
-                    "_FBA8493A64611F9DA84D53481DFA1E95"
-                    {
-                    "Name" = "8:System.Net.Http.dll"
-                    "Attributes" = "3:512"
-                    }
                 }
             "SourcePath" = "8:System.Net.Http.dll"
             "TargetName" = "8:"
@@ -472,7 +519,7 @@
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:SharkCage"
         "ProductCode" = "8:{ABDFC121-DD3E-48A6-93D2-775E2B08A35F}"
-        "PackageCode" = "8:{34BB1C57-7BE3-44CF-9A4F-81AE57DBD417}"
+        "PackageCode" = "8:{AE84C4BB-401B-45CD-AE2B-625C10A28AA2}"
         "UpgradeCode" = "8:{593757A6-95D5-412D-A2FF-7530C14252A4}"
         "AspNetVersion" = "8:4.0.30319.0"
         "RestartWWWService" = "11:FALSE"
@@ -1183,7 +1230,7 @@
             }
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_74F056AC07294FA59CD6FDA01B5998B0"
             {
-            "SourcePath" = "8:..\\CageManager\\Release\\CageManager.exe"
+            "SourcePath" = "8:..\\CageManager\\Debug\\CageManager.exe"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_AF35AA7C0DA64CECA8201B61E6196592"
@@ -1239,7 +1286,7 @@
             }
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_91134A8280204972A8EDC9A5986634E9"
             {
-            "SourcePath" = "8:..\\Release\\CageNetwork.dll"
+            "SourcePath" = "8:..\\CageNetwork\\Debug\\CageNetwork.dll"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_AF35AA7C0DA64CECA8201B61E6196592"
@@ -1344,6 +1391,34 @@
             "OutputConfiguration" = "8:"
             "OutputGroupCanonicalName" = "8:ContentFiles"
             "OutputProjectGuid" = "8:{AC9A071D-CE63-40FE-9F2A-98EEF3E03B0E}"
+            "ShowKeyOutput" = "11:TRUE"
+                "ExcludeFilters"
+                {
+                }
+            }
+            "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_BAB1BE6158254201AD8D96854EFE3CF0"
+            {
+            "SourcePath" = "8:..\\CageServiceInstaller\\obj\\Debug\\CageServiceInstaller.dll"
+            "TargetName" = "8:"
+            "Tag" = "8:"
+            "Folder" = "8:_AF35AA7C0DA64CECA8201B61E6196592"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            "ProjectOutputGroupRegister" = "3:1"
+            "OutputConfiguration" = "8:"
+            "OutputGroupCanonicalName" = "8:Built"
+            "OutputProjectGuid" = "8:{E4EBEF34-9BA7-4808-90D5-6B68C5722F72}"
             "ShowKeyOutput" = "11:TRUE"
                 "ExcludeFilters"
                 {
