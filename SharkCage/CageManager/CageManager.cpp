@@ -27,7 +27,6 @@ NetworkManager network_manager(ContextType::MANAGER);
 
 int main()
 {
-	//MessageBox(0, L"Attach", L"CageManager", 0);
 	CageManager cage_manager;
 	auto group_sid = cage_manager.CreateSID();
 
@@ -189,6 +188,7 @@ bool CageManager::ParseStartProcessMessage(CageData &cage_data)
 			auto hash = json_config[APPLICATION_HASH_PROPERTY].get<std::string>();
 			auto additional_application = json_config[ADDITIONAL_APPLICATION_NAME_PROPERTY].get<std::string>();
 			auto additional_application_path = json_config[ADDITIONAL_APPLICATION_PATH_PROPERTY].get<std::string>();
+			auto restrict_closing = json_config[CLOSING_POLICY_PROPERTY].get<bool>();
 
 			// no suitable alternative in c++ standard yet, so it is safe to use for now
 			// warning is suppressed by a define in project settings: _SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING
@@ -200,6 +200,7 @@ bool CageManager::ParseStartProcessMessage(CageData &cage_data)
 			cage_data.app_hash = converter.from_bytes(hash);
 			cage_data.additional_app_name = converter.from_bytes(additional_application);
 			cage_data.additional_app_path = converter.from_bytes(additional_application_path);
+			cage_data.restrict_closing = restrict_closing;
 
 			if (!cage_data.hasAdditionalAppInfo() || cage_data.additional_app_name->compare(L"None") == 0)
 			{
@@ -330,7 +331,7 @@ void CageManager::StartCage(PSECURITY_DESCRIPTOR security_descriptor, const Cage
 			}
 		}
 
-		if (!keep_cage_running || handles.size() < 2)
+		if (!keep_cage_running || (handles.size() < 2 && !cage_data.restrict_closing))
 		{
 			// labeler still running, tell it to shut down
 			if (keep_cage_running)
@@ -371,6 +372,7 @@ void CageManager::StartCage(PSECURITY_DESCRIPTOR security_descriptor, const Cage
 	}
 
 	// and get all open process handles we have to wait for
+	// FIXME use a set instead of a vector for this to avoid closing processes twice
 	std::pair<DWORD, std::vector<HANDLE>*> callback_process_data;
 	std::vector<HANDLE> process_handles_for_closing;
 	callback_process_data.first = ::GetCurrentProcessId();

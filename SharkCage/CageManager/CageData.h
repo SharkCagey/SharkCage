@@ -12,6 +12,7 @@ struct CageData
 	std::wstring app_hash;
 	std::optional<std::wstring> additional_app_name;
 	std::optional<std::wstring> additional_app_path;
+	bool restrict_closing;
 
 	bool hasAdditionalAppInfo() const
 	{

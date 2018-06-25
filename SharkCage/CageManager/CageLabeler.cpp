@@ -31,11 +31,13 @@ static HWND additional_app_app_title;
 static HWND additional_app_restart_button;
 static HWND app_hash_text_title;
 static HWND app_hash_text;
+static HWND closing_restricted_text;
 
 static std::wstring app_name;
 static std::wstring app_token;
 static std::wstring app_hash;
 static std::optional<std::wstring> additional_app_name;
+static bool restrict_closing;
 static int labeler_width;
 
 static HBRUSH h_brush = ::CreateSolidBrush(RGB(255, 255, 255));
@@ -50,6 +52,7 @@ CageLabeler::CageLabeler(
 	labeler_width = _cage_width;
 	app_token = cage_data.app_token;
 	additional_app_name = cage_data.additional_app_name;
+	restrict_closing = cage_data.restrict_closing;
 	window_class_name = _window_class_name;
 
 	// truncate hash
@@ -120,11 +123,13 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM w_param, LPARAM l_param)
 			|| additional_app_app_title == current_hwnd
 			|| app_name_title == current_hwnd
 			|| app_hash_text_title == current_hwnd
-			|| app_hash_text == current_hwnd)
+			|| app_hash_text == current_hwnd
+			|| closing_restricted_text == current_hwnd)
 		{
 			HDC hdc_static = (HDC)w_param;
 			::SetTextColor(hdc_static, RGB(0, 0, 0));
-			::SetBkColor(hdc_static, RGB(255, 255, 255));
+			//::SetBkColor(hdc_static, RGB(255, 255, 255));
+			::SetBkMode(hdc_static, TRANSPARENT);
 			return (INT_PTR)h_brush;
 		}
 	}
@@ -430,6 +435,30 @@ static bool ShowConfigMetadata(HWND &hwnd)
 		nullptr,
 		nullptr);
 
+	if (restrict_closing)
+	{
+		int bottom;
+		if (GetBottomFromMonitor(bottom))
+		{
+			closing_restricted_text = ::CreateWindow(
+				L"STATIC",
+				L"Closing is restricted to exit button!",
+				SS_CENTER | WS_VISIBLE | WS_CHILD,
+				10,
+				bottom - 80,
+				labeler_width - 23,
+				34,
+				hwnd,
+				nullptr,
+				nullptr,
+				nullptr);
+		}
+		else
+		{
+			std::wcout << L"Failed to get bottom of monitor, can not display exit restriction text" << std::endl;
+		}
+	}
+
 	if (app_name_title != nullptr && app_name_restart_button != nullptr)
 	{
 		HFONT default_font = ::CreateFont(
@@ -490,6 +519,11 @@ static bool ShowConfigMetadata(HWND &hwnd)
 		{
 			::SendMessage(additional_app_app_title, WM_SETFONT, (WPARAM)default_font, TRUE);
 			::SendMessage(additional_app_restart_button, BM_SETIMAGE, NULL, NULL);
+		}
+
+		if (restrict_closing)
+		{
+			::SendMessage(closing_restricted_text, WM_SETFONT, (WPARAM)bold_font, TRUE);
 		}
 	}
 	else

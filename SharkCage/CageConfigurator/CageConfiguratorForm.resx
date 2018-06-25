@@ -120,4 +120,15 @@
   <metadata name="menuStrip.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
     <value>17, 17</value>
   </metadata>
+  <metadata name="restrictExitTooltip.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+    <value>125, 17</value>
+  </metadata>
+  <data name="restrictExitButton.ToolTip" xml:space="preserve">
+    <value>Some applications spawn additional processes and may
+even close the original instance created inside the secure desktop.
+This creates problems with the detection mechanism on when to close
+the secure desktop.
+To avoid problems with the secure desktop closing unexpectedly
+check this box to only allow closing with the designated exit button.</value>
+  </data>
 </root>

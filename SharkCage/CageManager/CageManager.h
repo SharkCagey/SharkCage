@@ -12,6 +12,7 @@ const char APPLICATION_TOKEN_PROPERTY[] = "token";
 const char APPLICATION_HASH_PROPERTY[] = "binary_hash";
 const char ADDITIONAL_APPLICATION_NAME_PROPERTY[] = "additional_application";
 const char ADDITIONAL_APPLICATION_PATH_PROPERTY[] = "additional_application_path";
+const char CLOSING_POLICY_PROPERTY[] = "restrict_closing";
 
 template<typename T>
 auto local_free_deleter = [&](T resource) { ::LocalFree(resource); };
