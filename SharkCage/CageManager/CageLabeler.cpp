@@ -128,7 +128,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM w_param, LPARAM l_param)
 		{
 			HDC hdc_static = (HDC)w_param;
 			::SetTextColor(hdc_static, RGB(0, 0, 0));
-			//::SetBkColor(hdc_static, RGB(255, 255, 255));
 			::SetBkMode(hdc_static, TRANSPARENT);
 			return (INT_PTR)h_brush;
 		}

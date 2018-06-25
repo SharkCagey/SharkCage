@@ -209,6 +209,9 @@
             // 
             // restrictExitTooltip
             // 
+            this.restrictExitTooltip.AutoPopDelay = 30000;
+            this.restrictExitTooltip.InitialDelay = 500;
+            this.restrictExitTooltip.ReshowDelay = 100;
             this.restrictExitTooltip.Tag = "";
             // 
             // CageConfiguratorForm
