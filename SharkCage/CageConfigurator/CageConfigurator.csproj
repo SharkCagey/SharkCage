@@ -124,8 +124,10 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>xcopy /y "$(TargetPath)" "$(SolutionDir)post_build_output\"
-xcopy /y "$(TargetDir)$(TargetName).pdb" "$(SolutionDir)post_build_output\"
-xcopy /y "$(TargetDir)*.dll" "$(SolutionDir)post_build_output\"</PostBuildEvent>
+    <PostBuildEvent>if $(ConfigurationName) == Debug (
+ xcopy /y "$(TargetPath)" "$(SolutionDir)post_build_output\"
+ xcopy /y "$(TargetDir)$(TargetName).pdb" "$(SolutionDir)post_build_output\"
+ xcopy /y "$(TargetDir)*.dll" "$(SolutionDir)post_build_output\"
+)</PostBuildEvent>
   </PropertyGroup>
 </Project>

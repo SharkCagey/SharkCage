@@ -7,12 +7,12 @@
 
 #include "CageService.h"
 #include "../CageNetwork/MsgService.h"
+#include "../CageNetwork/MsgManager.h"
 
 const std::wstring CAGE_MANAGER_NAME = L"CageManager.exe";
 
 CageService::CageService() noexcept
-	: cage_manager_process_id(-1)
-	, image_index(-1)
+	: cage_manager_process_id(0)
 	, dialog_process_id(0)
 {
 }
@@ -110,7 +110,12 @@ DWORD CageService::StartCageManager(const std::wstring &app_name, const std::opt
 		&sa,  // <- Process Attributes
 		NULL,  // Thread Attributes
 		false, // Inheritaion flags
-		0,     // Creation flags
+		// release build should not display console window
+#ifdef _DEBUG
+		0,
+#else
+		CREATE_NO_WINDOW,
+#endif
 		NULL,  // Environment
 		NULL,  // Current directory
 		&si,   // Startup Info
@@ -174,7 +179,7 @@ void CageService::HandleMessage(const std::wstring &message, NetworkManager* mgr
 	if (BeginsWith(message, ServiceMessageToString(ServiceMessage::START_CM)))
 	{
 		// Start Process
-		if (cage_manager_process_id == -1)
+		if (cage_manager_process_id == 0)
 		{
 			// Get session id from loged on user
 			DWORD session_id = ::WTSGetActiveConsoleSessionId();
@@ -185,7 +190,7 @@ void CageService::HandleMessage(const std::wstring &message, NetworkManager* mgr
 	{
 		// Stop Process
 		StopCageManager();
-		cage_manager_process_id = -1;
+		cage_manager_process_id = 0;
 	}
 	else if (BeginsWith(message, ServiceMessageToString(ServiceMessage::START_PC)))
 	{
@@ -196,7 +201,7 @@ void CageService::HandleMessage(const std::wstring &message, NetworkManager* mgr
 		// This causes that only one cageManager can run a process at a time
 		HANDLE cage_manager_handle = ::OpenProcess(SYNCHRONIZE, TRUE, cage_manager_process_id);
 		::WaitForSingleObject(cage_manager_handle, INFINITE);
-		cage_manager_process_id = -1;
+		cage_manager_process_id = 0;
 
 	}
 	else if (BeginsWith(message, ServiceMessageToString(ServiceMessage::STOP_PC)))
@@ -225,56 +230,3 @@ bool CageService::BeginsWith(const std::wstring &string_to_search, const std::ws
 		return string_to_search.compare(0, prefix.length(), prefix) == 0;
 	}
 }
-
-
-void CageService::ReadConfigFile()
-{
-	std::wstring config_file_name = L"C:\\sharkcage\\config.txt";
-	std::wifstream config_stream{ config_file_name };
-
-	std::wstring line;
-	if (config_stream.is_open())
-	{
-		std::getline(config_stream, line);
-
-		if (BeginsWith(line, L"picture:"))
-		{
-			image_index = GetPictureIndexFromLine(line);
-		}
-	}
-	else
-	{
-		std::wostringstream os;
-		os << L"Could not open file for reading: " << config_file_name;
-		::OutputDebugString(os.str().c_str());
-	}
-}
-
-int CageService::GetPictureIndexFromLine(const std::wstring &line)
-{
-	const int PICTURE_LENGTH = 8;
-	assert(line.length() > PICTURE_LENGTH);
-
-	const int length = line.length() - PICTURE_LENGTH;
-	std::wstring number_string = line.substr(PICTURE_LENGTH, length);
-
-	return std::stoi(number_string);
-}
-
-
-int CageService::GetImageIndex()
-{
-	if (image_index < 0)
-	{
-		// Show Dialog
-		dialog_process_id = StartCageManager(L"C:\\sharkcage\\ImageSelectDialog.exe", ::WTSGetActiveConsoleSessionId());
-		// Wait for the dialog to be closed
-		HANDLE dialog_handle = OpenProcess(SYNCHRONIZE, TRUE, dialog_process_id);
-		WaitForSingleObject(dialog_handle, INFINITE);
-
-		// Read config file
-		ReadConfigFile();
-	}
-	return image_index;
-}
-

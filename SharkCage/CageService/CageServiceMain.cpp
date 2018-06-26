@@ -165,7 +165,6 @@ VOID WINAPI ServiceCtrlHandler(DWORD ctrl_code)
 			}
 
 			// This will signal the worker thread to start shutting down
-			::TerminateThread(worker_thread, -1); // FIXME: Have to kill it because listen() is blocking
 			::SetEvent(g_service_stop_event);
 		}
 		break;

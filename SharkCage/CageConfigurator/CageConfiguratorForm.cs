@@ -23,6 +23,7 @@ namespace CageConfigurator
         const string TOKEN_PROPERTY = "token";
         const string ADDITIONAL_APP_NAME_PROPERTY = "additional_application";
         const string ADDITIONAL_APP_PATH_PROPERTY = "additional_application_path";
+        const string CLOSING_POLICY_PROPERTY = "restrict_closing";
 
 
         private FilterInfoCollection video_device_list;
@@ -109,6 +110,8 @@ namespace CageConfigurator
 
         #endregion
 
+        #region Application
+
         #region Application Path
 
         private void applicationBrowseButton_Click(object sender, System.EventArgs e)
@@ -142,6 +145,13 @@ namespace CageConfigurator
             {
                 SetUnsavedData(true);
             });
+        }
+
+        #endregion
+
+        private void restrictExitButton_CheckedChanged(object sender, EventArgs e)
+        {
+            SetUnsavedData(true);
         }
 
         #endregion
@@ -195,8 +205,10 @@ namespace CageConfigurator
                 var token = json.GetValue(TOKEN_PROPERTY).ToString();
                 var additional_app = json.GetValue(ADDITIONAL_APP_NAME_PROPERTY)?.ToString();
                 var additional_app_path = json.GetValue(ADDITIONAL_APP_PATH_PROPERTY)?.ToString();
+                var restrict_exit = json.GetValue(CLOSING_POLICY_PROPERTY)?.ToString().ToLower().Equals("true");
 
                 applicationPath.Text = application_path;
+                restrictExitButton.Checked = restrict_exit.GetValueOrDefault(false);
                 tokenBox.Image = GetImageFromBase64(token);
                 LoadAdditionalApp(additional_app, additional_app_path);
                 current_config_name = config_path;
@@ -232,7 +244,7 @@ namespace CageConfigurator
 
                 return Image.FromStream(ms, true);
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 return null;
             }
@@ -403,12 +415,12 @@ namespace CageConfigurator
                     writer.WriteValue(GetSha512Hash(applicationPath.Text));
                     writer.WritePropertyName(TOKEN_PROPERTY);
                     writer.WriteValue(GetBase64FromImage(tokenBox.Image));
-                    writer.WritePropertyName("token_format");
-                    writer.WriteValue(Path.GetExtension(tokenBox.ImageLocation));
                     writer.WritePropertyName(ADDITIONAL_APP_NAME_PROPERTY);
                     writer.WriteValue(secureSecondaryPrograms.Text);
                     writer.WritePropertyName(ADDITIONAL_APP_PATH_PROPERTY);
                     writer.WriteValue(secondary_path);
+                    writer.WritePropertyName(CLOSING_POLICY_PROPERTY);
+                    writer.WriteValue(bool.Parse(restrictExitButton.Checked.ToString()));
                     writer.WritePropertyName("creation_date");
                     writer.WriteValue((Int32)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds);
                     writer.WritePropertyName("config_version");
