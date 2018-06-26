@@ -368,7 +368,6 @@ void CageManager::StartCage(PSECURITY_DESCRIPTOR security_descriptor, const Cage
 	{
 		::SetLastError(0);
 		::PostMessage(hwnd_handle, WM_CLOSE, NULL, NULL);
-		std::cout << "Sending WM_CLOSE to window: " << hwnd_handle << ", last error: " << ::GetLastError() << std::endl;
 	}
 
 	// and get all open process handles we have to wait for
@@ -387,7 +386,6 @@ void CageManager::StartCage(PSECURITY_DESCRIPTOR security_descriptor, const Cage
 		{
 			::SetLastError(0);
 			::TerminateProcess(process_handle, 0);
-			std::cout << "Closing process: " << process_handle << ", last error: " << ::GetLastError() << std::endl;
 		}		
 	}
 
@@ -485,12 +483,6 @@ BOOL CALLBACK CageManager::GetOpenProcesses(_In_ HWND hwnd, _In_ LPARAM l_param)
 	auto current_process_id = data->first;
 	auto handles = data->second;
 
-	wchar_t title[300];
-	::GetWindowText(hwnd, title, 280);
-	wchar_t class_name[300];
-	::GetClassName(hwnd, class_name, 280);
-	std::wcout << L"enumerating window (process), title: " << title << ", class: " << class_name << std::endl;
-
 	DWORD process_id;
 	::GetWindowThreadProcessId(hwnd, &process_id);
 
@@ -498,7 +490,6 @@ BOOL CALLBACK CageManager::GetOpenProcesses(_In_ HWND hwnd, _In_ LPARAM l_param)
 	{
 		::SetLastError(0);
 		auto handle = ::OpenProcess(PROCESS_ALL_ACCESS, FALSE, process_id);
-		std::cout << "Push process, last error: " << ::GetLastError() << std::endl;
 		handles->push_back(handle);
 	}
 
@@ -511,19 +502,12 @@ BOOL CALLBACK CageManager::GetOpenWindowHandles(_In_ HWND hwnd, _In_ LPARAM l_pa
 	auto current_process_id = data->first;
 	auto hwnds = data->second;
 
-	wchar_t title[300];
-	::GetWindowText(hwnd, title, 280);
-	wchar_t class_name[300];
-	::GetClassName(hwnd, class_name, 280);
-	std::wcout << L"enumerating window (handle), title: " << title << ", class: " << class_name << std::endl;
-
 	::SetLastError(0);
 	DWORD process_id;
 	::GetWindowThreadProcessId(hwnd, &process_id);
 
 	if (process_id != current_process_id && ::IsWindowVisible(hwnd))
 	{
-		std::cout << "Push window, last error: " << ::GetLastError() << std::endl;
 		hwnds->push_back(hwnd);
 	}
 
