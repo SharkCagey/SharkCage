@@ -19,9 +19,8 @@ namespace CageServiceInstaller
 
         public override void Uninstall(System.Collections.IDictionary savedState)
         {
-            base.Uninstall(savedState);
-
             UninstallService();
+            base.Uninstall(savedState);
         }
 
 
@@ -49,13 +48,6 @@ namespace CageServiceInstaller
             {
                 if (ServiceInstaller.ServiceIsInstalled(service_name))
                 {
-                    ServiceState state = ServiceInstaller.GetServiceStatus(service_name);
-
-                    if (state == ServiceState.Running)
-                    {
-                        ServiceInstaller.StopService(service_name);
-                    }
-
                     ServiceInstaller.Uninstall(service_name);
                 }
             }

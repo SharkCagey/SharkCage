@@ -203,6 +203,10 @@
         {
             SERVICE_STATUS status = new SERVICE_STATUS();
             ControlService(service, ServiceControl.Stop, status);
+
+            // It takes some time until the service is really stopped
+            Thread.Sleep(1000);
+
             var changedStatus = WaitForServiceStatus(service, ServiceState.StopPending, ServiceState.Stopped);
             if (!changedStatus)
                 throw new ApplicationException("Unable to stop service");
