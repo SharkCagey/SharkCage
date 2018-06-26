@@ -45,7 +45,7 @@
             this.tokenWebcamButton = new System.Windows.Forms.Button();
             this.tokenBox = new System.Windows.Forms.PictureBox();
             this.videoSources = new System.Windows.Forms.ComboBox();
-            this.restrictExitButton = new System.Windows.Forms.CheckBox();
+            this.restrictExitCheckbox = new System.Windows.Forms.CheckBox();
             this.restrictExitTooltip = new System.Windows.Forms.ToolTip(this.components);
             this.menuStrip.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.tokenBox)).BeginInit();
@@ -196,16 +196,16 @@
             this.videoSources.TabStop = false;
             this.videoSources.Visible = false;
             // 
-            // restrictExitButton
+            // restrictExitCheckbox
             // 
-            this.restrictExitButton.Location = new System.Drawing.Point(12, 82);
-            this.restrictExitButton.Name = "restrictExitButton";
-            this.restrictExitButton.Size = new System.Drawing.Size(173, 17);
-            this.restrictExitButton.TabIndex = 0;
-            this.restrictExitButton.Text = "Restrict exiting to Cage Labeler";
-            this.restrictExitTooltip.SetToolTip(this.restrictExitButton, resources.GetString("restrictExitButton.ToolTip"));
-            this.restrictExitButton.UseVisualStyleBackColor = true;
-            this.restrictExitButton.CheckedChanged += new System.EventHandler(this.restrictExitButton_CheckedChanged);
+            this.restrictExitCheckbox.Location = new System.Drawing.Point(12, 82);
+            this.restrictExitCheckbox.Name = "restrictExitCheckbox";
+            this.restrictExitCheckbox.Size = new System.Drawing.Size(173, 17);
+            this.restrictExitCheckbox.TabIndex = 0;
+            this.restrictExitCheckbox.Text = "Restrict exiting to Cage Labeler";
+            this.restrictExitTooltip.SetToolTip(this.restrictExitCheckbox, resources.GetString("restrictExitCheckbox.ToolTip"));
+            this.restrictExitCheckbox.UseVisualStyleBackColor = true;
+            this.restrictExitCheckbox.CheckedChanged += new System.EventHandler(this.restrictExitButton_CheckedChanged);
             // 
             // restrictExitTooltip
             // 
@@ -219,7 +219,7 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(484, 481);
-            this.Controls.Add(this.restrictExitButton);
+            this.Controls.Add(this.restrictExitCheckbox);
             this.Controls.Add(this.videoSources);
             this.Controls.Add(this.tokenBox);
             this.Controls.Add(this.tokenWebcamButton);
@@ -263,7 +263,7 @@
         private System.Windows.Forms.Button tokenWebcamButton;
         private System.Windows.Forms.PictureBox tokenBox;
         private System.Windows.Forms.ComboBox videoSources;
-        private System.Windows.Forms.CheckBox restrictExitButton;
+        private System.Windows.Forms.CheckBox restrictExitCheckbox;
         private System.Windows.Forms.ToolTip restrictExitTooltip;
     }
 }

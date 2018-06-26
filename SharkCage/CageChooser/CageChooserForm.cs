@@ -11,11 +11,8 @@ namespace CageChooser
     {
         private class NativeMethods
         {
-            [DllImport("CageNetwork.dll")]
-            public static extern void StartCageManager();
-
             [DllImport("CageNetwork.dll", CallingConvention = CallingConvention.Cdecl)]
-            public static extern void SendConfigAndExternalProgram(
+            public static extern void SendConfig(
                 [MarshalAs(UnmanagedType.LPWStr)] string config_path
             );
         }
@@ -63,6 +60,9 @@ namespace CageChooser
         {
             var file_dialog = new OpenFileDialog();
             file_dialog.CheckFileExists = true;
+            const string registry_key = @"HKEY_LOCAL_MACHINE\SOFTWARE\SharkCage";
+            var install_dir = Registry.GetValue(registry_key, "InstallDir", "") as string;
+            file_dialog.InitialDirectory = install_dir;
             file_dialog.Filter = "SharkCage configuration|*.sconfig";
             var result = file_dialog.ShowDialog();
             if (result == DialogResult.OK)
@@ -149,8 +149,7 @@ namespace CageChooser
             {
                 if (configPath.Text != String.Empty)
                 {
-                    NativeMethods.StartCageManager();
-                    NativeMethods.SendConfigAndExternalProgram(configPath.Text);
+                    NativeMethods.SendConfig(configPath.Text);
 
                     // bring the form back in focus
                     Activate();

@@ -77,8 +77,4 @@ private:
 
 // make a pinvoke callable interface which is just able to send
 // a .config file + path to external program (like keepass)
-extern "C" DLLEXPORT void SendConfigAndExternalProgram(const wchar_t *config_path);
-
-// make a pinvoke callable interface which is just able to tell the service to
-// start the cage manager (after #21: no longer necessary as manager only shows ínformation on new desktop and gets started implicitely)
-extern "C" DLLEXPORT void StartCageManager();
+extern "C" DLLEXPORT void SendConfig(const wchar_t *config_path);

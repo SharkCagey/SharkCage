@@ -137,7 +137,7 @@ std::vector<char> NetworkManager::StringToVec(const std::wstring &string)
 	return message;
 }
 
-extern "C" DLLEXPORT void SendConfigAndExternalProgram(const wchar_t *config_path)
+extern "C" DLLEXPORT void SendConfig(const wchar_t *config_path)
 {
 	if (config_path)
 	{
@@ -147,13 +147,8 @@ extern "C" DLLEXPORT void SendConfigAndExternalProgram(const wchar_t *config_pat
 		ss << ServiceMessageToString(ServiceMessage::START_PC) << " " << config_path;
 
 		NetworkManager mgr(ContextType::CHOOSER);
+		// this first step is unnecessary once #21 is done
+		mgr.Send(ServiceMessageToString(ServiceMessage::START_CM), ContextType::SERVICE);
 		mgr.Send(ss.str(), ContextType::SERVICE);
 	}
-}
-
-// FIXME this method should be deleted after #21 is solved
-extern "C" DLLEXPORT void StartCageManager()
-{
-	NetworkManager mgr(ContextType::CHOOSER);
-	mgr.Send(ServiceMessageToString(ServiceMessage::START_CM), ContextType::SERVICE);
 }
