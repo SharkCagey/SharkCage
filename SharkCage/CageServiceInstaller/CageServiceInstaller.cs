@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.ComponentModel;
 using System.Configuration.Install;
 
@@ -9,6 +10,11 @@ namespace CageServiceInstaller
     {
         const string service_name = "shark-cage-service";
 
+        public override void Install(System.Collections.IDictionary stateSaver)
+        {
+            base.Install(stateSaver);
+        }
+
         public override void Commit(System.Collections.IDictionary savedState)
         {
             base.Commit(savedState);
@@ -17,16 +23,16 @@ namespace CageServiceInstaller
             InstallAndStartService(target_dir);
         }
 
-        public override void Uninstall(System.Collections.IDictionary savedState)
+        public override void Rollback(IDictionary savedState)
         {
+            base.Rollback(savedState);
             UninstallService();
-            base.Uninstall(savedState);
         }
 
-
-        public override void Install(System.Collections.IDictionary stateSaver)
+        public override void Uninstall(System.Collections.IDictionary savedState)
         {
-            base.Install(stateSaver);
+            base.Uninstall(savedState);
+            UninstallService();
         }
 
         private void InstallAndStartService(string path)
