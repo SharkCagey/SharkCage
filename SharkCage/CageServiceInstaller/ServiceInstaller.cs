@@ -204,10 +204,19 @@
             SERVICE_STATUS status = new SERVICE_STATUS();
             ControlService(service, ServiceControl.Stop, status);
 
-            // It takes some time until the service is really stopped
-            Thread.Sleep(1000);
+            var amount_of_retries = 5;
+            var changedStatus = false;
 
-            var changedStatus = WaitForServiceStatus(service, ServiceState.StopPending, ServiceState.Stopped);
+            // It takes sometimes longer to stop the service than the dwWaitHint is set by the system.
+            for (; amount_of_retries > 0; amount_of_retries--)
+            {
+                changedStatus = WaitForServiceStatus(service, ServiceState.StopPending, ServiceState.Stopped);
+                if (changedStatus)
+                {
+                    return;
+                }
+            }
+
             if (!changedStatus)
                 throw new ApplicationException("Unable to stop service");
         }
