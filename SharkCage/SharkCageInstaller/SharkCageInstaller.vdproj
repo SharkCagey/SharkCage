@@ -94,13 +94,13 @@
         "Entry"
         {
         "MsmKey" = "8:_FBA8493A64611F9DA84D53481DFA1E95"
-        "OwnerKey" = "8:_7804B69B4E70477F81F409F2AE60194D"
+        "OwnerKey" = "8:_01BBBCE4106E46A891E20AE0FAFF7469"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
         "MsmKey" = "8:_FBA8493A64611F9DA84D53481DFA1E95"
-        "OwnerKey" = "8:_01BBBCE4106E46A891E20AE0FAFF7469"
+        "OwnerKey" = "8:_7804B69B4E70477F81F409F2AE60194D"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -112,31 +112,7 @@
         "Entry"
         {
         "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_E943CA2FAF6449929DEB63A8430A741B"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_EE48644F738FAF6F608738C768C19F32"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_1D9F727B52E2B783D351D3A563978BE0"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_EF4B6F1AF9FE8033470A716D32B9ACBD"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_09FC33C69A21B22C9FF3A748E0F64B86"
+        "OwnerKey" = "8:_01BBBCE4106E46A891E20AE0FAFF7469"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -148,7 +124,31 @@
         "Entry"
         {
         "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_01BBBCE4106E46A891E20AE0FAFF7469"
+        "OwnerKey" = "8:_09FC33C69A21B22C9FF3A748E0F64B86"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_UNDEFINED"
+        "OwnerKey" = "8:_EF4B6F1AF9FE8033470A716D32B9ACBD"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_UNDEFINED"
+        "OwnerKey" = "8:_1D9F727B52E2B783D351D3A563978BE0"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_UNDEFINED"
+        "OwnerKey" = "8:_EE48644F738FAF6F608738C768C19F32"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_UNDEFINED"
+        "OwnerKey" = "8:_E943CA2FAF6449929DEB63A8430A741B"
         "MsmSig" = "8:_UNDEFINED"
         }
     }
@@ -848,28 +848,6 @@
                             }
                         }
                     }
-                    "{688940B3-5CA9-4162-8DEE-2993FA9D8CBC}:_294666AE7E3C43FAAE537E6405DF041D"
-                    {
-                    "Sequence" = "3:300"
-                    "DisplayName" = "8:Confirm Installation"
-                    "UseDynamicProperties" = "11:TRUE"
-                    "IsDependency" = "11:FALSE"
-                    "SourcePath" = "8:<VsdDialogDir>\\VsdConfirmDlg.wid"
-                        "Properties"
-                        {
-                            "BannerBitmap"
-                            {
-                            "Name" = "8:BannerBitmap"
-                            "DisplayName" = "8:#1001"
-                            "Description" = "8:#1101"
-                            "Type" = "3:8"
-                            "ContextData" = "8:Bitmap"
-                            "Attributes" = "3:4"
-                            "Setting" = "3:1"
-                            "UsePlugInResources" = "11:TRUE"
-                            }
-                        }
-                    }
                     "{688940B3-5CA9-4162-8DEE-2993FA9D8CBC}:_42F3FE7890D6462BB0F6255ABF24BFCE"
                     {
                     "Sequence" = "3:200"
@@ -980,28 +958,6 @@
                             "Setting" = "3:1"
                             "Value" = "8:#1203"
                             "DefaultValue" = "8:#1203"
-                            "UsePlugInResources" = "11:TRUE"
-                            }
-                        }
-                    }
-                    "{688940B3-5CA9-4162-8DEE-2993FA9D8CBC}:_F4C58783B7BA4E29874729ABEE280295"
-                    {
-                    "Sequence" = "3:300"
-                    "DisplayName" = "8:Confirm Installation"
-                    "UseDynamicProperties" = "11:TRUE"
-                    "IsDependency" = "11:FALSE"
-                    "SourcePath" = "8:<VsdDialogDir>\\VsdAdminConfirmDlg.wid"
-                        "Properties"
-                        {
-                            "BannerBitmap"
-                            {
-                            "Name" = "8:BannerBitmap"
-                            "DisplayName" = "8:#1001"
-                            "Description" = "8:#1101"
-                            "Type" = "3:8"
-                            "ContextData" = "8:Bitmap"
-                            "Attributes" = "3:4"
-                            "Setting" = "3:1"
                             "UsePlugInResources" = "11:TRUE"
                             }
                         }
@@ -1132,7 +1088,7 @@
             }
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_01BBBCE4106E46A891E20AE0FAFF7469"
             {
-            "SourcePath" = "8:..\\CageServiceInstaller\\obj\\Release\\CageServiceInstaller.dll"
+            "SourcePath" = "8:..\\CageServiceInstaller\\obj\\Debug\\CageServiceInstaller.dll"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_AF35AA7C0DA64CECA8201B61E6196592"
@@ -1188,7 +1144,7 @@
             }
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_63AF181CABB14A408EE15B685CD7A728"
             {
-            "SourcePath" = "8:..\\CageManager\\Release\\CageManager.exe"
+            "SourcePath" = "8:..\\CageManager\\Debug\\CageManager.exe"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_AF35AA7C0DA64CECA8201B61E6196592"
@@ -1244,7 +1200,7 @@
             }
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_7804B69B4E70477F81F409F2AE60194D"
             {
-            "SourcePath" = "8:..\\CageConfigurator\\obj\\Release\\CageConfigurator.exe"
+            "SourcePath" = "8:..\\CageConfigurator\\obj\\Debug\\CageConfigurator.exe"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_AF35AA7C0DA64CECA8201B61E6196592"
@@ -1272,7 +1228,7 @@
             }
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_8A8ED1AABB68440AB0601DB450CCF386"
             {
-            "SourcePath" = "8:..\\Release\\CageNetwork.dll"
+            "SourcePath" = "8:..\\CageNetwork\\Debug\\CageNetwork.dll"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_AF35AA7C0DA64CECA8201B61E6196592"
@@ -1300,7 +1256,7 @@
             }
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_9225268146BB459386642FBCC47E116A"
             {
-            "SourcePath" = "8:..\\CageService\\Release\\CageService.exe"
+            "SourcePath" = "8:..\\CageService\\Debug\\CageService.exe"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_AF35AA7C0DA64CECA8201B61E6196592"
@@ -1356,7 +1312,7 @@
             }
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_E943CA2FAF6449929DEB63A8430A741B"
             {
-            "SourcePath" = "8:..\\CageChooser\\obj\\Release\\CageChooser.exe"
+            "SourcePath" = "8:..\\CageChooser\\obj\\Debug\\CageChooser.exe"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_AF35AA7C0DA64CECA8201B61E6196592"
