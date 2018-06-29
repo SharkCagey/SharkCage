@@ -88,13 +88,13 @@
         "Entry"
         {
         "MsmKey" = "8:_FBA8493A64611F9DA84D53481DFA1E95"
-        "OwnerKey" = "8:_E943CA2FAF6449929DEB63A8430A741B"
+        "OwnerKey" = "8:_01BBBCE4106E46A891E20AE0FAFF7469"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
         "MsmKey" = "8:_FBA8493A64611F9DA84D53481DFA1E95"
-        "OwnerKey" = "8:_01BBBCE4106E46A891E20AE0FAFF7469"
+        "OwnerKey" = "8:_E943CA2FAF6449929DEB63A8430A741B"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -106,13 +106,13 @@
         "Entry"
         {
         "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_FBA8493A64611F9DA84D53481DFA1E95"
+        "OwnerKey" = "8:_01BBBCE4106E46A891E20AE0FAFF7469"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
         "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_01BBBCE4106E46A891E20AE0FAFF7469"
+        "OwnerKey" = "8:_E943CA2FAF6449929DEB63A8430A741B"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -148,7 +148,7 @@
         "Entry"
         {
         "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_E943CA2FAF6449929DEB63A8430A741B"
+        "OwnerKey" = "8:_FBA8493A64611F9DA84D53481DFA1E95"
         "MsmSig" = "8:_UNDEFINED"
         }
     }
@@ -309,6 +309,11 @@
             "AssemblyAsmDisplayName" = "8:Newtonsoft.Json, Version=11.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL"
                 "ScatterAssemblies"
                 {
+                    "_09FC33C69A21B22C9FF3A748E0F64B86"
+                    {
+                    "Name" = "8:Newtonsoft.Json.dll"
+                    "Attributes" = "3:512"
+                    }
                 }
             "SourcePath" = "8:Newtonsoft.Json.dll"
             "TargetName" = "8:"
@@ -335,6 +340,11 @@
             "AssemblyAsmDisplayName" = "8:AForge.Video, Version=2.2.5.0, Culture=neutral, PublicKeyToken=cbfb6e07d173c401, processorArchitecture=MSIL"
                 "ScatterAssemblies"
                 {
+                    "_1D9F727B52E2B783D351D3A563978BE0"
+                    {
+                    "Name" = "8:AForge.Video.dll"
+                    "Attributes" = "3:512"
+                    }
                 }
             "SourcePath" = "8:AForge.Video.dll"
             "TargetName" = "8:"
@@ -361,6 +371,11 @@
             "AssemblyAsmDisplayName" = "8:AForge, Version=2.2.5.0, Culture=neutral, PublicKeyToken=c1db6ff4eaa06aeb, processorArchitecture=MSIL"
                 "ScatterAssemblies"
                 {
+                    "_EE48644F738FAF6F608738C768C19F32"
+                    {
+                    "Name" = "8:AForge.dll"
+                    "Attributes" = "3:512"
+                    }
                 }
             "SourcePath" = "8:AForge.dll"
             "TargetName" = "8:"
@@ -387,6 +402,11 @@
             "AssemblyAsmDisplayName" = "8:AForge.Video.DirectShow, Version=2.2.5.0, Culture=neutral, PublicKeyToken=61ea4348d43881b7, processorArchitecture=MSIL"
                 "ScatterAssemblies"
                 {
+                    "_EF4B6F1AF9FE8033470A716D32B9ACBD"
+                    {
+                    "Name" = "8:AForge.Video.DirectShow.dll"
+                    "Attributes" = "3:512"
+                    }
                 }
             "SourcePath" = "8:AForge.Video.DirectShow.dll"
             "TargetName" = "8:"
@@ -413,6 +433,11 @@
             "AssemblyAsmDisplayName" = "8:System.Net.Http, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a"
                 "ScatterAssemblies"
                 {
+                    "_FBA8493A64611F9DA84D53481DFA1E95"
+                    {
+                    "Name" = "8:System.Net.Http.dll"
+                    "Attributes" = "3:512"
+                    }
                 }
             "SourcePath" = "8:System.Net.Http.dll"
             "TargetName" = "8:"
@@ -533,7 +558,7 @@
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:SharkCage"
         "ProductCode" = "8:{ABDFC121-DD3E-48A6-93D2-775E2B08A35F}"
-        "PackageCode" = "8:{30A4B14D-3DF4-48A9-92AB-6DC540177F7F}"
+        "PackageCode" = "8:{1CD568D8-56F4-4E5E-8414-3534CEE7A764}"
         "UpgradeCode" = "8:{593757A6-95D5-412D-A2FF-7530C14252A4}"
         "AspNetVersion" = "8:4.0.30319.0"
         "RestartWWWService" = "11:FALSE"
@@ -649,7 +674,7 @@
         {
             "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_2D1795F1A85246FBBB324A0F00388DB7"
             {
-            "Name" = "8:Shortcut to Primary output from CageChooser (Active)"
+            "Name" = "8:CageChooser"
             "Arguments" = "8:"
             "Description" = "8:"
             "ShowCmd" = "3:1"
@@ -663,7 +688,7 @@
             }
             "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_5BA03DEE36A84544898482B63C3DD924"
             {
-            "Name" = "8:Shortcut to Primary output from CageConfigurator (Active)"
+            "Name" = "8:CageConfigurator"
             "Arguments" = "8:"
             "Description" = "8:"
             "ShowCmd" = "3:1"
