@@ -13,64 +13,64 @@
         [StructLayout(LayoutKind.Sequential)]
         private class SERVICE_STATUS
         {
-            public int dwServiceType = 0;
-            public ServiceState dwCurrentState = 0;
-            public int dwControlsAccepted = 0;
-            public int dwWin32ExitCode = 0;
-            public int dwServiceSpecificExitCode = 0;
-            public int dwCheckPoint = 0;
-            public int dwWaitHint = 0;
+            public int dw_service_type = 0;
+            public ServiceState dw_current_state = 0;
+            public int dw_controls_accepted = 0;
+            public int dw_win32_exit_code = 0;
+            public int dw_service_specific_exit_code = 0;
+            public int dw_check_point = 0;
+            public int dw_wait_hint = 0;
         }
 
         #region OpenSCManager
         [DllImport("advapi32.dll", EntryPoint = "OpenSCManagerW", ExactSpelling = true, CharSet = CharSet.Unicode, SetLastError = true)]
-        static extern IntPtr OpenSCManager(string machineName, string databaseName, ScmAccessRights dwDesiredAccess);
+        static extern IntPtr OpenSCManager(string machine_name, string database_name, ScmAccessRights dw_desired_access);
         #endregion
 
         #region OpenService
         [DllImport("advapi32.dll", SetLastError = true, CharSet = CharSet.Auto)]
-        static extern IntPtr OpenService(IntPtr hSCManager, string lpServiceName, ServiceAccessRights dwDesiredAccess);
+        static extern IntPtr OpenService(IntPtr h_sc_manager, string lp_service_name, ServiceAccessRights dw_desired_access);
         #endregion
 
         #region CreateService
         [DllImport("advapi32.dll", SetLastError = true, CharSet = CharSet.Auto)]
-        private static extern IntPtr CreateService(IntPtr hSCManager, string lpServiceName, string lpDisplayName, ServiceAccessRights dwDesiredAccess, int dwServiceType, ServiceBootFlag dwStartType, ServiceError dwErrorControl, string lpBinaryPathName, string lpLoadOrderGroup, IntPtr lpdwTagId, string lpDependencies, string lp, string lpPassword);
+        private static extern IntPtr CreateService(IntPtr h_sc_manager, string lp_service_name, string lp_display_name, ServiceAccessRights dw_desired_access, int dw_service_type, ServiceBootFlag dw_start_type, ServiceError dw_error_control, string lp_binary_path_name, string lp_load_order_group, IntPtr lp_dw_tag_id, string lp_dependencies, string lp, string lp_password);
         #endregion
 
         #region CloseServiceHandle
         [DllImport("advapi32.dll", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
-        static extern bool CloseServiceHandle(IntPtr hSCObject);
+        static extern bool CloseServiceHandle(IntPtr h_sc_object);
         #endregion
 
         #region QueryServiceStatus
         [DllImport("advapi32.dll")]
-        private static extern int QueryServiceStatus(IntPtr hService, SERVICE_STATUS lpServiceStatus);
+        private static extern int QueryServiceStatus(IntPtr h_service, SERVICE_STATUS lp_service_status);
         #endregion
 
         #region DeleteService
         [DllImport("advapi32.dll", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
-        private static extern bool DeleteService(IntPtr hService);
+        private static extern bool DeleteService(IntPtr h_service);
         #endregion
 
         #region ControlService
         [DllImport("advapi32.dll")]
-        private static extern int ControlService(IntPtr hService, ServiceControl dwControl, SERVICE_STATUS lpServiceStatus);
+        private static extern int ControlService(IntPtr h_service, ServiceControl dw_control, SERVICE_STATUS lp_service_status);
         #endregion
 
         #region StartService
         [DllImport("advapi32.dll", SetLastError = true)]
-        private static extern int StartService(IntPtr hService, int dwNumServiceArgs, int lpServiceArgVectors);
+        private static extern int StartService(IntPtr h_service, int dw_num_service_args, int lp_service_arg_vectors);
         #endregion
 
-        public static void Uninstall(string serviceName)
+        public static void Uninstall(string service_name)
         {
             IntPtr scm = OpenSCManager(ScmAccessRights.AllAccess);
 
             try
             {
-                IntPtr service = OpenService(scm, serviceName, ServiceAccessRights.AllAccess);
+                IntPtr service = OpenService(scm, service_name, ServiceAccessRights.AllAccess);
                 if (service == IntPtr.Zero)
                     throw new ApplicationException("Service not installed.");
 
@@ -91,13 +91,13 @@
             }
         }
 
-        public static bool ServiceIsInstalled(string serviceName)
+        public static bool ServiceIsInstalled(string service_name)
         {
             IntPtr scm = OpenSCManager(ScmAccessRights.Connect);
 
             try
             {
-                IntPtr service = OpenService(scm, serviceName, ServiceAccessRights.QueryStatus);
+                IntPtr service = OpenService(scm, service_name, ServiceAccessRights.QueryStatus);
 
                 if (service == IntPtr.Zero)
                     return false;
@@ -111,16 +111,16 @@
             }
         }
 
-        public static void InstallAndStart(string serviceName, string displayName, string fileName)
+        public static void InstallAndStart(string service_name, string display_name, string file_name)
         {
             IntPtr scm = OpenSCManager(ScmAccessRights.AllAccess);
 
             try
             {
-                IntPtr service = OpenService(scm, serviceName, ServiceAccessRights.AllAccess);
+                IntPtr service = OpenService(scm, service_name, ServiceAccessRights.AllAccess);
 
                 if (service == IntPtr.Zero)
-                    service = CreateService(scm, serviceName, displayName, ServiceAccessRights.AllAccess, SERVICE_WIN32_OWN_PROCESS, ServiceBootFlag.AutoStart, ServiceError.Normal, fileName, null, IntPtr.Zero, null, null, null);
+                    service = CreateService(scm, service_name, display_name, ServiceAccessRights.AllAccess, SERVICE_WIN32_OWN_PROCESS, ServiceBootFlag.AutoStart, ServiceError.Normal, file_name, null, IntPtr.Zero, null, null, null);
 
                 if (service == IntPtr.Zero)
                     throw new ApplicationException("Failed to install service.");
@@ -140,13 +140,13 @@
             }
         }
 
-        public static void StartService(string serviceName)
+        public static void StartService(string service_name)
         {
             IntPtr scm = OpenSCManager(ScmAccessRights.Connect);
 
             try
             {
-                IntPtr service = OpenService(scm, serviceName, ServiceAccessRights.QueryStatus | ServiceAccessRights.Start);
+                IntPtr service = OpenService(scm, service_name, ServiceAccessRights.QueryStatus | ServiceAccessRights.Start);
                 if (service == IntPtr.Zero)
                     throw new ApplicationException("Could not open service.");
 
@@ -165,13 +165,13 @@
             }
         }
 
-        public static void StopService(string serviceName)
+        public static void StopService(string service_name)
         {
             IntPtr scm = OpenSCManager(ScmAccessRights.Connect);
 
             try
             {
-                IntPtr service = OpenService(scm, serviceName, ServiceAccessRights.QueryStatus | ServiceAccessRights.Stop);
+                IntPtr service = OpenService(scm, service_name, ServiceAccessRights.QueryStatus | ServiceAccessRights.Stop);
                 if (service == IntPtr.Zero)
                     throw new ApplicationException("Could not open service.");
 
@@ -205,29 +205,29 @@
             ControlService(service, ServiceControl.Stop, status);
 
             var amount_of_retries = 5;
-            var changedStatus = false;
+            var changed_status = false;
 
             // It takes sometimes longer to stop the service than the dwWaitHint is set by the system.
             for (; amount_of_retries > 0; amount_of_retries--)
             {
-                changedStatus = WaitForServiceStatus(service, ServiceState.StopPending, ServiceState.Stopped);
-                if (changedStatus)
+                changed_status = WaitForServiceStatus(service, ServiceState.StopPending, ServiceState.Stopped);
+                if (changed_status)
                 {
                     return;
                 }
             }
 
-            if (!changedStatus)
+            if (!changed_status)
                 throw new ApplicationException("Unable to stop service");
         }
 
-        public static ServiceState GetServiceStatus(string serviceName)
+        public static ServiceState GetServiceStatus(string service_name)
         {
             IntPtr scm = OpenSCManager(ScmAccessRights.Connect);
 
             try
             {
-                IntPtr service = OpenService(scm, serviceName, ServiceAccessRights.QueryStatus);
+                IntPtr service = OpenService(scm, service_name, ServiceAccessRights.QueryStatus);
                 if (service == IntPtr.Zero)
                     return ServiceState.NotFound;
 
@@ -253,52 +253,52 @@
             if (QueryServiceStatus(service, status) == 0)
                 throw new ApplicationException("Failed to query service status.");
 
-            return status.dwCurrentState;
+            return status.dw_current_state;
         }
 
-        private static bool WaitForServiceStatus(IntPtr service, ServiceState waitStatus, ServiceState desiredStatus)
+        private static bool WaitForServiceStatus(IntPtr service, ServiceState wait_status, ServiceState desired_status)
         {
             SERVICE_STATUS status = new SERVICE_STATUS();
 
             QueryServiceStatus(service, status);
-            if (status.dwCurrentState == desiredStatus) return true;
+            if (status.dw_current_state == desired_status) return true;
 
-            int dwStartTickCount = Environment.TickCount;
-            int dwOldCheckPoint = status.dwCheckPoint;
+            int dw_start_tick_count = Environment.TickCount;
+            int dw_old_check_point = status.dw_check_point;
 
-            while (status.dwCurrentState == waitStatus)
+            while (status.dw_current_state == wait_status)
             {
                 // Do not wait longer than the wait hint. A good interval is
                 // one tenth the wait hint, but no less than 1 second and no
                 // more than 10 seconds.
 
-                int dwWaitTime = status.dwWaitHint / 10;
+                int dw_wait_time = status.dw_wait_hint / 10;
 
-                if (dwWaitTime < 1000) dwWaitTime = 1000;
-                else if (dwWaitTime > 10000) dwWaitTime = 10000;
+                if (dw_wait_time < 1000) dw_wait_time = 1000;
+                else if (dw_wait_time > 10000) dw_wait_time = 10000;
 
-                Thread.Sleep(dwWaitTime);
+                Thread.Sleep(dw_wait_time);
 
                 // Check the status again.
 
                 if (QueryServiceStatus(service, status) == 0) break;
 
-                if (status.dwCheckPoint > dwOldCheckPoint)
+                if (status.dw_check_point > dw_old_check_point)
                 {
                     // The service is making progress.
-                    dwStartTickCount = Environment.TickCount;
-                    dwOldCheckPoint = status.dwCheckPoint;
+                    dw_start_tick_count = Environment.TickCount;
+                    dw_old_check_point = status.dw_check_point;
                 }
                 else
                 {
-                    if (Environment.TickCount - dwStartTickCount > status.dwWaitHint)
+                    if (Environment.TickCount - dw_start_tick_count > status.dw_wait_hint)
                     {
                         // No progress made within the wait hint
                         break;
                     }
                 }
             }
-            return (status.dwCurrentState == desiredStatus);
+            return (status.dw_current_state == desired_status);
         }
 
         private static IntPtr OpenSCManager(ScmAccessRights rights)
