@@ -192,7 +192,6 @@
 
         private static void StartService(IntPtr service)
         {
-            SERVICE_STATUS status = new SERVICE_STATUS();
             StartService(service, 0, 0);
             var changedStatus = WaitForServiceStatus(service, ServiceState.StartPending, ServiceState.Running);
             if (!changedStatus)
@@ -201,8 +200,7 @@
 
         private static void StopService(IntPtr service)
         {
-            SERVICE_STATUS status = new SERVICE_STATUS();
-            ControlService(service, ServiceControl.Stop, status);
+            ControlService(service, ServiceControl.Stop, new SERVICE_STATUS());
 
             var changed_status = false;
 
