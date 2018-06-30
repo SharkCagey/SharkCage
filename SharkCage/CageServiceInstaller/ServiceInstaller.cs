@@ -204,11 +204,10 @@
             SERVICE_STATUS status = new SERVICE_STATUS();
             ControlService(service, ServiceControl.Stop, status);
 
-            var amount_of_retries = 5;
             var changed_status = false;
 
             // It takes sometimes longer to stop the service than the dwWaitHint is set by the system.
-            for (; amount_of_retries > 0; amount_of_retries--)
+            for (var amount_of_retries = 5; amount_of_retries > 0; amount_of_retries--)
             {
                 changed_status = WaitForServiceStatus(service, ServiceState.StopPending, ServiceState.Stopped);
                 if (changed_status)
