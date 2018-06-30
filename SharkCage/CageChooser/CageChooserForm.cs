@@ -91,6 +91,7 @@ namespace CageChooser
                 return;
             }
 
+            // fixme: check if path contains cage configurator and disallow it?
             if (config_path.EndsWith(".sconfig") && File.Exists(config_path))
             {
                 onSuccess(config_path);
@@ -176,10 +177,7 @@ namespace CageChooser
                 return;
             }
 
-            var p = new System.Diagnostics.Process();
-            p.StartInfo.FileName = $@"{install_dir}\CageConfigurator.exe";
-            p.StartInfo.Arguments = $@"""{configPath.Text}""";
-            p.Start();
+            NativeMethods.SendConfig($@"{install_dir}\CageConfigurator.sconfig");
         }
 
         #endregion
