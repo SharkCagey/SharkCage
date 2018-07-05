@@ -19,6 +19,7 @@
 !*.vcxproj
 !*.vcxproj.filters
 !*.csproj
+!*.vdproj
 !*.config
 !*.settings
 !*.ps1
