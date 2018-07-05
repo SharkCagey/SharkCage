@@ -30,7 +30,6 @@ CageDesktop::CageDesktop(
 	sa.nLength = sizeof(SECURITY_ATTRIBUTES);
 	sa.lpSecurityDescriptor = p_sd;
 	sa.bInheritHandle = FALSE;
-
 	new_desktop = ::CreateDesktop(desktop_name.c_str(), NULL, NULL, NULL, desk_access_mask, &sa);
 }
 

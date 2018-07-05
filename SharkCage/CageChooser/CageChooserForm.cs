@@ -9,7 +9,7 @@ namespace CageChooser
 {
     public partial class CageChooserForm : Form
     {
-        private class NativeMethods
+        internal class NativeMethods
         {
             [DllImport("CageNetwork.dll", CallingConvention = CallingConvention.Cdecl)]
             public static extern void SendConfig(
@@ -177,7 +177,8 @@ namespace CageChooser
                 return;
             }
 
-            NativeMethods.SendConfig($@"{install_dir}\CageConfigurator.sconfig");
+            var config_path = install_dir.EndsWith(@"\") ? $@"{install_dir}CageConfigurator.sconfig" : $@"{install_dir}\CageConfigurator.sconfig";
+            NativeMethods.SendConfig(config_path);
         }
 
         #endregion
