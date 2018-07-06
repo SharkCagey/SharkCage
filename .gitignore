@@ -1,8 +1,9 @@
 # Ignore everything
 *
 
-# Whitelist subdirectories
+# Whitelist subdirectories (except vs / solution config)
 !*/
+*.vs
 
 # general
 !*.gitignore
@@ -18,6 +19,7 @@
 !*.vcxproj
 !*.vcxproj.filters
 !*.csproj
+!*.vdproj
 !*.config
 !*.settings
 !*.ps1
@@ -29,6 +31,13 @@
 !*.rc
 !*.cs
 !*.resx
+
+# nuget
+# The packages folder can be ignored because of Package Restore
+**/[Pp]ackages/*
+
+# except build/, which is used as an MSBuild target.
+!**/[Pp]ackages/build/
 
 # special rules for built sources
 **/Debug/**/*.*

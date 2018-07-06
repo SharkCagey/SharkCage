@@ -1,21 +1,19 @@
 ﻿using System;
 using System.Windows.Forms;
 
-namespace SharkCage
+namespace CageConfigurator
 {
-    static class ImageSelectDialog
+    static class Program
     {
-        const string configPath = @"C:\sharkcage\config.txt";
-
         /// <summary>
         /// The main entry point for the application.
         /// </summary>
         [STAThread]
-        static void Main()
+        static void Main(string[] parameter)
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new ImageSelectForm(configPath));
+            Application.Run(new CageConfiguratorForm(parameter.Length > 0 ? parameter[0] : null));
         }
     }
 }

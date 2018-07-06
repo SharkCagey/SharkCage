@@ -7,12 +7,12 @@
 
 #include "CageService.h"
 #include "../CageNetwork/MsgService.h"
+#include "../CageNetwork/MsgManager.h"
 
 const std::wstring CAGE_MANAGER_NAME = L"CageManager.exe";
 
 CageService::CageService() noexcept
-	: cage_manager_process_id(-1)
-	, image_index(-1)
+	: cage_manager_process_id(0)
 	, dialog_process_id(0)
 {
 }
@@ -110,7 +110,12 @@ DWORD CageService::StartCageManager(const std::wstring &app_name, const std::opt
 		&sa,  // <- Process Attributes
 		NULL,  // Thread Attributes
 		false, // Inheritaion flags
-		0,     // Creation flags
+		// release build should not display console window
+#ifdef _DEBUG
+		0,
+#else
+		CREATE_NO_WINDOW,
+#endif
 		NULL,  // Environment
 		NULL,  // Current directory
 		&si,   // Startup Info
@@ -174,7 +179,7 @@ void CageService::HandleMessage(const std::wstring &message, NetworkManager* mgr
 	if (BeginsWith(message, ServiceMessageToString(ServiceMessage::START_CM)))
 	{
 		// Start Process
-		if (cage_manager_process_id == -1)
+		if (cage_manager_process_id == 0)
 		{
 			// Get session id from loged on user
 			DWORD session_id = ::WTSGetActiveConsoleSessionId();
@@ -185,24 +190,24 @@ void CageService::HandleMessage(const std::wstring &message, NetworkManager* mgr
 	{
 		// Stop Process
 		StopCageManager();
-		cage_manager_process_id = -1;
+		cage_manager_process_id = 0;
 	}
 	else if (BeginsWith(message, ServiceMessageToString(ServiceMessage::START_PC)))
 	{
 		// Forward to cage manager
-		mgr->Send(message);
+		mgr->Send(message, ContextType::MANAGER);
 
 		// Wait for the cageManager to close before receiving the next message
 		// This causes that only one cageManager can run a process at a time
 		HANDLE cage_manager_handle = ::OpenProcess(SYNCHRONIZE, TRUE, cage_manager_process_id);
 		::WaitForSingleObject(cage_manager_handle, INFINITE);
-		cage_manager_process_id = -1;
+		cage_manager_process_id = 0;
 
 	}
 	else if (BeginsWith(message, ServiceMessageToString(ServiceMessage::STOP_PC)))
 	{
 		// Forward to cage manager
-		mgr->Send(message);
+		mgr->Send(message, ContextType::MANAGER);
 	}
 	else
 	{

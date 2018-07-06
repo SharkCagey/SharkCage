@@ -4,10 +4,10 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{338B7710-AC79-403D-9157-14B5126239FD}</ProjectGuid>
+    <ProjectGuid>{AC9A071D-CE63-40FE-9F2A-98EEF3E03B0E}</ProjectGuid>
     <OutputType>WinExe</OutputType>
-    <RootNamespace>CageChooser</RootNamespace>
-    <AssemblyName>CageChooser</AssemblyName>
+    <RootNamespace>CageConfigurator</RootNamespace>
+    <AssemblyName>CageConfigurator</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
@@ -47,9 +47,20 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="AForge, Version=2.2.5.0, Culture=neutral, PublicKeyToken=c1db6ff4eaa06aeb, processorArchitecture=MSIL">
+      <HintPath>..\packages\AForge.2.2.5\lib\AForge.dll</HintPath>
+    </Reference>
+    <Reference Include="AForge.Video, Version=2.2.5.0, Culture=neutral, PublicKeyToken=cbfb6e07d173c401, processorArchitecture=MSIL">
+      <HintPath>..\packages\AForge.Video.2.2.5\lib\AForge.Video.dll</HintPath>
+    </Reference>
+    <Reference Include="AForge.Video.DirectShow, Version=2.2.5.0, Culture=neutral, PublicKeyToken=61ea4348d43881b7, processorArchitecture=MSIL">
+      <HintPath>..\packages\AForge.Video.DirectShow.2.2.5\lib\AForge.Video.DirectShow.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json, Version=11.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.11.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
-    <Reference Include="System.ServiceProcess" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -61,16 +72,16 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CageChooserForm.cs">
+    <Compile Include="CageConfiguratorForm.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="CageChooserForm.Designer.cs">
-      <DependentUpon>CageChooserForm.cs</DependentUpon>
+    <Compile Include="CageConfiguratorForm.Designer.cs">
+      <DependentUpon>CageConfiguratorForm.cs</DependentUpon>
     </Compile>
-    <Compile Include="CageChooser.cs" />
+    <Compile Include="CageConfigurator.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <EmbeddedResource Include="CageChooserForm.resx">
-      <DependentUpon>CageChooserForm.cs</DependentUpon>
+    <EmbeddedResource Include="CageConfiguratorForm.resx">
+      <DependentUpon>CageConfiguratorForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
@@ -81,6 +92,9 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <None Include="packages.config">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
@@ -113,8 +127,7 @@
     <PostBuildEvent>if $(ConfigurationName) == Debug (
  xcopy /y "$(TargetPath)" "$(SolutionDir)post_build_output\"
  xcopy /y "$(TargetDir)$(TargetName).pdb" "$(SolutionDir)post_build_output\"
- xcopy /y "$(ProjectDir)install_service.ps1" "$(TargetDir)"
-)
-</PostBuildEvent>
+ xcopy /y "$(TargetDir)*.dll" "$(SolutionDir)post_build_output\"
+)</PostBuildEvent>
   </PropertyGroup>
 </Project>

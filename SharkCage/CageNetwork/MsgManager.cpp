@@ -11,7 +11,6 @@ DLLEXPORT std::wstring ManagerMessageToString(ManagerMessage value)
 		return L"START_PC";
 	case ManagerMessage::STOP_PROCESS:
 		return L"STOP_PC";
-		// no default to trigger warning if we don't cover all enum values
 	}
 
 	return L"";
