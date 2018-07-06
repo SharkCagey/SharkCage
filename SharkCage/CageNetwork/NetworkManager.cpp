@@ -117,7 +117,7 @@ DLLEXPORT std::wstring NetworkManager::Listen(long timeout_seconds)
 	return converter.from_bytes(narrow_string);
 }
 
-std::wstring NetworkManager::VecToString(const std::vector<char> &message)
+std::wstring NetworkManager::VecToString(const std::vector<char> &message) const
 {
 	// no suitable alternative in c++ standard yet, so it is safe to use for now
 	// warning is suppressed by a define in project settings: _SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING
@@ -125,7 +125,7 @@ std::wstring NetworkManager::VecToString(const std::vector<char> &message)
 	return converter.from_bytes(message.data());
 }
 
-std::vector<char> NetworkManager::StringToVec(const std::wstring &string)
+std::vector<char> NetworkManager::StringToVec(const std::wstring &string) const
 {
 	// no suitable alternative in c++ standard yet, so it is safe to use for now
 	// warning is suppressed by a define in project settings: _SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING

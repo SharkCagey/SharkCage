@@ -48,7 +48,7 @@ public:
 	 * The message must be in the form of:
 	 * "MSG_TO_SERVICE.constant absolute/path/to/executable"
 	 */
-	void HandleMessage(const std::wstring &message, NetworkManager *mgr);
+	void HandleMessage(const std::wstring &message, NetworkManager &mgr);
 
 private:
 	// Process ID of the Cage Manager (Used for closing the Cage Manager)

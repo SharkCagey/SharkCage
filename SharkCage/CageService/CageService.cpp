@@ -174,28 +174,22 @@ std::wstring CageService::GetLastErrorAsString(DWORD error_id)
 	return message;
 }
 
-void CageService::HandleMessage(const std::wstring &message, NetworkManager* mgr)
+void CageService::HandleMessage(const std::wstring &message, NetworkManager &mgr)
 {
 	if (BeginsWith(message, ServiceMessageToString(ServiceMessage::START_CM)))
 	{
 		// Start Process
 		if (cage_manager_process_id == 0)
 		{
-			// Get session id from loged on user
+			// Get session id from logged on user
 			DWORD session_id = ::WTSGetActiveConsoleSessionId();
 			cage_manager_process_id = StartCageManager(session_id);
 		}
 	}
-	else if (BeginsWith(message, ServiceMessageToString(ServiceMessage::STOP_CM)))
-	{
-		// Stop Process
-		StopCageManager();
-		cage_manager_process_id = 0;
-	}
 	else if (BeginsWith(message, ServiceMessageToString(ServiceMessage::START_PC)))
 	{
-		// Forward to cage manager
-		mgr->Send(message, ContextType::MANAGER);
+		// Forward to cage 
+		mgr.Send(message, ContextType::MANAGER);
 
 		// Wait for the cageManager to close before receiving the next message
 		// This causes that only one cageManager can run a process at a time
@@ -203,11 +197,6 @@ void CageService::HandleMessage(const std::wstring &message, NetworkManager* mgr
 		::WaitForSingleObject(cage_manager_handle, INFINITE);
 		cage_manager_process_id = 0;
 
-	}
-	else if (BeginsWith(message, ServiceMessageToString(ServiceMessage::STOP_PC)))
-	{
-		// Forward to cage manager
-		mgr->Send(message, ContextType::MANAGER);
 	}
 	else
 	{

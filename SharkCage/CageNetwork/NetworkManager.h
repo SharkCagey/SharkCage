@@ -1,7 +1,5 @@
 #pragma once
 
-#include "stdafx.h"
-
 // FIXME use nuget package instead
 #include ".\asio\include\asio.hpp"
 
@@ -55,11 +53,11 @@ public:
 	DLLEXPORT std::wstring Listen(long timeout_seconds = -1);
 
 private:
-	std::wstring VecToString(const std::vector<char> &message);
+	std::wstring VecToString(const std::vector<char> &message) const;
 
-	std::vector<char> StringToVec(const std::wstring &string);
+	std::vector<char> StringToVec(const std::wstring &string) const;
 
-	std::optional<const int> GetPort(ContextType type)
+	std::optional<const int> GetPort(ContextType type) const
 	{
 		switch (type)
 		{
