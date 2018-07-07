@@ -4,6 +4,8 @@
 
 #include "json.hpp"
 
+#include "./tokenLib/groupManipulation.h"
+
 #pragma comment(lib, "netapi32.lib")
 
 const char APPLICATION_PATH_PROPERTY[] = "application_path";
