@@ -31,8 +31,40 @@ void TrimMessage(std::wstring &msg)
 	}).base(), msg.end());
 }
 
+bool BeginsWith(const std::wstring &string_to_search, const std::wstring &prefix)
+{
+	if (prefix.length() > string_to_search.length())
+	{
+		throw std::invalid_argument("prefix longer than the actual string");
+	}
+	else
+	{
+		return string_to_search.compare(0, prefix.length(), prefix) == 0;
+	}
+}
+
 namespace SharedFunctions
 {
+	DLLEXPORT std::optional<CageMessage> ParseMessage(const std::wstring &msg, std::wstring &message_data)
+	{
+		if (BeginsWith(msg, MessageToString(CageMessage::START_PROCESS)))
+		{
+			// read config
+			auto message_cmd_length = MessageToString(CageMessage::START_PROCESS).length();
+			message_data = msg.substr(message_cmd_length);
+
+			TrimMessage(message_data);
+
+			return CageMessage::START_PROCESS;
+		}
+		else
+		{
+			std::wcout << "Received unrecognized message: " << msg << std::endl;
+		}
+
+		return std::nullopt;
+	}
+
 	DLLEXPORT bool ParseStartProcessMessage(CageData &cage_data)
 	{
 		std::ifstream config_stream;
@@ -83,63 +115,12 @@ namespace SharedFunctions
 		return false;
 	}
 
-	DLLEXPORT bool BeginsWith(const std::wstring &string_to_search, const std::wstring &prefix)
-	{
-		if (prefix.length() > string_to_search.length())
-		{
-			throw std::invalid_argument("prefix longer than the actual string");
-		}
-		else
-		{
-			return string_to_search.compare(0, prefix.length(), prefix) == 0;
-		}
-	}
-
-	DLLEXPORT std::optional<CageMessage> ParseMessage(const std::wstring &msg, std::wstring &message_data)
-	{
-		if (BeginsWith(msg, MessageToString(CageMessage::START_PROCESS)))
-		{
-			// read config
-			auto message_cmd_length = MessageToString(CageMessage::START_PROCESS).length();
-			message_data = msg.substr(message_cmd_length);
-
-			TrimMessage(message_data);
-
-			return CageMessage::START_PROCESS;
-		}
-		else if (BeginsWith(msg, MessageToString(CageMessage::LABELER_CONFIG)))
-		{
-			// read config
-			auto message_cmd_length = MessageToString(CageMessage::LABELER_CONFIG).length();
-			message_data = msg.substr(message_cmd_length);
-
-			TrimMessage(message_data);
-
-			return CageMessage::LABELER_CONFIG;
-		}
-		else if (BeginsWith(msg, MessageToString(CageMessage::STOP_LABELER)))
-		{
-			return CageMessage::STOP_LABELER;
-		}
-		else
-		{
-			std::wcout << "Received unrecognized message: " << msg << std::endl;
-		}
-
-		return std::nullopt;
-	}
-
 	DLLEXPORT std::wstring MessageToString(CageMessage msg)
 	{
 		switch (msg)
 		{
 		case CageMessage::START_PROCESS:
 			return L"START_PROCESS";
-		case CageMessage::LABELER_CONFIG:
-			return L"LABELER_CONFIG";
-		case CageMessage::STOP_LABELER:
-			return L"STOP_LABELER";
-			// no default to trigger warning if we don't cover all enum values
 		}
 
 		return L"";

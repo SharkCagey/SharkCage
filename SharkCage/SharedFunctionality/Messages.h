@@ -4,7 +4,5 @@
 
 enum class CageMessage
 {
-	START_PROCESS = 0,
-	LABELER_CONFIG,
-	STOP_LABELER
+	START_PROCESS = 0
 };

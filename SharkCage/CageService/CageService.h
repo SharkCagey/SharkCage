@@ -1,7 +1,6 @@
 #pragma once
 
 #include "../SharedFunctionality/NetworkManager.h"
-#include "../SharedFunctionality/CageData.h"
 
 #include <Windows.h>
 #include <string>
@@ -19,7 +18,7 @@ public:
 	* @session_id The sessionId of the user.
 	* @return The process ID of the started process.
 	*/
-	DWORD StartCageManager(DWORD session_id);
+	DWORD StartCageManager(DWORD session_id, HANDLE &user_token);
 
 	/*
 	 * Starts the executable in a new process on the normal desktop in the given session.
@@ -28,7 +27,7 @@ public:
 	 * @session_id The sessionId of the user.
 	 * @return The process ID of the started process.
 	 */
-	DWORD StartCageManager(const std::wstring &app_name, DWORD session_id);
+	DWORD StartCageManager(DWORD session_id, const std::wstring &app_name, HANDLE &user_token);
 
 	/*
 	 * Starts the executable in a new process on the respective desktop in the given session.
@@ -38,7 +37,7 @@ public:
 	 * @session_id The sessionId of the user.
 	 * @return The process ID of the started process.
 	 */
-	DWORD StartCageManager(const std::wstring &app_name, const std::optional<std::wstring> &desktop_name, DWORD session_id);
+	DWORD StartCageManager(DWORD session_id, const std::wstring &app_name, const std::optional<std::wstring> &desktop_name, HANDLE &user_token);
 
 	void StopCageManager();
 
@@ -55,12 +54,5 @@ private:
 
 	std::wstring GetLastErrorAsString(DWORD error_id);
 
-	void StartProcess(CageData &cage_data);
-	void StartCage(PSECURITY_DESCRIPTOR security_descriptor, const CageData &cage_data);
-
 	std::optional<HANDLE> CageService::CreateImpersonatingUserToken();
-
-	// FIXME extra class for this? process handling? -> could also do the wait stuff
-	static BOOL CALLBACK GetOpenWindowHandles(_In_ HWND hwnd, _In_ LPARAM l_param);
-	static BOOL CALLBACK GetOpenProcesses(_In_ HWND hwnd, _In_ LPARAM l_param);
 };

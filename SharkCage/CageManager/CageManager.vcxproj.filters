@@ -32,6 +32,15 @@
     <ClInclude Include="CageManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="CageDesktop.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FullWorkArea.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SecuritySetup.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CageManager.cpp">
@@ -44,6 +53,15 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="CageLabeler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CageDesktop.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="FullWorkArea.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SecuritySetup.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
