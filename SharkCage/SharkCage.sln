@@ -17,7 +17,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CageChooser", "CageChooser\
 		{C48789D4-6553-4C7C-9C88-F515D10C60FE} = {C48789D4-6553-4C7C-9C88-F515D10C60FE}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CageNetwork", "CageNetwork\CageNetwork.vcxproj", "{C48789D4-6553-4C7C-9C88-F515D10C60FE}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SharedFunctionality", "SharedFunctionality\SharedFunctionality.vcxproj", "{C48789D4-6553-4C7C-9C88-F515D10C60FE}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CageConfigurator", "CageConfigurator\CageConfigurator.csproj", "{AC9A071D-CE63-40FE-9F2A-98EEF3E03B0E}"
 EndProject

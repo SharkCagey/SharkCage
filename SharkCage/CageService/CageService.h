@@ -1,6 +1,7 @@
 #pragma once
 
-#include "../CageNetwork/NetworkManager.h"
+#include "../SharedFunctionality/NetworkManager.h"
+#include "../SharedFunctionality/CageData.h"
 
 #include <Windows.h>
 #include <string>
@@ -10,8 +11,6 @@ class CageService
 {
 public:
 	CageService() noexcept;
-
-	bool BeginsWith(const std::wstring &string, const std::wstring &prefix);
 
 	bool CageManagerRunning();
 	/*
@@ -54,8 +53,14 @@ private:
 	// Process ID of the Cage Manager (Used for closing the Cage Manager)
 	DWORD cage_manager_process_id;
 
-	// Process ID of the Icon-Select-Dialog (used for waiting until dialog closed)
-	DWORD dialog_process_id;
-
 	std::wstring GetLastErrorAsString(DWORD error_id);
+
+	void StartProcess(CageData &cage_data);
+	void StartCage(PSECURITY_DESCRIPTOR security_descriptor, const CageData &cage_data);
+
+	std::optional<HANDLE> CageService::CreateImpersonatingUserToken();
+
+	// FIXME extra class for this? process handling? -> could also do the wait stuff
+	static BOOL CALLBACK GetOpenWindowHandles(_In_ HWND hwnd, _In_ LPARAM l_param);
+	static BOOL CALLBACK GetOpenProcesses(_In_ HWND hwnd, _In_ LPARAM l_param);
 };

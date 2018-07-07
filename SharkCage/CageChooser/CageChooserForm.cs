@@ -11,10 +11,7 @@ namespace CageChooser
     {
         private class NativeMethods
         {
-            [DllImport("CageNetwork.dll")]
-            public static extern void StartCageManager();
-
-            [DllImport("CageNetwork.dll", CallingConvention = CallingConvention.Cdecl)]
+            [DllImport("SharedFunctionality.dll", CallingConvention = CallingConvention.Cdecl)]
             public static extern void SendConfigAndExternalProgram(
                 [MarshalAs(UnmanagedType.LPWStr)] string config_path
             );
@@ -149,7 +146,6 @@ namespace CageChooser
             {
                 if (configPath.Text != String.Empty)
                 {
-                    NativeMethods.StartCageManager();
                     NativeMethods.SendConfigAndExternalProgram(configPath.Text);
 
                     // bring the form back in focus

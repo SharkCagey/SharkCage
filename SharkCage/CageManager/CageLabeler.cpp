@@ -9,9 +9,7 @@
 using namespace Gdiplus;
 #pragma comment (lib, "Gdiplus.lib")
 
-#include "../CageNetwork/NetworkManager.h"
-#include "../CageNetwork/MsgManager.h"
-#include "../CageNetwork/MsgService.h"
+#include "../SharedFunctionality/NetworkManager.h"
 #include "CageLabeler.h"
 #include "base64.h"
 
@@ -68,7 +66,7 @@ void CageLabeler::InitGdipPlisLib()
 
 bool CageLabeler::Init()
 {
-	if (!ShowCageWindow())
+	if (!ShowLabelerWindow())
 	{
 		std::cout << "Failed to show cage window" << std::endl;
 		return false;
@@ -144,7 +142,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM w_param, LPARAM l_param)
 	return EXIT_SUCCESS;
 }
 
-bool CageLabeler::ShowCageWindow()
+bool CageLabeler::ShowLabelerWindow()
 {
 	WNDCLASS wc = {};
 	wc.lpfnWndProc = WndProc;
