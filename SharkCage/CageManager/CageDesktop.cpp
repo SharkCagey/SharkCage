@@ -11,7 +11,6 @@ CageDesktop::CageDesktop(
 	: full_work_area(work_area_width)
 {
 	old_desktop = ::GetThreadDesktop(GetCurrentThreadId());
-	::SetThreadDesktop(old_desktop);
 
 
 	ACCESS_MASK desk_access_mask = DESKTOP_CREATEMENU
@@ -33,7 +32,6 @@ CageDesktop::CageDesktop(
 	sa.bInheritHandle = FALSE;
 
 	new_desktop = ::CreateDesktop(desktop_name.c_str(), NULL, NULL, NULL, desk_access_mask, &sa);
-	::SetThreadDesktop(new_desktop);
 }
 
 CageDesktop::~CageDesktop()
