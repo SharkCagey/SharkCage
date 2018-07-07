@@ -19,6 +19,12 @@
     <Filter Include="Source Files\Network">
       <UniqueIdentifier>{8eca1a15-4f40-435c-9106-d4a1896bfc34}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\TokenLib">
+      <UniqueIdentifier>{b46b9055-0275-4030-822a-01056f02ecb0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\TokenLib">
+      <UniqueIdentifier>{4ebf5849-8479-414d-bd1e-5e255fde9cae}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -39,6 +45,12 @@
     <ClInclude Include="Messages.h">
       <Filter>Header Files\Network</Filter>
     </ClInclude>
+    <ClInclude Include="tokenLib\groupManipulation.h">
+      <Filter>Header Files\TokenLib</Filter>
+    </ClInclude>
+    <ClInclude Include="tokenLib\tokenManipulation.h">
+      <Filter>Header Files\TokenLib</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -52,6 +64,9 @@
     </ClCompile>
     <ClCompile Include="SharedFunctions.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="tokenLib\tokenLib.cpp">
+      <Filter>Source Files\TokenLib</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

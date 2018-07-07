@@ -94,6 +94,7 @@
       <PreprocessorDefinitions>_SILENCE_CXX17_ALLOCATOR_VOID_DEPRECATION_WARNING;_SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING;WIN32;_DEBUG;SHAREDFUNCTIONALITY_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions);COMPILE_DLL</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalOptions>/std:c++latest %(AdditionalOptions)</AdditionalOptions>
+      <TreatWarningAsError>true</TreatWarningAsError>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -192,6 +193,8 @@ xcopy /y "$(OutDir)$(TargetName).dll" "$(SolutionDir)CageChooser\bin\$(Configura
     <ClInclude Include="SharedFunctions.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
+    <ClInclude Include="tokenLib\groupManipulation.h" />
+    <ClInclude Include="tokenLib\tokenManipulation.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp" />
@@ -203,6 +206,7 @@ xcopy /y "$(OutDir)$(TargetName).dll" "$(SolutionDir)CageChooser\bin\$(Configura
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="tokenLib\tokenLib.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="cpp.hint" />
