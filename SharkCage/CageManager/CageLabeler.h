@@ -1,6 +1,6 @@
 #pragma once
 
-#include "CageData.h"
+#include "../SharedFunctionality/CageData.h"
 
 class CageLabeler
 {
@@ -13,7 +13,7 @@ public:
 private:
 	std::wstring window_class_name;
 
-	bool ShowCageWindow();
+	bool ShowLabelerWindow();
 	void InitGdipPlisLib();
 };
 

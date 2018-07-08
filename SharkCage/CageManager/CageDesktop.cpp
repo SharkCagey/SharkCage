@@ -6,7 +6,6 @@
 
 CageDesktop::CageDesktop(
 	PSECURITY_DESCRIPTOR p_sd,
-	const CageData &cage_data,
 	const int work_area_width,
 	const std::wstring &desktop_name)
 	: full_work_area(work_area_width)

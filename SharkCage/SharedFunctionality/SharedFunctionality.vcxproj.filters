@@ -13,6 +13,18 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Header Files\Network">
+      <UniqueIdentifier>{318eaadc-3551-42dc-ab99-9e93ef593a28}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Network">
+      <UniqueIdentifier>{8eca1a15-4f40-435c-9106-d4a1896bfc34}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\TokenLib">
+      <UniqueIdentifier>{b46b9055-0275-4030-822a-01056f02ecb0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\TokenLib">
+      <UniqueIdentifier>{4ebf5849-8479-414d-bd1e-5e255fde9cae}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -22,13 +34,22 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="NetworkManager.h">
+      <Filter>Header Files\Network</Filter>
+    </ClInclude>
+    <ClInclude Include="CageData.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="MsgManager.h">
+    <ClInclude Include="SharedFunctions.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="MsgService.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="Messages.h">
+      <Filter>Header Files\Network</Filter>
+    </ClInclude>
+    <ClInclude Include="tokenLib\groupManipulation.h">
+      <Filter>Header Files\TokenLib</Filter>
+    </ClInclude>
+    <ClInclude Include="tokenLib\tokenManipulation.h">
+      <Filter>Header Files\TokenLib</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -38,14 +59,19 @@
     <ClCompile Include="dllmain.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MsgService.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="MsgManager.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="NetworkManager.cpp">
+      <Filter>Source Files\Network</Filter>
+    </ClCompile>
+    <ClCompile Include="SharedFunctions.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="tokenLib\tokenLib.cpp">
+      <Filter>Source Files\TokenLib</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="cpp.hint">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
 </Project>

@@ -3,7 +3,7 @@
 #include "stdafx.h"
 
 #include "NetworkManager.h"
-#include "MsgService.h"
+#include "SharedFunctions.h"
 
 #include <chrono>
 
@@ -117,7 +117,7 @@ DLLEXPORT std::wstring NetworkManager::Listen(long timeout_seconds)
 	return converter.from_bytes(narrow_string);
 }
 
-std::wstring NetworkManager::VecToString(const std::vector<char> &message)
+std::wstring NetworkManager::VecToString(const std::vector<char> &message) const
 {
 	// no suitable alternative in c++ standard yet, so it is safe to use for now
 	// warning is suppressed by a define in project settings: _SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING
@@ -125,7 +125,7 @@ std::wstring NetworkManager::VecToString(const std::vector<char> &message)
 	return converter.from_bytes(message.data());
 }
 
-std::vector<char> NetworkManager::StringToVec(const std::wstring &string)
+std::vector<char> NetworkManager::StringToVec(const std::wstring &string) const
 {
 	// no suitable alternative in c++ standard yet, so it is safe to use for now
 	// warning is suppressed by a define in project settings: _SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING
@@ -144,16 +144,9 @@ extern "C" DLLEXPORT void SendConfigAndExternalProgram(const wchar_t *config_pat
 		std::wstring config(config_path);
 
 		std::wostringstream ss;
-		ss << ServiceMessageToString(ServiceMessage::START_PC) << " " << config_path;
+		ss << SharedFunctions::MessageToString(CageMessage::START_PROCESS) << " " << config_path;
 
 		NetworkManager mgr(ContextType::CHOOSER);
 		mgr.Send(ss.str(), ContextType::SERVICE);
 	}
-}
-
-// FIXME this method should be deleted after #21 is solved
-extern "C" DLLEXPORT void StartCageManager()
-{
-	NetworkManager mgr(ContextType::CHOOSER);
-	mgr.Send(ServiceMessageToString(ServiceMessage::START_CM), ContextType::SERVICE);
 }

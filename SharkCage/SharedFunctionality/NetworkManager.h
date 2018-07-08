@@ -55,11 +55,11 @@ public:
 	DLLEXPORT std::wstring Listen(long timeout_seconds = -1);
 
 private:
-	std::wstring VecToString(const std::vector<char> &message);
+	std::wstring VecToString(const std::vector<char> &message) const;
 
-	std::vector<char> StringToVec(const std::wstring &string);
+	std::vector<char> StringToVec(const std::wstring &string) const;
 
-	std::optional<const int> GetPort(ContextType type)
+	std::optional<const int> GetPort(ContextType type) const
 	{
 		switch (type)
 		{
@@ -78,7 +78,3 @@ private:
 // make a pinvoke callable interface which is just able to send
 // a .config file + path to external program (like keepass)
 extern "C" DLLEXPORT void SendConfigAndExternalProgram(const wchar_t *config_path);
-
-// make a pinvoke callable interface which is just able to tell the service to
-// start the cage manager (after #21: no longer necessary as manager only shows ínformation on new desktop and gets started implicitely)
-extern "C" DLLEXPORT void StartCageManager();

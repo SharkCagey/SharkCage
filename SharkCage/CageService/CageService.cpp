@@ -1,19 +1,14 @@
 #include "stdafx.h"
 
-#include <fstream>
 #include <sstream>
-#include <vector>
-#include <cassert>
 
 #include "CageService.h"
-#include "../CageNetwork/MsgService.h"
-#include "../CageNetwork/MsgManager.h"
+#include "../SharedFunctionality/SharedFunctions.h"
 
 const std::wstring CAGE_MANAGER_NAME = L"CageManager.exe";
 
 CageService::CageService() noexcept
 	: cage_manager_process_id(0)
-	, dialog_process_id(0)
 {
 }
 
@@ -22,7 +17,52 @@ bool CageService::CageManagerRunning()
 	return cage_manager_process_id > 0;
 }
 
-DWORD CageService::StartCageManager(DWORD session_id)
+std::optional<HANDLE> CageService::CreateImpersonatingUserToken()
+{
+	DWORD session_id = ::WTSGetActiveConsoleSessionId();
+
+	HANDLE service_token_handle;
+	HANDLE user_session_token_handle;
+
+	// Use new token with privileges for the trusting computing base
+	if (!::ImpersonateSelf(SecurityDelegation))
+	{
+		std::wostringstream os;
+		os << "ImpersonateSelf failed (" << ::GetLastError() << "): " << GetLastErrorAsString(::GetLastError());
+		::OutputDebugString(os.str().c_str());
+		return std::nullopt;
+	}
+
+	if (!::OpenThreadToken(::GetCurrentThread(), TOKEN_ALL_ACCESS, false, &service_token_handle))
+	{
+		std::wostringstream os;
+		os << "OpenThreadToken failed (" << ::GetLastError() << "): " << GetLastErrorAsString(::GetLastError());
+		::OutputDebugString(os.str().c_str());
+		return std::nullopt;
+	}
+
+	if (!::DuplicateTokenEx(service_token_handle, 0, NULL, SecurityDelegation, TokenImpersonation, &user_session_token_handle))
+	{
+		std::wostringstream os;
+		os << "DuplicateTokenEx failed (" << ::GetLastError() << "): " << GetLastErrorAsString(::GetLastError());
+		::OutputDebugString(os.str().c_str());
+		return std::nullopt;
+	}
+
+	if (!::SetTokenInformation(user_session_token_handle, TokenSessionId, &session_id, sizeof DWORD))
+	{
+		std::wostringstream os;
+		os << "SetTokenInformation failed (" << ::GetLastError() << "): " << GetLastErrorAsString(::GetLastError());
+		::OutputDebugString(os.str().c_str());
+		::CloseHandle(user_session_token_handle);
+
+		return std::nullopt;
+	}
+
+	return user_session_token_handle;
+}
+
+DWORD CageService::StartCageManager(DWORD session_id, HANDLE &user_token)
 {
 	std::vector<wchar_t> filename_buffer(MAX_PATH);
 	::GetModuleFileName(nullptr, filename_buffer.data(), MAX_PATH);
@@ -32,23 +72,20 @@ DWORD CageService::StartCageManager(DWORD session_id)
 	if (pos != std::wstring::npos)
 	{
 		filename = filename.substr(0, pos) + L"\\" + CAGE_MANAGER_NAME;
-		return StartCageManager(filename, session_id);
+		return StartCageManager(session_id, filename, user_token);
 	}
 
-	return -1;
+	return 0;
 }
 
-DWORD CageService::StartCageManager(const std::wstring &app_name, DWORD session_id)
+DWORD CageService::StartCageManager(DWORD session_id, const std::wstring &app_name, HANDLE &user_token)
 {
-	return StartCageManager(app_name, std::nullopt, session_id);
+	return StartCageManager(session_id, app_name, std::nullopt, user_token);
 }
 
 // Must be part of the service
-DWORD CageService::StartCageManager(const std::wstring &app_name, const std::optional<std::wstring> &desktop_name, DWORD session_id)
+DWORD CageService::StartCageManager(DWORD session_id, const std::wstring &app_name, const std::optional<std::wstring> &desktop_name, HANDLE &user_token)
 {
-	HANDLE service_token_handle;
-	HANDLE user_session_token_handle;
-
 	STARTUPINFO si = { sizeof si };
 	if (desktop_name.has_value())
 	{
@@ -61,8 +98,9 @@ DWORD CageService::StartCageManager(const std::wstring &app_name, const std::opt
 	{
 		si.lpDesktop = nullptr;
 	}
+
 	PROCESS_INFORMATION pi;
-	DWORD process_id = -1;
+	DWORD process_id = 0;
 
 	SECURITY_ATTRIBUTES sa;
 	sa.nLength = sizeof(SECURITY_ATTRIBUTES);
@@ -70,41 +108,22 @@ DWORD CageService::StartCageManager(const std::wstring &app_name, const std::opt
 	sa.bInheritHandle = true;
 
 	// Use new token with privileges for the trusting computing base
-	if (!::ImpersonateSelf(SecurityImpersonation))
+	auto user_session_token_handle = CreateImpersonatingUserToken();
+	
+	if (!user_session_token_handle.has_value())
 	{
 		std::wostringstream os;
-		os << "ImpersonateSelf failed (" << ::GetLastError() << "): " << GetLastErrorAsString(::GetLastError());
+		os << "Impersonating active user session failed" << std::endl;
 		::OutputDebugString(os.str().c_str());
 		return process_id;
 	}
 
-	if (!::OpenThreadToken(::GetCurrentThread(), TOKEN_ALL_ACCESS, false, &service_token_handle))
-	{
-		std::wostringstream os;
-		os << "OpenThreadToken failed (" << ::GetLastError() << "): " << GetLastErrorAsString(::GetLastError());
-		::OutputDebugString(os.str().c_str());
-		return process_id;
-	}
-
-	if (!::DuplicateTokenEx(service_token_handle, MAXIMUM_ALLOWED, NULL, SecurityImpersonation, TokenPrimary, &user_session_token_handle))
-	{
-		std::wostringstream os;
-		os << "DuplicateTokenEx failed (" << ::GetLastError() << "): " << GetLastErrorAsString(::GetLastError());
-		::OutputDebugString(os.str().c_str());
-		return process_id;
-	}
-
-	if (!::SetTokenInformation(user_session_token_handle, TokenSessionId, &session_id, sizeof DWORD))
-	{
-		std::wostringstream os;
-		os << "SetTokenInformation failed (" << ::GetLastError() << "): " << GetLastErrorAsString(::GetLastError());
-		::OutputDebugString(os.str().c_str());
-		return process_id;
-	}
+	user_token = user_session_token_handle.value();
 
 	std::vector<wchar_t> app_name_buf(app_name.begin(), app_name.end());
 	app_name_buf.push_back(0);
-	if (!::CreateProcessAsUser(user_session_token_handle,
+	if (!::CreateProcessAsUser(
+		user_token,
 		app_name_buf.data(),
 		NULL,
 		&sa,  // <- Process Attributes
@@ -122,7 +141,7 @@ DWORD CageService::StartCageManager(const std::wstring &app_name, const std::opt
 		&pi))
 	{
 		std::wostringstream os;
-		os << "CreateProcess (" << app_name << ") failed (" << ::GetLastError() << "): " << GetLastErrorAsString(::GetLastError());
+		os << "CreateProcess (" << app_name << ") failed (" << ::GetLastError() << "): " << GetLastErrorAsString(::GetLastError()) << std::endl;
 		::OutputDebugString(os.str().c_str());
 		return process_id;
 	}
@@ -158,11 +177,11 @@ std::wstring CageService::GetLastErrorAsString(DWORD error_id)
 {
 	// Get the error message, if any.
 	LPWSTR message_buffer = nullptr;
-	size_t size = FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+	size_t size = FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
 		NULL,
 		error_id,
 		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-		(LPSTR)&message_buffer,
+		message_buffer,
 		0,
 		NULL);
 
@@ -174,59 +193,40 @@ std::wstring CageService::GetLastErrorAsString(DWORD error_id)
 	return message;
 }
 
-void CageService::HandleMessage(const std::wstring &message, NetworkManager* mgr)
+void CageService::HandleMessage(const std::wstring &message, NetworkManager &network_manager)
 {
-	if (BeginsWith(message, ServiceMessageToString(ServiceMessage::START_CM)))
-	{
-		// Start Process
-		if (cage_manager_process_id == 0)
-		{
-			// Get session id from loged on user
-			DWORD session_id = ::WTSGetActiveConsoleSessionId();
-			cage_manager_process_id = StartCageManager(session_id);
-		}
-	}
-	else if (BeginsWith(message, ServiceMessageToString(ServiceMessage::STOP_CM)))
-	{
-		// Stop Process
-		StopCageManager();
-		cage_manager_process_id = 0;
-	}
-	else if (BeginsWith(message, ServiceMessageToString(ServiceMessage::START_PC)))
-	{
-		// Forward to cage manager
-		mgr->Send(message, ContextType::MANAGER);
-
-		// Wait for the cageManager to close before receiving the next message
-		// This causes that only one cageManager can run a process at a time
-		HANDLE cage_manager_handle = ::OpenProcess(SYNCHRONIZE, TRUE, cage_manager_process_id);
-		::WaitForSingleObject(cage_manager_handle, INFINITE);
-		cage_manager_process_id = 0;
-
-	}
-	else if (BeginsWith(message, ServiceMessageToString(ServiceMessage::STOP_PC)))
-	{
-		// Forward to cage manager
-		mgr->Send(message, ContextType::MANAGER);
-	}
-	else
+	std::wstring message_data;
+	auto parse_result = SharedFunctions::ParseMessage(message, message_data);
+	if (parse_result != CageMessage::START_PROCESS)
 	{
 		std::wostringstream os;
 		os << L"received unknown message: " << message << std::endl;
 		::OutputDebugString(os.str().c_str());
+		return;
 	}
-}
 
+	if (cage_manager_process_id != 0)
+	{
+		std::wostringstream os;
+		os << L"Another cage instance is already running" << std::endl;
+		::OutputDebugString(os.str().c_str());
+		return;
+	}
 
-bool CageService::BeginsWith(const std::wstring &string_to_search, const std::wstring &prefix)
-{
-	if (prefix.length() > string_to_search.length())
-	{
-		return false;
-		// Throw Exception "Bad parameters: prefix longer than the actual string"
-	}
-	else
-	{
-		return string_to_search.compare(0, prefix.length(), prefix) == 0;
-	}
+	// get session id from logged on user
+	HANDLE created_token;
+	DWORD session_id = ::WTSGetActiveConsoleSessionId();
+	cage_manager_process_id = StartCageManager(session_id, created_token);
+
+	// Forward to cage manager
+	network_manager.Send(message, ContextType::MANAGER);
+
+	// wait for the cageManager to close before receiving the next message
+	// this ensures only one instance of the cage desktop / manager can run simultaneously
+	HANDLE cage_manager_handle = ::OpenProcess(SYNCHRONIZE, TRUE, cage_manager_process_id);
+	::WaitForSingleObject(cage_manager_handle, INFINITE);
+
+	cage_manager_process_id = 0;
+
+	::CloseHandle(created_token);
 }

@@ -181,7 +181,7 @@ DWORD WINAPI ServiceWorkerThread(LPVOID)
 		std::wstring msg = network_manager.Listen(3);
 		if (!msg.empty())
 		{
-			cage_service.HandleMessage(msg, &network_manager);
+			cage_service.HandleMessage(msg, network_manager);
 		}
 	}
 

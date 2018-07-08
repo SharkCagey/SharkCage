@@ -28,6 +28,7 @@
 !*.h
 !*.cpp
 !*.hpp
+!*.ipp
 !*.rc
 !*.cs
 !*.resx

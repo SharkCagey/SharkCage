@@ -22,8 +22,9 @@
     <VCProjectVersion>15.0</VCProjectVersion>
     <ProjectGuid>{C48789D4-6553-4C7C-9C88-F515D10C60FE}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>CageNetwork</RootNamespace>
+    <RootNamespace>SharedFunctionality</RootNamespace>
     <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
+    <ProjectName>SharedFunctionality</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -90,9 +91,10 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_SILENCE_CXX17_ALLOCATOR_VOID_DEPRECATION_WARNING;_SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING;WIN32;_DEBUG;CAGENETWORK_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions);COMPILE_DLL</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_SILENCE_CXX17_ALLOCATOR_VOID_DEPRECATION_WARNING;_SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING;WIN32;_DEBUG;SHAREDFUNCTIONALITY_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions);COMPILE_DLL</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalOptions>/std:c++latest %(AdditionalOptions)</AdditionalOptions>
+      <TreatWarningAsError>true</TreatWarningAsError>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -114,7 +116,7 @@ xcopy /y "$(OutDir)$(TargetName).pdb" "$(SolutionDir)post_build_output\"</Comman
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;CAGENETWORK_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions);COMPILE_DLL</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;SHAREDFUNCTIONALITY_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions);COMPILE_DLL</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
     </ClCompile>
     <Link>
@@ -141,7 +143,7 @@ xcopy /y "$(OutDir)$(TargetName).pdb" "$(SolutionDir)post_build_output\"</Comman
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_SILENCE_CXX17_ALLOCATOR_VOID_DEPRECATION_WARNING;_SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING;WIN32;NDEBUG;CAGENETWORK_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions);COMPILE_DLL</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_SILENCE_CXX17_ALLOCATOR_VOID_DEPRECATION_WARNING;_SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING;WIN32;NDEBUG;SHAREDFUNCTIONALITY_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions);COMPILE_DLL</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalOptions>/std:c++latest %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
@@ -167,7 +169,7 @@ xcopy /y "$(OutDir)$(TargetName).dll" "$(SolutionDir)CageChooser\bin\$(Configura
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NDEBUG;CAGENETWORK_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions);COMPILE_DLL</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;SHAREDFUNCTIONALITY_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions);COMPILE_DLL</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
     </ClCompile>
     <Link>
@@ -185,23 +187,29 @@ xcopy /y "$(OutDir)$(TargetName).dll" "$(SolutionDir)CageChooser\bin\$(Configura
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="MsgManager.h" />
-    <ClInclude Include="MsgService.h" />
+    <ClInclude Include="CageData.h" />
+    <ClInclude Include="Messages.h" />
     <ClInclude Include="NetworkManager.h" />
+    <ClInclude Include="SharedFunctions.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
+    <ClInclude Include="tokenLib\groupManipulation.h" />
+    <ClInclude Include="tokenLib\tokenManipulation.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp" />
-    <ClCompile Include="MsgManager.cpp" />
-    <ClCompile Include="MsgService.cpp" />
     <ClCompile Include="NetworkManager.cpp" />
+    <ClCompile Include="SharedFunctions.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="tokenLib\tokenLib.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="cpp.hint" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

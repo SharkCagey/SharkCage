@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../CageNetwork/NetworkManager.h"
+#include "../SharedFunctionality/NetworkManager.h"
 
 #include <Windows.h>
 #include <string>
@@ -11,8 +11,6 @@ class CageService
 public:
 	CageService() noexcept;
 
-	bool BeginsWith(const std::wstring &string, const std::wstring &prefix);
-
 	bool CageManagerRunning();
 	/*
 	* Starts the Cage Manager in a new process on the normal desktop in the given session.
@@ -20,7 +18,7 @@ public:
 	* @session_id The sessionId of the user.
 	* @return The process ID of the started process.
 	*/
-	DWORD StartCageManager(DWORD session_id);
+	DWORD StartCageManager(DWORD session_id, HANDLE &user_token);
 
 	/*
 	 * Starts the executable in a new process on the normal desktop in the given session.
@@ -29,7 +27,7 @@ public:
 	 * @session_id The sessionId of the user.
 	 * @return The process ID of the started process.
 	 */
-	DWORD StartCageManager(const std::wstring &app_name, DWORD session_id);
+	DWORD StartCageManager(DWORD session_id, const std::wstring &app_name, HANDLE &user_token);
 
 	/*
 	 * Starts the executable in a new process on the respective desktop in the given session.
@@ -39,7 +37,7 @@ public:
 	 * @session_id The sessionId of the user.
 	 * @return The process ID of the started process.
 	 */
-	DWORD StartCageManager(const std::wstring &app_name, const std::optional<std::wstring> &desktop_name, DWORD session_id);
+	DWORD StartCageManager(DWORD session_id, const std::wstring &app_name, const std::optional<std::wstring> &desktop_name, HANDLE &user_token);
 
 	void StopCageManager();
 
@@ -48,27 +46,13 @@ public:
 	 * The message must be in the form of:
 	 * "MSG_TO_SERVICE.constant absolute/path/to/executable"
 	 */
-	void HandleMessage(const std::wstring &message, NetworkManager *mgr);
-
-	/*
-	* Reads the specifies configuration file and set the value of the image index accordingly.
-	* config.txt must be in the directory of the service executable.
-	*/
-	void ReadConfigFile();
-
-	int GetImageIndex();
+	void HandleMessage(const std::wstring &message, NetworkManager &mgr);
 
 private:
 	// Process ID of the Cage Manager (Used for closing the Cage Manager)
 	DWORD cage_manager_process_id;
 
-	// Process ID of the Icon-Select-Dialog (used for waiting until dialog closed)
-	DWORD dialog_process_id;
-
 	std::wstring GetLastErrorAsString(DWORD error_id);
 
-	/*
-	 * Accepts strings that are more than 8 characters long and returns the number at the end as int.
-	 */
-	int GetPictureIndexFromLine(const std::wstring &line);
+	std::optional<HANDLE> CageService::CreateImpersonatingUserToken();
 };
