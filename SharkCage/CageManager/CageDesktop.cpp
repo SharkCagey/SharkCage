@@ -12,7 +12,6 @@ CageDesktop::CageDesktop(
 {
 	old_desktop = ::GetThreadDesktop(GetCurrentThreadId());
 
-
 	ACCESS_MASK desk_access_mask = DESKTOP_CREATEMENU
 		| DESKTOP_CREATEWINDOW
 		| DESKTOP_ENUMERATE
