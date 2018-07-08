@@ -134,7 +134,7 @@ std::optional<PACL> SecuritySetup::CreateACL(std::unique_ptr<PSID, decltype(loca
 
 	// EXPLICIT_ACCESS with second ACE for admin group (this denies the adming group everything (GENERIC_ALL + DENY_ACCESS))
 	explicit_access_admin.grfAccessPermissions = GENERIC_ALL;
-	explicit_access_admin.grfAccessMode = DENY_ACCESS;
+	explicit_access_admin.grfAccessMode = SET_ACCESS; // FIXME set to DENY_ACCESS -> currently process creation on new desktop is not possible anymore after doing this
 	explicit_access_admin.grfInheritance = NO_INHERITANCE;
 	explicit_access_admin.Trustee.TrusteeForm = TRUSTEE_IS_SID;
 	explicit_access_admin.Trustee.TrusteeType = TRUSTEE_IS_GROUP;

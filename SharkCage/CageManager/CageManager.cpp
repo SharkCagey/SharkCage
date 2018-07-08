@@ -50,11 +50,10 @@ int main()
 	}
 
 	const int work_area_width = 300;
-
 	std::thread desktop_thread(
 		&CageManager::StartCage,
 		cage_manager,
-		security_attributes,
+		security_attributes.value(),
 		cage_data
 	);
 
@@ -129,9 +128,9 @@ void CageManager::StartCage(SECURITY_ATTRIBUTES security_attributes, const CageD
 	std::vector<wchar_t> path_buf(cage_data.app_path.begin(), cage_data.app_path.end());
 	path_buf.push_back(0);
 
-	if (!::CreateProcess(path_buf.data(), nullptr, &security_attributes, nullptr, FALSE, 0, nullptr, nullptr, &info, &process_info))
+	if (::CreateProcess(path_buf.data(), nullptr, &security_attributes, nullptr, FALSE, 0, nullptr, nullptr, &info, &process_info) == 0)
 	{
-		std::cout << "Failed to start process. Err " << ::GetLastError() << std::endl;
+		std::cout << "Failed to start process. Error: " << ::GetLastError() << std::endl;
 	}
 
 	PROCESS_INFORMATION process_info_additional_app = { 0 };
@@ -140,7 +139,7 @@ void CageManager::StartCage(SECURITY_ATTRIBUTES security_attributes, const CageD
 		std::vector<wchar_t> additional_app_path_buf(cage_data.additional_app_path->begin(), cage_data.additional_app_path->end());
 		additional_app_path_buf.push_back(0);
 
-		if (!::CreateProcess(additional_app_path_buf.data(), nullptr, &security_attributes, nullptr, FALSE, 0, nullptr, nullptr, &info, &process_info_additional_app))
+		if (::CreateProcess(additional_app_path_buf.data(), nullptr, &security_attributes, nullptr, FALSE, 0, nullptr, nullptr, &info, &process_info_additional_app) == 0)
 		{
 			std::cout << "Failed to start additional process. Error: " << GetLastError() << std::endl;
 		}
