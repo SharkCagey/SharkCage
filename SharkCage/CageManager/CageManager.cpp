@@ -1,323 +1,311 @@
 #include "stdafx.h"
 
-#include "../CageNetwork/NetworkManager.h"
+#include "../SharedFunctionality/NetworkManager.h"
+#include "../SharedFunctionality/SharedFunctions.h"
+#include "../SharedFunctionality/CageData.h"
 
-#define byte WIN_BYTE_OVERRIDE
+#include "Aclapi.h"
+
+#include <unordered_set>
+#include <thread>
+
+#include "CageManager.h"
+#include "CageLabeler.h"
+#include "SecuritySetup.h"
 #include "CageDesktop.h"
 
-#include "stdio.h"
-#include "Aclapi.h"
-#include <tchar.h>
-#include "sddl.h"
-#include <string>
-#include <LM.h>
-#include <memory>
-#include <vector>
-#include <thread>
-#include <optional>
-#include <fstream>
-#include <cwctype>
-#include <regex>
+#pragma comment(lib, "Rpcrt4.lib")
 
-#include "../CageNetwork/MsgManager.h"
-
-#include "json.hpp"
-
-#pragma comment(lib, "netapi32.lib")
-
-const char APPLICATION_PATH_PROPERTY[] = "application_path";
-
-template<typename T>
-auto local_free_deleter = [&](T resource) { ::LocalFree(resource); };
-
-std::unique_ptr<PSID, decltype(local_free_deleter<PSID>)> CreateSID();
-bool CreateACL(std::unique_ptr<PSID, decltype(local_free_deleter<PSID>)> group_sid);
-std::optional<std::wstring> ParseStartProcessMessage(const std::wstring &file_path);
-std::optional<std::wstring> WaitForMessage(const std::wstring &message);
-bool BeginsWith(const std::wstring &string, const std::wstring &prefix);
-
-NetworkManager network_manager(ExecutableType::MANAGER);
+NetworkManager network_manager(ContextType::MANAGER);
 
 int main()
 {
-	auto group_sid = CreateSID();
-	return CreateACL(std::move(group_sid)) ? 0 : 1;
-}
+	CageManager cage_manager;
 
-std::unique_ptr<PSID, decltype(local_free_deleter<PSID>)> CreateSID()
-{
-	std::wstring group_name = L"shark_cage_group";
-	LOCALGROUP_INFO_0 localgroup_info;
-	DWORD buffer_size = 0;
+	SecuritySetup security_setup;
+	auto security_attributes = security_setup.GetSecurityAttributes();
 
-	// create a group
-	std::vector<wchar_t> group_name_buf(group_name.begin(), group_name.end());
-	group_name_buf.push_back(0);
-	localgroup_info.lgrpi0_name = group_name_buf.data();
-	::NetLocalGroupAdd(NULL, 0, reinterpret_cast<LPBYTE>(&localgroup_info), NULL);
-
-	// obtain sid
-	const DWORD INITIAL_SIZE = 32;
-	DWORD cb_sid = 0;
-	DWORD domain_buffer_size = INITIAL_SIZE;
-	std::vector<wchar_t> domain_name(INITIAL_SIZE);
-	DWORD cch_domain_name = 0;
-	SID_NAME_USE sid_type;
-	DWORD sid_buffer_size = INITIAL_SIZE;
-
-	// First call of the function in order to get the size needed for the SID
-	::LookupAccountName(
-		NULL,            // Computer name. NULL for the local computer  
-		group_name_buf.data(),
-		NULL,
-		&cb_sid,
-		domain_name.data(),
-		&cch_domain_name,
-		&sid_type
-	);
-
-	// Second call of the function in order to get the SID
-	std::unique_ptr<PSID, decltype(local_free_deleter<PSID>)> sid((PSID*)::LocalAlloc(LPTR, cb_sid), local_free_deleter<PSID>);
-
-	::LookupAccountName(
-		NULL,
-		group_name_buf.data(),
-		sid.get(),
-		&cb_sid,
-		domain_name.data(),
-		&cch_domain_name,
-		&sid_type
-	);
-
-	return sid;
-}
-
-// FIXME: move this and other duplicate functions and their respective implementation in cage service to its own helper class or something like that
-bool BeginsWith(const std::wstring &string_to_search, const std::wstring &prefix)
-{
-	if (prefix.length() > string_to_search.length())
+	if (!security_attributes.has_value())
 	{
-		return false;
-		// Throw Exception "Bad parameters: prefix longer than the actual string"
-	}
-	else
-	{
-		if (string_to_search.compare(0, prefix.length(), prefix) == 0)
-		{
-			return true;
-		}
-		else
-		{
-			return false;
-		}
-	}
-}
-
-// Function to decode the message and do a respective action
-// "START_PC" "path/to.exe"
-std::optional<std::wstring> WaitForMessage(const std::wstring &message)
-{
-	if (BeginsWith(message, ManagerMessageToString(ManagerMessage::START_PROCESS)))
-	{
-		// read config
-		auto message_cmd_length = ManagerMessageToString(ManagerMessage::START_PROCESS).length();
-		auto stripped_message = message.substr(message_cmd_length);
-		
-		// FIXME maybe make a function for this?
-		// trim whitespace at beginning
-		stripped_message.erase(stripped_message.begin(), std::find_if(stripped_message.begin(), stripped_message.end(), [](wchar_t c)
-		{
-			return !std::iswspace(c);
-		}));
-
-		// trim whitespace at end
-		stripped_message.erase(std::find_if(stripped_message.rbegin(), stripped_message.rend(), [](wchar_t c)
-		{
-			return !std::iswspace(c);
-		}).base(), stripped_message.end());
-
-		return ParseStartProcessMessage(stripped_message);
-	}
-	else if (BeginsWith(message, ManagerMessageToString(ManagerMessage::STOP_PROCESS)))
-	{
-		// Stop process
-	}
-	else
-	{
-		std::wcout << "Received unrecognized message: " << message << std::endl;
-	}
-	return std::nullopt;
-}
-
-std::optional<std::wstring> ParseStartProcessMessage(const std::wstring &file_path)
-{
-	std::ifstream config_stream;
-	config_stream.open(file_path);
-	
-	if (config_stream.is_open())
-	{	
-		try
-		{
-			nlohmann::json json_config;
-			config_stream >> json_config;
-
-			auto path = json_config[APPLICATION_PATH_PROPERTY].get<std::string>();
-
-			// no suitable alternative in c++ standard yet, so it is safe to use for now
-			// warning is suppressed by a define in project settings: _SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING
-			std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
-			return converter.from_bytes(path);
-		}
-		catch (std::exception e)
-		{
-			std::cout << "Could not parse json: " << e.what() << std::endl;
-			return std::nullopt;
-		}
+		std::cout << "Could not get security attributes" << std::endl;
+		return 1;
 	}
 
-	return std::nullopt;
-}
+	// listen for the message
+	std::wstring message = network_manager.Listen(10);
+	std::wstring message_data;
+	auto parse_result = SharedFunctions::ParseMessage(message, message_data);
 
-void StartCageDesktop(PSECURITY_DESCRIPTOR security_descriptor)
-{
-	CageDesktop cage_desktop = CageDesktop::CageDesktop(security_descriptor);
-	if (!cage_desktop.Init())
-	{
-		std::cout << "Failed to create/launch the cage desktop" << std::endl;
-	}
-}
-
-bool CreateACL(std::unique_ptr<PSID, decltype(local_free_deleter<PSID>)> group_sid)
-{
-	//Listen for the message
-	std::wstring message = network_manager.Listen();
-	auto message_result = WaitForMessage(message);
-	
-	if (!message_result.has_value())
+	if (parse_result != CageMessage::START_PROCESS)
 	{
 		std::cout << "Could not process incoming message" << std::endl;
-		return false;
+		return 1;
 	}
 
-	auto path = message_result.value();
-
-	// create SID for BUILTIN\Administrators group
-	PSID sid_admin = NULL;
-	SID_IDENTIFIER_AUTHORITY sid_authnt = SECURITY_NT_AUTHORITY;
-	if (!::AllocateAndInitializeSid(&sid_authnt, 2, SECURITY_BUILTIN_DOMAIN_RID, DOMAIN_ALIAS_RID_ADMINS, 0, 0, 0, 0, 0, 0, &sid_admin))
+	CageData cage_data = { message_data };
+	if (!SharedFunctions::ParseStartProcessMessage(cage_data))
 	{
-		std::cout << "Obtain Admin SID Error: " << ::GetLastError() << std::endl;
-		return false;
+		std::cout << "Could not process start process message" << std::endl;
+		return 1;
 	}
 
-	// create EXPLICIT_ACCESS structure for an ACE
-	EXPLICIT_ACCESS explicit_access_group = { 0 };
-	EXPLICIT_ACCESS explicit_access_admin = { 0 };
+	const int work_area_width = 300;
 
-	// EXPLICIT_ACCESS for created group (this allows the new group everything (GENERIC_ALL + SET_ACCESS))
-	explicit_access_group.grfAccessPermissions = GENERIC_ALL;
-	explicit_access_group.grfAccessMode = SET_ACCESS;
-	explicit_access_group.grfInheritance = NO_INHERITANCE;
-	explicit_access_group.Trustee.TrusteeForm = TRUSTEE_IS_SID;
-	explicit_access_group.Trustee.TrusteeType = TRUSTEE_IS_GROUP;
+	std::thread desktop_thread(
+		&CageManager::StartCage,
+		cage_manager,
+		security_attributes,
+		cage_data
+	);
 
-	wchar_t *group_sid_tmp;
-	::ConvertSidToStringSid(group_sid.get(), &group_sid_tmp);
-	std::unique_ptr<wchar_t, decltype(local_free_deleter<wchar_t*>)> group_sid_string(group_sid_tmp, local_free_deleter<wchar_t*>);
+	desktop_thread.join();
 
-	explicit_access_group.Trustee.ptstrName = group_sid_string.get();
+	return 0;
+}
 
-	// EXPLICIT_ACCESS with second ACE for admin group (this denies the adming group everything (GENERIC_ALL + DENY_ACCESS))
-	explicit_access_admin.grfAccessPermissions = GENERIC_ALL;
-	explicit_access_admin.grfAccessMode = DENY_ACCESS;
-	explicit_access_admin.grfInheritance = NO_INHERITANCE;
-	explicit_access_admin.Trustee.TrusteeForm = TRUSTEE_IS_SID;
-	explicit_access_admin.Trustee.TrusteeType = TRUSTEE_IS_GROUP;
-
-	wchar_t *admin_sid_tmp;
-	::ConvertSidToStringSid(group_sid.get(), &admin_sid_tmp);
-	std::unique_ptr<wchar_t, decltype(local_free_deleter<wchar_t*>)> admin_sid_string(admin_sid_tmp, local_free_deleter<wchar_t*>);
-
-	explicit_access_admin.Trustee.ptstrName = admin_sid_string.get();
-
-	// Create a new ACL that contains the new ACEs
-	DWORD result;
-	PACL acl = nullptr;
-	EXPLICIT_ACCESS ea[2] = { explicit_access_group, explicit_access_admin };
-	result = ::SetEntriesInAcl(2, ea, NULL, &acl);
-	if (result != ERROR_SUCCESS)
+void CageManager::StartCage(SECURITY_ATTRIBUTES security_attributes, const CageData &cage_data)
+{
+	// name should be unique every time -> create UUID
+	UUID uuid;
+	if (::UuidCreate(&uuid) != RPC_S_OK)
 	{
-		std::cout << "SetEntriesInAcl Error: " << ::GetLastError() << std::endl;
+		std::cout << "Failed to create UUID" << std::endl;
+		return;
 	}
 
-	// Initialize a security descriptor
-	PSECURITY_DESCRIPTOR security_descriptor = const_cast<PSECURITY_DESCRIPTOR>(::LocalAlloc(LPTR, SECURITY_DESCRIPTOR_MIN_LENGTH));
-	if (security_descriptor == nullptr)
+	RPC_WSTR uuid_str;
+	if (::UuidToString(&uuid, &uuid_str) != RPC_S_OK)
 	{
-		std::cout << "LocalAlloc Error: " << ::GetLastError() << std::endl;
-		return false;
+		std::cout << "Failed to convert UUID to rpc string" << std::endl;
+		return;
 	}
 
-	if (!::InitializeSecurityDescriptor(security_descriptor, SECURITY_DESCRIPTOR_REVISION))
+	std::wstring uuid_stl(reinterpret_cast<wchar_t*>(uuid_str));
+	if (uuid_stl.empty())
 	{
-		std::cout << "InitializeSecurityDescriptor Error: " << ::GetLastError() << std::endl;
+		::RpcStringFree(&uuid_str);
+		std::cout << "Failed to convert UUID rpc string to stl string" << std::endl;
+		return;
 	}
 
-	// Add the ACL to the security descriptor 
-	if (!::SetSecurityDescriptorDacl(security_descriptor,
-		TRUE,     // bDaclPresent flag   
-		acl,
-		FALSE))   // not a default DACL 
+	::RpcStringFree(&uuid_str);
+	
+	const std::wstring DESKTOP_NAME = std::wstring(L"shark_cage_desktop_").append(uuid_stl);
+	const int work_area_width = 300;
+	CageDesktop cage_desktop(
+		security_attributes,
+		work_area_width,
+		DESKTOP_NAME);
+
+	HDESK desktop_handle;
+	if (!cage_desktop.Init(desktop_handle))
 	{
-		std::cout << "SetSecurityDescriptorDacl Error: " << ::GetLastError() << std::endl;
+		std::cout << "Failed to create/launch the cage desktop" << std::endl;
+		return;
 	}
 
-	// Initialize a security attributes structure
-	SECURITY_ATTRIBUTES security_attributes = { 0 };
-	security_attributes.nLength = sizeof(SECURITY_ATTRIBUTES);
-	security_attributes.lpSecurityDescriptor = security_descriptor;
-	security_attributes.bInheritHandle = FALSE;
+	const std::wstring LABELER_WINDOW_CLASS_NAME = std::wstring(L"shark_cage_token_window").append(uuid_stl);
+	std::thread labeler_thread(
+		&CageManager::StartCageLabeler,
+		this,
+		desktop_handle,
+		cage_data,
+		work_area_width,
+		LABELER_WINDOW_CLASS_NAME
+	);
 
-	// =======================================
-	// ===   PETER´S ACCESS TOKEN THINGS   ===
-	// =======================================
+	//PETER´S ACCESS TOKEN THINGS
 
-
-	std::thread desktop_thread(StartCageDesktop, security_descriptor);
-
-	// We need in order to create the process 
-	STARTUPINFO info = { 0 };
+	// We need in order to create the process.
+	STARTUPINFO info = {};
 	info.dwFlags = STARTF_USESHOWWINDOW;
 	info.wShowWindow = SW_MAXIMIZE;
 
-	// The desktop's name where we are going to start the application. In this case, our new desktop 
-	std::wstring new_desktop_name = L"shark_cage_desktop";
-	std::vector<wchar_t> new_desktop_name_buf(new_desktop_name.begin(), new_desktop_name.end());
-	new_desktop_name_buf.push_back(0);
-	info.lpDesktop = new_desktop_name_buf.data();
+	// The desktop's name where we are going to start the application. In this case, our new desktop.
+	info.lpDesktop = const_cast<LPWSTR>(DESKTOP_NAME.c_str());
 
-	// Create the process 
+	// Create the process.
 	PROCESS_INFORMATION process_info = {};
-	std::vector<wchar_t> path_buf(path.begin(), path.end());
+	std::vector<wchar_t> path_buf(cage_data.app_path.begin(), cage_data.app_path.end());
 	path_buf.push_back(0);
-	if (::CreateProcess(path_buf.data(), NULL, &security_attributes, NULL, false, 0, NULL, NULL, &info, &process_info))
+
+	if (!::CreateProcess(path_buf.data(), nullptr, &security_attributes, nullptr, FALSE, 0, nullptr, nullptr, &info, &process_info))
 	{
 		std::cout << "Failed to start process. Err " << ::GetLastError() << std::endl;
 	}
 
-	desktop_thread.join();
-
-	//::SendMessage(nullptr /*main handle of new process*/, WM_CLOSE, NULL);
-	// with timeout, if nothing happens, terminate process
-	if (!::TerminateProcess(process_info.hProcess, 0))
+	PROCESS_INFORMATION process_info_additional_app = { 0 };
+	if (cage_data.hasAdditionalAppInfo())
 	{
-		std::cout << "Failed to terminate process Err " << ::GetLastError() << std::endl;
+		std::vector<wchar_t> additional_app_path_buf(cage_data.additional_app_path->begin(), cage_data.additional_app_path->end());
+		additional_app_path_buf.push_back(0);
+
+		if (!::CreateProcess(additional_app_path_buf.data(), nullptr, &security_attributes, nullptr, FALSE, 0, nullptr, nullptr, &info, &process_info_additional_app))
+		{
+			std::cout << "Failed to start additional process. Error: " << GetLastError() << std::endl;
+		}
 	}
 
-	// wait for the process to exit
-	::WaitForSingleObject(process_info.hProcess, INFINITE);
+	bool keep_cage_running = true;
+	std::vector<HANDLE> handles = { labeler_thread.native_handle(), process_info.hProcess };
+	if (cage_data.hasAdditionalAppInfo())
+	{
+		handles.push_back(process_info_additional_app.hProcess);
+	}
+
+	// wait for all open window handles on desktop + cage_labeler
+	while (keep_cage_running)
+	{
+		DWORD res = ::WaitForMultipleObjects(handles.size(), handles.data(), FALSE, 500);
+
+		if (res != WAIT_TIMEOUT)
+		{
+			// this is always the labeler_thread
+			if (res == WAIT_OBJECT_0)
+			{
+				keep_cage_running = false;
+			}
+			else
+			{
+				std::cout << "other handle" << std::endl;
+				// check all other handles
+				for (size_t i = 1; i < handles.size(); ++i)
+				{
+					if (res == WAIT_OBJECT_0 + i)
+					{
+						std::cout << "removing" << std::endl;
+						// remove the handle we got an event for
+						auto iter = handles.begin();
+						std::advance(iter, i);
+						handles.erase(iter);
+					}
+				}
+			}
+		}
+
+		if (!keep_cage_running || (handles.size() < 2 && !cage_data.restrict_closing))
+		{
+			// labeler still running, tell it to shut down
+			if (keep_cage_running)
+			{
+				auto labeler_hwnd = ::FindWindow(LABELER_WINDOW_CLASS_NAME.c_str(), nullptr);
+				if (labeler_hwnd)
+				{
+					::SendMessage(labeler_hwnd, WM_CLOSE, NULL, NULL);
+				}
+				else
+				{
+					::PostThreadMessage(::GetThreadId(labeler_thread.native_handle()), WM_QUIT, NULL, NULL);
+				}
+			}
+			labeler_thread.join();
+			break;
+		}
+	}
+
+	// we can't rely on the process handles to keep track of open processes on
+	// the secure desktop as programs (e.g. Internet Explorer) spawn multiple processes and 
+	// maybe even close the initial process we spawned ourselves
+	// Solution: enumerate all top level windows on the desktop not belonging to our
+	// process and message these handles
+	std::pair<DWORD, std::unordered_set<HWND>*> callback_window_data;
+	std::unordered_set<HWND> window_handles_to_signal;
+	callback_window_data.first = ::GetCurrentProcessId();
+	callback_window_data.second = &window_handles_to_signal;
+
+	::EnumDesktopWindows(
+		desktop_handle,
+		&CageManager::GetOpenWindowHandles,
+		reinterpret_cast<LPARAM>(&callback_window_data)
+	);
+
+	for (HWND hwnd_handle : window_handles_to_signal)
+	{
+		::SetLastError(0);
+		::PostMessage(hwnd_handle, WM_CLOSE, NULL, NULL);
+	}
+
+	// and get all open process handles we have to wait for
+	std::pair<DWORD, std::unordered_set<HANDLE>*> callback_process_data;
+	std::unordered_set<HANDLE> process_handles_for_closing;
+	callback_process_data.first = ::GetCurrentProcessId();
+	callback_process_data.second = &process_handles_for_closing;
+
+	::EnumDesktopWindows(
+		desktop_handle,
+		&CageManager::GetOpenProcesses,
+		reinterpret_cast<LPARAM>(&callback_process_data)
+	);
+
+	// give users up to 5s to react to close prompt of process, maybe increase this?
+	if (::WaitForMultipleObjects(
+		process_handles_for_closing.size(),
+		std::vector(process_handles_for_closing.begin(), process_handles_for_closing.end()).data(),
+		TRUE,
+		5000) != WAIT_OBJECT_0)
+	{
+		for (HANDLE process_handle : process_handles_for_closing)
+		{
+			::SetLastError(0);
+			::TerminateProcess(process_handle, 0);
+		}
+	}
+
+	// close our handles
 	::CloseHandle(process_info.hProcess);
 	::CloseHandle(process_info.hThread);
-	
-	return true;
+
+	if (cage_data.hasAdditionalAppInfo())
+	{
+		::CloseHandle(process_info_additional_app.hProcess);
+		::CloseHandle(process_info_additional_app.hThread);
+	}
+}
+
+void CageManager::StartCageLabeler(
+	HDESK desktop_handle,
+	const CageData &cage_data,
+	const int work_area_width,
+	const std::wstring &labeler_window_class_name)
+{
+	::SetThreadDesktop(desktop_handle);
+	CageLabeler cage_labeler = CageLabeler(cage_data, work_area_width, labeler_window_class_name);
+	cage_labeler.Init();
+}
+
+BOOL CALLBACK CageManager::GetOpenProcesses(_In_ HWND hwnd, _In_ LPARAM l_param)
+{
+	auto data = reinterpret_cast<std::pair<DWORD, std::unordered_set<HANDLE> *> *>(l_param);
+	auto current_process_id = data->first;
+	auto handles = data->second;
+
+	DWORD process_id;
+	::GetWindowThreadProcessId(hwnd, &process_id);
+
+	if (process_id != current_process_id && ::IsWindowVisible(hwnd))
+	{
+		::SetLastError(0);
+		auto handle = ::OpenProcess(PROCESS_ALL_ACCESS, FALSE, process_id);
+		handles->insert(handle);
+	}
+
+	return TRUE;
+}
+
+BOOL CALLBACK CageManager::GetOpenWindowHandles(_In_ HWND hwnd, _In_ LPARAM l_param)
+{
+	auto data = reinterpret_cast<std::pair<DWORD, std::unordered_set<HWND> *> *>(l_param);
+	auto current_process_id = data->first;
+	auto hwnds = data->second;
+
+	::SetLastError(0);
+	DWORD process_id;
+	::GetWindowThreadProcessId(hwnd, &process_id);
+
+	if (process_id != current_process_id && ::IsWindowVisible(hwnd))
+	{
+		hwnds->insert(hwnd);
+	}
+
+	return TRUE;
 }

@@ -5,13 +5,6 @@
 !*/
 *.vs
 
-# nuget
-# The packages folder can be ignored because of Package Restore
-**/[Pp]ackages/*
-
-# except build/, which is used as an MSBuild target.
-!**/[Pp]ackages/build/
-
 # general
 !*.gitignore
 !*.yml
@@ -26,6 +19,7 @@
 !*.vcxproj
 !*.vcxproj.filters
 !*.csproj
+!*.vdproj
 !*.config
 !*.settings
 !*.ps1
@@ -34,9 +28,17 @@
 !*.h
 !*.cpp
 !*.hpp
+!*.ipp
 !*.rc
 !*.cs
 !*.resx
+
+# nuget
+# The packages folder can be ignored because of Package Restore
+**/[Pp]ackages/*
+
+# except build/, which is used as an MSBuild target.
+!**/[Pp]ackages/build/
 
 # special rules for built sources
 **/Debug/**/*.*

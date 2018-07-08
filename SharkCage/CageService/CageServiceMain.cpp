@@ -16,7 +16,6 @@
 #include <Windows.h>
 #include <vector>
 
-#include "StatusManager.h"
 #include "CageService.h"
 
 // Variables for the windows service
@@ -27,8 +26,7 @@ HANDLE                g_service_stop_event = INVALID_HANDLE_VALUE;
 HANDLE worker_thread;
 
 // Own variables for the cage service
-StatusManager status_manager; //holds the current status of Shark Cage Service
-NetworkManager network_manager(ExecutableType::SERVICE);
+NetworkManager network_manager(ContextType::SERVICE);
 CageService cage_service;
 
 
@@ -167,7 +165,6 @@ VOID WINAPI ServiceCtrlHandler(DWORD ctrl_code)
 			}
 
 			// This will signal the worker thread to start shutting down
-			::TerminateThread(worker_thread, -1); // FIXME: Have to kill it because listen() is blocking
 			::SetEvent(g_service_stop_event);
 		}
 		break;
@@ -178,13 +175,14 @@ VOID WINAPI ServiceCtrlHandler(DWORD ctrl_code)
 
 DWORD WINAPI ServiceWorkerThread(LPVOID)
 {
-	// periodically check if the service has been requested to stop
-	// But does not work properly because netwirkMgr.listen() is a blocking call.
 	while (::WaitForSingleObject(g_service_stop_event, 0) != WAIT_OBJECT_0)
 	{
 		// Look for messages and parse them
-		std::wstring msg = network_manager.Listen();
-		cage_service.HandleMessage(msg, &network_manager);
+		std::wstring msg = network_manager.Listen(3);
+		if (!msg.empty())
+		{
+			cage_service.HandleMessage(msg, network_manager);
+		}
 	}
 
 	return ERROR_SUCCESS;
