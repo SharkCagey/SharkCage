@@ -122,7 +122,7 @@ std::optional<PACL> SecuritySetup::CreateACL(std::unique_ptr<PSID, decltype(loca
 	EXPLICIT_ACCESS explicit_access_group = { 0 };
 	EXPLICIT_ACCESS explicit_access_admin = { 0 };
 
-	// EXPLICIT_ACCESS for created groupc 
+	// EXPLICIT_ACCESS for created group (this allows the new group everything (GENERIC_ALL + SET_ACCESS))
 	explicit_access_group.grfAccessPermissions = GENERIC_ALL;
 	explicit_access_group.grfAccessMode = SET_ACCESS;
 	explicit_access_group.grfInheritance = NO_INHERITANCE;
@@ -132,9 +132,9 @@ std::optional<PACL> SecuritySetup::CreateACL(std::unique_ptr<PSID, decltype(loca
 	PSID group_sid_raw = group_sid.get();
 	explicit_access_group.Trustee.ptstrName = static_cast<LPWSTR>(group_sid_raw);
 
-	// EXPLICIT_ACCESS with second ACE for admin group
-	explicit_access_admin.grfAccessPermissions = GENERIC_ALL;
-	explicit_access_admin.grfAccessMode = SET_ACCESS; //DENY_ACCES
+	// EXPLICIT_ACCESS with second ACE for admin group (this denies the adming group everything (GENERIC_ALL + DENY_ACCESS))
+	explicit_access_admin.grfAccessPermissions = PROCESS_ALL_ACCESS;
+	explicit_access_admin.grfAccessMode = SET_ACCESS;
 	explicit_access_admin.grfInheritance = NO_INHERITANCE;
 	explicit_access_admin.Trustee.TrusteeForm = TRUSTEE_IS_SID;
 	explicit_access_admin.Trustee.TrusteeType = TRUSTEE_IS_GROUP;
@@ -142,7 +142,7 @@ std::optional<PACL> SecuritySetup::CreateACL(std::unique_ptr<PSID, decltype(loca
 	explicit_access_admin.Trustee.ptstrName = static_cast<LPWSTR>(sid_admin);
 
 	// Create a new ACL that contains the new ACEs.
-	PACL acl = NULL;
+	PACL acl = nullptr;
 	EXPLICIT_ACCESS ea[2] = { explicit_access_group, explicit_access_admin };
 	auto result = ::SetEntriesInAcl(2, ea, NULL, &acl);
 	if (result != ERROR_SUCCESS)

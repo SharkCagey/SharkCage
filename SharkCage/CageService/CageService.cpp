@@ -25,7 +25,7 @@ std::optional<HANDLE> CageService::CreateImpersonatingUserToken()
 	HANDLE user_session_token_handle;
 
 	// Use new token with privileges for the trusting computing base
-	if (!::ImpersonateSelf(SecurityDelegation))
+	if (!::ImpersonateSelf(SecurityImpersonation))
 	{
 		std::wostringstream os;
 		os << "ImpersonateSelf failed (" << ::GetLastError() << "): " << GetLastErrorAsString(::GetLastError());
@@ -41,7 +41,7 @@ std::optional<HANDLE> CageService::CreateImpersonatingUserToken()
 		return std::nullopt;
 	}
 
-	if (!::DuplicateTokenEx(service_token_handle, 0, NULL, SecurityDelegation, TokenImpersonation, &user_session_token_handle))
+	if (!::DuplicateTokenEx(service_token_handle, 0, NULL, SecurityImpersonation, TokenPrimary, &user_session_token_handle))
 	{
 		std::wostringstream os;
 		os << "DuplicateTokenEx failed (" << ::GetLastError() << "): " << GetLastErrorAsString(::GetLastError());

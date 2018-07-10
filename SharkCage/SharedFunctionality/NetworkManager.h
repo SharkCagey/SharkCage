@@ -2,7 +2,6 @@
 
 #include "stdafx.h"
 
-// FIXME use nuget package instead
 #include ".\asio\include\asio.hpp"
 
 #include <iostream>

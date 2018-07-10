@@ -8,7 +8,7 @@ class CageDesktop
 {
 public:
 	CageDesktop(
-		PSECURITY_DESCRIPTOR p_sd, 
+		SECURITY_ATTRIBUTES security_attributes, 
 		const int work_area_width,
 		const std::wstring &desktop_name);
 	~CageDesktop();

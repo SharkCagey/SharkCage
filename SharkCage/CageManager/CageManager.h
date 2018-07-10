@@ -3,7 +3,7 @@
 class CageManager
 {
 public:
-	void CageManager::StartCage(PSECURITY_DESCRIPTOR security_descriptor, const CageData &cage_data);
+	void CageManager::StartCage(SECURITY_ATTRIBUTES security_attributes, const CageData &cage_data);
 
 private:
 	void StartCageLabeler(

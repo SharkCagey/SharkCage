@@ -50,11 +50,10 @@ int main()
 	}
 
 	const int work_area_width = 300;
-
 	std::thread desktop_thread(
 		&CageManager::StartCage,
 		cage_manager,
-		security_attributes->lpSecurityDescriptor,
+		security_attributes.value(),
 		cage_data
 	);
 
@@ -63,7 +62,7 @@ int main()
 	return 0;
 }
 
-void CageManager::StartCage(PSECURITY_DESCRIPTOR security_descriptor, const CageData &cage_data)
+void CageManager::StartCage(SECURITY_ATTRIBUTES security_attributes, const CageData &cage_data)
 {
 	// name should be unique every time -> create UUID
 	UUID uuid;
@@ -90,11 +89,10 @@ void CageManager::StartCage(PSECURITY_DESCRIPTOR security_descriptor, const Cage
 
 	::RpcStringFree(&uuid_str);
 	
-
 	const std::wstring DESKTOP_NAME = std::wstring(L"shark_cage_desktop_").append(uuid_stl);
 	const int work_area_width = 300;
 	CageDesktop cage_desktop(
-		security_descriptor,
+		security_attributes,
 		work_area_width,
 		DESKTOP_NAME);
 
@@ -115,7 +113,6 @@ void CageManager::StartCage(PSECURITY_DESCRIPTOR security_descriptor, const Cage
 		LABELER_WINDOW_CLASS_NAME
 	);
 
-
 	//PETER´S ACCESS TOKEN THINGS
 
 	// We need in order to create the process.
@@ -131,9 +128,9 @@ void CageManager::StartCage(PSECURITY_DESCRIPTOR security_descriptor, const Cage
 	std::vector<wchar_t> path_buf(cage_data.app_path.begin(), cage_data.app_path.end());
 	path_buf.push_back(0);
 
-	if (!::CreateProcess(NULL, path_buf.data(), NULL, NULL, TRUE, 0, NULL, NULL, &info, &process_info))
+	if (::CreateProcess(path_buf.data(), nullptr, &security_attributes, nullptr, FALSE, 0, nullptr, nullptr, &info, &process_info) == 0)
 	{
-		std::cout << "Failed to start process. Err " << ::GetLastError() << std::endl;
+		std::cout << "Failed to start process. Error: " << ::GetLastError() << std::endl;
 	}
 
 	PROCESS_INFORMATION process_info_additional_app = { 0 };
@@ -142,7 +139,7 @@ void CageManager::StartCage(PSECURITY_DESCRIPTOR security_descriptor, const Cage
 		std::vector<wchar_t> additional_app_path_buf(cage_data.additional_app_path->begin(), cage_data.additional_app_path->end());
 		additional_app_path_buf.push_back(0);
 
-		if (!::CreateProcess(NULL, additional_app_path_buf.data(), NULL, NULL, TRUE, 0, NULL, NULL, &info, &process_info_additional_app))
+		if (::CreateProcess(additional_app_path_buf.data(), nullptr, &security_attributes, nullptr, FALSE, 0, nullptr, nullptr, &info, &process_info_additional_app) == 0)
 		{
 			std::cout << "Failed to start additional process. Error: " << GetLastError() << std::endl;
 		}
@@ -204,7 +201,6 @@ void CageManager::StartCage(PSECURITY_DESCRIPTOR security_descriptor, const Cage
 			break;
 		}
 	}
-
 
 	// we can't rely on the process handles to keep track of open processes on
 	// the secure desktop as programs (e.g. Internet Explorer) spawn multiple processes and 
