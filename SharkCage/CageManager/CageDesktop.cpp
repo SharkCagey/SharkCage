@@ -16,14 +16,6 @@ CageDesktop::CageDesktop(
 		| DESKTOP_READOBJECTS
 		| DESKTOP_SWITCHDESKTOP
 		| DESKTOP_WRITEOBJECTS;
-		//| DESKTOP_CREATEMENU
-		//| DESKTOP_ENUMERATE
-		//| DESKTOP_HOOKCONTROL
-		//| DESKTOP_JOURNALPLAYBACK
-		//| DESKTOP_JOURNALRECORD
-		//| READ_CONTROL
-		//| WRITE_DAC
-		//| WRITE_OWNER;
 
 	new_desktop = ::CreateDesktop(desktop_name.c_str(), NULL, NULL, NULL, desk_access_mask, &security_attributes);
 }
@@ -40,7 +32,6 @@ CageDesktop::~CageDesktop()
 		std::cout << "Failed to switch back to old desktop. Error " << ::GetLastError() << std::endl;
 	}
 }
-
 
 bool CageDesktop::Init(HDESK &desktop_handle)
 {
