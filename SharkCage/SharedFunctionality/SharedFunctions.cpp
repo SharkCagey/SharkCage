@@ -78,7 +78,14 @@ namespace SharedFunctions
 				config_stream >> json_config;
 
 				auto path = json_config[APPLICATION_PATH_PROPERTY].get<std::string>();
-				auto application_name = json_config[APPLICATION_NAME_PROPERTY].get<std::string>();
+
+				auto application_name_json = json_config[APPLICATION_NAME_PROPERTY];
+				std::string application_name = "Name not available";
+				if (!application_name_json.is_null())
+				{
+					application_name = application_name_json.get<std::string>();
+				}
+
 				auto token = json_config[APPLICATION_TOKEN_PROPERTY].get<std::string>();
 				auto hash = json_config[APPLICATION_HASH_PROPERTY].get<std::string>();
 				auto additional_application = json_config[ADDITIONAL_APPLICATION_NAME_PROPERTY].get<std::string>();
@@ -104,6 +111,11 @@ namespace SharedFunctions
 				}
 
 				return true;
+			}
+			catch (nlohmann::json::exception& e)
+			{
+				std::cout << "Could not parse json: " << e.what() << std::endl;
+				return false;
 			}
 			catch (std::exception e)
 			{
