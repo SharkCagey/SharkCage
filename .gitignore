@@ -23,6 +23,7 @@
 !*.config
 !*.settings
 !*.ps1
+!*.manifest
 
 # c++ / c#
 !*.h
