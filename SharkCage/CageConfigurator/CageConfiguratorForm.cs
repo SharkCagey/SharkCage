@@ -408,7 +408,9 @@ namespace CageConfigurator
 
                     writer.WriteStartObject();
                     writer.WritePropertyName("application_name");
-                    writer.WriteValue(FileVersionInfo.GetVersionInfo(applicationPath.Text)?.FileDescription);
+                    var app_name = FileVersionInfo.GetVersionInfo(applicationPath.Text)?.FileDescription;
+                    app_name = app_name ?? Path.GetFileName(applicationPath.Text);
+                    writer.WriteValue(app_name);
                     writer.WritePropertyName(APPLICATION_PATH_PROPERTY);
                     writer.WriteValue(applicationPath.Text);
                     writer.WritePropertyName("has_signature");
