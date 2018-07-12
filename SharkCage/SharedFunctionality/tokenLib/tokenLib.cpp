@@ -67,7 +67,7 @@ public:
 
 namespace tokenLib {
 
-	bool createLocalGroup(LPWSTR groupName, PSID &sid) {
+	DLLEXPORT bool createLocalGroup(LPWSTR groupName, PSID &sid) {
 		LOCALGROUP_INFO_0 localGroupInfo;
 		localGroupInfo.lgrpi0_name = groupName;
 
@@ -83,19 +83,19 @@ namespace tokenLib {
 		return getGroupSid(groupName,sid);
 	}
 
-	bool destroySid(PSID &sid) {
+	DLLEXPORT bool destroySid(PSID &sid) {
 		delete[](BYTE*) sid;
 		sid = NULL;
 		return true;
 	}
 
-	bool deleteLocalGroup(LPWSTR groupName) {
+	DLLEXPORT bool deleteLocalGroup(LPWSTR groupName) {
 		if (NetLocalGroupDel(NULL, groupName) != NERR_Success)
 			return false;
 		return true;
 	}
 
-	bool constructUserTokenWithGroup(LPWSTR groupName, HANDLE &token) {
+	DLLEXPORT bool constructUserTokenWithGroup(LPWSTR groupName, HANDLE &token) {
 		PSID groupSid = 0;
 		if (!getGroupSid(groupName,groupSid)){
 			token = 0;
@@ -110,7 +110,7 @@ namespace tokenLib {
 		destroySid(groupSid);
 		return true;
 	}
-	bool constructUserTokenWithGroup(PSID sid, HANDLE &token) {
+	DLLEXPORT bool constructUserTokenWithGroup(PSID sid, HANDLE &token) {
 
 		HANDLE userToken = 0;
 

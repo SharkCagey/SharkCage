@@ -9,20 +9,20 @@ namespace tokenLib {
 	* @param sid reference to the new group sid, set to NULL if function fails (OUT)
 	* @return true if success
 	**/
-	bool createLocalGroup(LPWSTR groupName, PSID &sid);
+	DLLEXPORT bool createLocalGroup(LPWSTR groupName, PSID &sid);
 
 	/**
 	* Deletes a local group named groupName
 	* @param groupName name of the group to be deleted
 	* @return true if success
 	**/
-	bool deleteLocalGroup(LPWSTR groupName);
+	DLLEXPORT bool deleteLocalGroup(LPWSTR groupName);
 
 	/**
 	* Deallocates an SID returned by createLocalGroup() function and sets the pointer to NULL;
 	* @param sid pointer to sid alllocated by createLocalGroup()
 	* @return true if success
 	**/
-	bool destroySid(PSID &sid);
+	DLLEXPORT bool destroySid(PSID &sid);
 
 }

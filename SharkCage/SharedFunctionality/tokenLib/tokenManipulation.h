@@ -19,7 +19,7 @@ namespace tokenLib {
 	* @param token reference to handle to requested token (OUT)
 	* @return true if success
 	**/
-	bool constructUserTokenWithGroup(PSID sid, HANDLE &token);
+	DLLEXPORT bool constructUserTokenWithGroup(PSID sid, HANDLE &token);
 
 	/**
 	* Function gets a name of a group and creates a token with a group entry added in the token. The group must exist, otherwise the function will fail
@@ -33,7 +33,7 @@ namespace tokenLib {
 	* @param token reference to handle to requested token (OUT)
 	* @return true if success
 	**/
-	bool constructUserTokenWithGroup(LPWSTR groupName, HANDLE &token);
+	DLLEXPORT bool constructUserTokenWithGroup(LPWSTR groupName, HANDLE &token);
 
 	//alternative token sourcing: 
 	//another approach would be to use wtsQueryUserToken and determine session of current user
