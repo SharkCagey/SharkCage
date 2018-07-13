@@ -5,7 +5,10 @@
 #include <LM.h>
 #include <Wtsapi32.h>
 #include <Winternl.h>
+#include <Psapi.h>
 #include <iostream>
+#include <optional>
+#include <vector>
 
 #pragma comment(lib, "netapi32.lib")
 #pragma comment(lib, "Wtsapi32.lib")
@@ -13,6 +16,10 @@
 ULONG getCurrentSessionID();
 bool changeTokenCreationPrivilege(bool privilegeStatus);
 bool getGroupSid(LPWSTR groupName, PSID &sid);
+bool hasSeCreateTokenPrivilege(const HANDLE processHandle);
+std::optional<std::vector<DWORD>> getAllProcesses();
+std::optional<HANDLE> getProcessWithSeCreateTokenPrivilege(const std::vector<DWORD>& allProcesses);
+
 
 class TokenParsingException : public std::exception {
 public:
@@ -67,6 +74,7 @@ public:
 
 namespace tokenLib {
 
+
 	DLLEXPORT bool createLocalGroup(LPWSTR groupName, PSID &sid) {
 		LOCALGROUP_INFO_0 localGroupInfo;
 		localGroupInfo.lgrpi0_name = groupName;
@@ -89,11 +97,13 @@ namespace tokenLib {
 		return true;
 	}
 
+
 	DLLEXPORT bool deleteLocalGroup(LPWSTR groupName) {
 		if (NetLocalGroupDel(NULL, groupName) != NERR_Success)
 			return false;
 		return true;
 	}
+
 
 	DLLEXPORT bool constructUserTokenWithGroup(LPWSTR groupName, HANDLE &token) {
 		PSID groupSid = 0;
@@ -110,8 +120,8 @@ namespace tokenLib {
 		destroySid(groupSid);
 		return true;
 	}
-	DLLEXPORT bool constructUserTokenWithGroup(PSID sid, HANDLE &token) {
 
+	DLLEXPORT bool constructUserTokenWithGroup(PSID sid, HANDLE &token) {
 		HANDLE userToken = 0;
 
 		//get handle to token of current process
@@ -134,7 +144,7 @@ namespace tokenLib {
 			return false;
 		}
 		CloseHandle(userToken);
-		
+
 
 		//add desired group to the token
 		if (!tokenDeconstructed->addGroup(sid)) {
@@ -142,16 +152,122 @@ namespace tokenLib {
 			return false;
 		}
 
-		//generate new access token 
+		//generate new access token
 		if (!tokenDeconstructed->generateToken(token)) {
 			wprintf(L"  Cannot construct a token\n");
 			return false;
 		}
 		return true;
 	}
+
+	DLLEXPORT bool aquireTokenWithSeCreateTokenPrivilege(HANDLE &token) {
+		auto allProcessesOpt = getAllProcesses();
+		if (!allProcessesOpt.has_value()) {
+			std::wcout << L"Cannot enumerate processes" << std::endl;
+			token = 0;
+			return false;
+		}
+		auto allProcesses = allProcessesOpt.value();
+		auto processTokenOpt = getProcessWithSeCreateTokenPrivilege(allProcesses);
+		if (!processTokenOpt.has_value())
+		{
+			std::wcout << L"Cannot locate process with needed privilege" << std::endl;
+			token = 0;
+			return false;
+		}
+		HANDLE processHandle = processTokenOpt.value();
+		HANDLE processToken = 0;
+		if (!OpenProcessToken(processHandle, TOKEN_QUERY | TOKEN_DUPLICATE  | TOKEN_ASSIGN_PRIMARY, &processToken)) {
+			token = 0;
+			CloseHandle(processHandle);
+			std::wcout << L"Cannot aquire token handle" << std::endl;
+			return false;
+		}
+		if (!DuplicateTokenEx(processToken, MAXIMUM_ALLOWED, NULL, SecurityImpersonation, TokenPrimary, &token))
+		{
+			token = 0;
+			CloseHandle(processHandle);
+			CloseHandle(processToken);
+			std::wcout << L"Cannot duplicate token" << std::endl;
+			return false;
+		}
+		CloseHandle(processHandle);
+		CloseHandle(processToken);
+		return true;
+	}
+}
+//private code
+std::optional<std::vector<DWORD>> getAllProcesses() {
+
+	std::vector<DWORD> processes(1024); //arbitrary number, chosen as power of 2 for allignment
+	DWORD usedBufferSize = 0;
+	do
+	{
+		processes.reserve(2 * processes.capacity());
+		if (!EnumProcesses(&(processes[0]), processes.capacity(), &usedBufferSize))
+		{
+			std::wcout << L"Cannot enumerate processes on the system" << std::endl;
+			return std::nullopt;
+		}
+		processes.resize(usedBufferSize/sizeof(DWORD)); //restore vector integrity
+	} while (usedBufferSize / sizeof(DWORD) >= processes.capacity());
+	return processes;
 }
 
-//private code
+std::optional<HANDLE> getProcessWithSeCreateTokenPrivilege(const std::vector<DWORD>& allProcesses) {
+	for (auto const& processPid: allProcesses)
+	{
+		HANDLE processHandle;
+		if ((processHandle = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, processPid)) == NULL) continue;
+		if (hasSeCreateTokenPrivilege(processHandle))
+		{
+			return processHandle;
+		}
+	}
+	std::wcout << "Could not find process with SeCreateTokenPrivilege" << std::endl;
+	return std::nullopt;
+}
+
+bool hasSeCreateTokenPrivilege(const HANDLE processHandle) {
+	HANDLE tokenHandle = 0;
+	if (!OpenProcessToken(processHandle, TOKEN_ALL_ACCESS, &tokenHandle)) {
+		std::wcout <<L"Cannot open process token" << std::endl;
+		return false;
+	}
+	DWORD bufferSize = 0;
+	GetTokenInformation(tokenHandle, TokenPrivileges, NULL, 0, &bufferSize);
+	SetLastError(0);
+	PTOKEN_PRIVILEGES tokenPrivileges = (PTOKEN_PRIVILEGES) new BYTE[bufferSize];
+	GetTokenInformation(tokenHandle, TokenPrivileges, (LPVOID)tokenPrivileges, bufferSize, &bufferSize);
+	if (GetLastError() != 0)
+	{
+		CloseHandle(tokenHandle);
+		delete[](BYTE*) tokenPrivileges;
+		std::wcout << L"Cannot query selected token" << std::endl;
+		return false;
+	}
+
+	for (size_t i = 0; i < tokenPrivileges->PrivilegeCount; i++)
+	{
+		bufferSize = 0;
+		LookupPrivilegeName(NULL, &(tokenPrivileges->Privileges[i]).Luid, NULL, &bufferSize);
+		LPTSTR name = (LPTSTR) new BYTE[bufferSize * sizeof(TCHAR)];
+		LookupPrivilegeName(NULL, &(tokenPrivileges->Privileges[i]).Luid, name, &bufferSize);
+		if (wcscmp(name, SE_CREATE_TOKEN_NAME) == 0)
+		{
+			CloseHandle(tokenHandle);
+			delete[](BYTE*) tokenPrivileges;
+			delete[](BYTE*) name;
+			return true;
+		}
+		delete[](BYTE*) name;
+	}
+	std::wcout << L"Selected token does not posses SeCreateTokenPrivilege" << std::endl;
+	CloseHandle(tokenHandle);
+	delete[](BYTE*) tokenPrivileges;
+	return false;
+
+}
 ULONG getCurrentSessionID() {
 	DWORD count = 0;
 	PWTS_SESSION_INFO  info;
