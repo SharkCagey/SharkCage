@@ -23,7 +23,9 @@ int main()
 	CageManager cage_manager;
 
 	SecuritySetup security_setup;
-	auto security_attributes = security_setup.GetSecurityAttributes();
+	//TODO randomize the group name
+	std::wstring group_name = L"Shark_cage_test_group";
+	auto security_attributes = security_setup.GetSecurityAttributes(group_name);
 
 	if (!security_attributes.has_value())
 	{
