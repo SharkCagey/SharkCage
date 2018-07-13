@@ -3,7 +3,7 @@
 class CageManager
 {
 public:
-	void CageManager::StartCage(SECURITY_ATTRIBUTES security_attributes, const CageData &cage_data);
+	void CageManager::StartCage(SECURITY_ATTRIBUTES security_attributes, const CageData &cage_data, const std::wstring group_name);
 
 private:
 	void StartCageLabeler(
