@@ -3,6 +3,7 @@
 #include "../SharedFunctionality/NetworkManager.h"
 #include "../SharedFunctionality/SharedFunctions.h"
 #include "../SharedFunctionality/CageData.h"
+#include "../SharedFunctionality/tokenLib/groupManipulation.h"
 
 #include "Aclapi.h"
 #include "tlhelp32.h"
@@ -67,6 +68,7 @@ int main()
 
 	if (parse_result != CageMessage::START_PROCESS)
 	{
+		tokenLib::deleteLocalGroup(static_cast<LPWSTR const>(const_cast<wchar_t*>((group_name.c_str()))));
 		std::cout << "Could not process incoming message" << std::endl;
 		return 1;
 	}
@@ -74,6 +76,7 @@ int main()
 	CageData cage_data = { message_data };
 	if (!SharedFunctions::ParseStartProcessMessage(cage_data))
 	{
+		tokenLib::deleteLocalGroup(static_cast<LPWSTR>(const_cast<wchar_t*>((group_name.c_str()))));
 		std::cout << "Could not process start process message" << std::endl;
 		return 1;
 	}
@@ -109,7 +112,7 @@ int main()
 	);
 
 	desktop_thread.join();
-
+	tokenLib::deleteLocalGroup(static_cast<LPWSTR>(const_cast<wchar_t*>((group_name.c_str()))));
 	return 0;
 }
 
