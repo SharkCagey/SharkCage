@@ -51,6 +51,9 @@
     <ClInclude Include="tokenLib\tokenManipulation.h">
       <Filter>Header Files\TokenLib</Filter>
     </ClInclude>
+    <ClInclude Include="tokenLib\stdafx.h">
+      <Filter>Header Files\TokenLib</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">

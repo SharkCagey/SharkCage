@@ -195,6 +195,7 @@ xcopy /y "$(OutDir)$(TargetName).dll" "$(SolutionDir)CageChooser\bin\$(Configura
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="tokenLib\groupManipulation.h" />
+    <ClInclude Include="tokenLib\stdafx.h" />
     <ClInclude Include="tokenLib\tokenManipulation.h" />
   </ItemGroup>
   <ItemGroup>
