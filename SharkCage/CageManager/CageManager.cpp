@@ -144,6 +144,15 @@ void CageManager::StartCage(SECURITY_ATTRIBUTES security_attributes, const CageD
 
 	::RpcStringFree(&uuid_str);
 
+	HANDLE tokenHandle = 0;
+	//TODO: close this handle
+	if (!tokenLib::constructUserTokenWithGroup(static_cast<LPWSTR>(const_cast<wchar_t*>((group_name.c_str()))), tokenHandle)) {
+		std::cout << "Cannot create required token" << std::endl;
+		getchar();
+		return;
+
+	}
+
 	const std::wstring DESKTOP_NAME = std::wstring(L"shark_cage_desktop_").append(uuid_stl);
 	const int work_area_width = 300;
 	CageDesktop cage_desktop(
@@ -168,8 +177,6 @@ void CageManager::StartCage(SECURITY_ATTRIBUTES security_attributes, const CageD
 		LABELER_WINDOW_CLASS_NAME
 	);
 
-	//PETER´S ACCESS TOKEN THINGS
-
 	// We need in order to create the process.
 	STARTUPINFO info = {};
 	info.dwFlags = STARTF_USESHOWWINDOW;
@@ -181,17 +188,7 @@ void CageManager::StartCage(SECURITY_ATTRIBUTES security_attributes, const CageD
 	// Create the process.
 	PROCESS_INFORMATION process_info = {};
 
-	if (::CreateProcess(
-		cage_data.app_path.c_str(),
-		nullptr,
-		&security_attributes,
-		nullptr,
-		FALSE,
-		0,
-		nullptr,
-		nullptr,
-		&info,
-		&process_info) == 0)
+	if (::CreateProcessAsUser(tokenHandle, path_buf.data(), nullptr, &security_attributes, nullptr, false, 0, nullptr, nullptr, &info, &process_info) == 0)
 	{
 		std::cout << "Failed to start process. Error: " << ::GetLastError() << std::endl;
 	}
@@ -199,17 +196,9 @@ void CageManager::StartCage(SECURITY_ATTRIBUTES security_attributes, const CageD
 	PROCESS_INFORMATION process_info_additional_app = { 0 };
 	if (cage_data.hasAdditionalAppInfo())
 	{
-		if (::CreateProcess(
-			cage_data.additional_app_path.value().c_str(),
-			nullptr,
-			&security_attributes,
-			nullptr,
-			FALSE,
-			0,
-			nullptr,
-			nullptr,
-			&info,
-			&process_info_additional_app) == 0)
+		std::vector<wchar_t> additional_app_path_buf(cage_data.additional_app_path->begin(), cage_data.additional_app_path->end());
+		additional_app_path_buf.push_back(0);
+		if(::CreateProcessAsUser(tokenHandle, additional_app_path_buf.data(), nullptr, &security_attributes, nullptr, FALSE, 0, nullptr, nullptr, &info, &process_info_additional_app) == 0)
 		{
 			std::cout << "Failed to start additional process. Error: " << GetLastError() << std::endl;
 		}
