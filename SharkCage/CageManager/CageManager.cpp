@@ -22,6 +22,19 @@ NetworkManager network_manager(ContextType::MANAGER);
 
 int main()
 {
+	CageManager cage_manager;
+
+	SecuritySetup security_setup;
+	//TODO randomize the group name
+	std::wstring group_name = L"Shark_cage_test_group";
+	auto security_attributes = security_setup.GetSecurityAttributes(group_name);
+
+	if (!security_attributes.has_value())
+	{
+		std::cout << "Could not get security attributes" << std::endl;
+		return 1;
+	}
+
 	// listen for the message
 	std::wstring message = network_manager.Listen(10);
 	std::wstring message_data;
@@ -269,7 +282,7 @@ void CageManager::StartCage(SECURITY_ATTRIBUTES security_attributes, const CageD
 	}
 
 	// we can't rely on the process handles to keep track of open processes on
-	// the secure desktop as programs (e.g. Internet Explorer) spawn multiple processes and 
+	// the secure desktop as programs (e.g. Internet Explorer) spawn multiple processes and
 	// maybe even close the initial process we spawned ourselves
 	// Solution: enumerate all top level windows on the desktop not belonging to our
 	// process and message these handles
