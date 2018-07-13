@@ -108,7 +108,8 @@ int main()
 		&CageManager::StartCage,
 		cage_manager,
 		security_attributes.value(),
-		cage_data
+		cage_data,
+		group_name
 	);
 
 	desktop_thread.join();
@@ -116,7 +117,7 @@ int main()
 	return 0;
 }
 
-void CageManager::StartCage(SECURITY_ATTRIBUTES security_attributes, const CageData &cage_data)
+void CageManager::StartCage(SECURITY_ATTRIBUTES security_attributes, const CageData &cage_data, const std::wstring group_name)
 {
 	// name should be unique every time -> create UUID
 	UUID uuid;
