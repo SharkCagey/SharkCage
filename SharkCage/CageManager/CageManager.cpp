@@ -23,8 +23,32 @@ int main()
 	CageManager cage_manager;
 
 	SecuritySetup security_setup;
-	//TODO randomize the group name
-	std::wstring group_name = L"Shark_cage_test_group";
+	//randomize the group name
+	UUID uuid;
+	if (::UuidCreate(&uuid) != RPC_S_OK)
+	{
+		std::cout << "Failed to create UUID" << std::endl;
+		return 1;
+	}
+
+	RPC_WSTR uuid_str;
+	if (::UuidToString(&uuid, &uuid_str) != RPC_S_OK)
+	{
+		std::cout << "Failed to convert UUID to rpc string" << std::endl;
+		return 1;
+	}
+
+	std::wstring uuid_stl(reinterpret_cast<wchar_t*>(uuid_str));
+	if (uuid_stl.empty())
+	{
+		::RpcStringFree(&uuid_str);
+		std::cout << "Failed to convert UUID rpc string to stl string" << std::endl;
+		return 1;
+	}
+
+	::RpcStringFree(&uuid_str);
+
+	std::wstring group_name = std::wstring(L"shark_cage_group_").append(uuid_stl);
 	auto security_attributes = security_setup.GetSecurityAttributes(group_name);
 
 	if (!security_attributes.has_value())
