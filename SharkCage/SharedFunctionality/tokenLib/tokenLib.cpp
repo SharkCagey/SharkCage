@@ -17,8 +17,10 @@ ULONG getCurrentSessionID();
 bool changeTokenCreationPrivilege(bool privilegeStatus);
 bool getGroupSid(LPWSTR groupName, PSID &sid);
 bool hasSeCreateTokenPrivilege(const HANDLE processHandle);
+bool hasSeTcbPrivilege(const HANDLE processHandle);
 std::optional<std::vector<DWORD>> getAllProcesses();
-std::optional<HANDLE> getProcessWithSeCreateTokenPrivilege(const std::vector<DWORD>& allProcesses);
+std::optional<std::vector<DWORD>> getProcessesWithBothPrivileges(const std::vector<DWORD>& allProcesses);
+std::optional<HANDLE> getProcessUnderLocalSystem(std::vector<DWORD> processes);
 
 
 class TokenParsingException : public std::exception {
@@ -160,7 +162,7 @@ namespace tokenLib {
 		return true;
 	}
 
-	DLLEXPORT bool aquireTokenWithSeCreateTokenPrivilege(HANDLE &token) {
+	DLLEXPORT bool aquireTokenWithPrivilegesForTokenManipulation(HANDLE &token) {
 		auto allProcessesOpt = getAllProcesses();
 		if (!allProcessesOpt.has_value()) {
 			std::wcout << L"Cannot enumerate processes" << std::endl;
@@ -168,14 +170,24 @@ namespace tokenLib {
 			return false;
 		}
 		auto allProcesses = allProcessesOpt.value();
-		auto processTokenOpt = getProcessWithSeCreateTokenPrivilege(allProcesses);
-		if (!processTokenOpt.has_value())
+		auto privilegedProcessesOpt = getProcessesWithBothPrivileges(allProcesses);
+		if (!privilegedProcessesOpt.has_value())
 		{
 			std::wcout << L"Cannot locate process with needed privilege" << std::endl;
 			token = 0;
 			return false;
 		}
-		HANDLE processHandle = processTokenOpt.value();
+		auto privilegedProcesses = privilegedProcessesOpt.value();
+
+		auto processHandleOpt = getProcessUnderLocalSystem(privilegedProcesses);
+		if (!processHandleOpt.has_value()) {
+			std::wcout << L"Cannot locate process with needed privilege" << std::endl;
+			token = 0;
+			return false;
+		}
+
+		HANDLE processHandle = processHandleOpt.value();
+
 		HANDLE processToken = 0;
 		if (!OpenProcessToken(processHandle, TOKEN_QUERY | TOKEN_DUPLICATE  | TOKEN_ASSIGN_PRIMARY, &processToken)) {
 			token = 0;
@@ -214,24 +226,30 @@ std::optional<std::vector<DWORD>> getAllProcesses() {
 	return processes;
 }
 
-std::optional<HANDLE> getProcessWithSeCreateTokenPrivilege(const std::vector<DWORD>& allProcesses) {
+std::optional<std::vector<DWORD>> getProcessesWithBothPrivileges(const std::vector<DWORD>& allProcesses) {
+	std::vector<DWORD> processes;
 	for (auto const& processPid: allProcesses)
 	{
 		HANDLE processHandle;
 		if ((processHandle = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, processPid)) == NULL) continue;
-		if (hasSeCreateTokenPrivilege(processHandle))
+		if (hasSeCreateTokenPrivilege(processHandle) && hasSeTcbPrivilege(processHandle))
 		{
-			return processHandle;
+			processes.push_back(processPid);
 		}
+		CloseHandle(processHandle);
 	}
-	std::wcout << "Could not find process with SeCreateTokenPrivilege" << std::endl;
-	return std::nullopt;
+	if (processes.size() == 0) {
+		std::wcout << "Could not find process with SeCreateTokenPrivilege" << std::endl;
+		return std::nullopt;
+	}
+	return processes;
+
 }
 
-bool hasSeCreateTokenPrivilege(const HANDLE processHandle) {
+bool hasPrilivege(const HANDLE processHandle, LPCTSTR privilege) {
 	HANDLE tokenHandle = 0;
 	if (!OpenProcessToken(processHandle, TOKEN_ALL_ACCESS, &tokenHandle)) {
-		std::wcout <<L"Cannot open process token" << std::endl;
+		std::wcout << L"Cannot open process token" << std::endl;
 		return false;
 	}
 	DWORD bufferSize = 0;
@@ -253,7 +271,7 @@ bool hasSeCreateTokenPrivilege(const HANDLE processHandle) {
 		LookupPrivilegeName(NULL, &(tokenPrivileges->Privileges[i]).Luid, NULL, &bufferSize);
 		LPTSTR name = (LPTSTR) new BYTE[bufferSize * sizeof(TCHAR)];
 		LookupPrivilegeName(NULL, &(tokenPrivileges->Privileges[i]).Luid, name, &bufferSize);
-		if (wcscmp(name, SE_CREATE_TOKEN_NAME) == 0)
+		if (wcscmp(name, privilege) == 0)
 		{
 			CloseHandle(tokenHandle);
 			delete[](BYTE*) tokenPrivileges;
@@ -268,6 +286,67 @@ bool hasSeCreateTokenPrivilege(const HANDLE processHandle) {
 	return false;
 
 }
+
+bool hasSeCreateTokenPrivilege(const HANDLE processHandle) {
+	return hasPrilivege(processHandle, SE_CREATE_TOKEN_NAME);
+}
+
+bool hasSeTcbPrivilege(const HANDLE processHandle){
+	return hasPrilivege(processHandle, SE_TCB_NAME);
+}
+
+bool processIsLocalSystem(HANDLE processHandle) {
+	HANDLE processToken = 0;
+	if (!OpenProcessToken(processHandle, TOKEN_QUERY, &processToken))
+	{
+		std::wcout << L"Cannot determine if process is local system" << std::endl;
+		return false;
+	}
+
+	DWORD bufferSize = 0;
+	GetTokenInformation(processToken, TokenUser, NULL, 0, &bufferSize);
+	SetLastError(0);
+	PTOKEN_USER tokenUser = (PTOKEN_USER) new BYTE[bufferSize];
+	if (!GetTokenInformation(processToken, TokenUser, (LPVOID)tokenUser, bufferSize, &bufferSize)) {
+		delete[](BYTE*) tokenUser;
+		std::wcout << L"Cannot get token information" << std::endl;
+		return false;
+	}
+
+	DWORD sidSize = SECURITY_MAX_SID_SIZE;
+	PSID systemSID = (PSID) new BYTE[sidSize];
+	if (!CreateWellKnownSid(WinLocalSystemSid, NULL, systemSID, &sidSize)){
+		delete[](BYTE*) tokenUser;
+		delete[](BYTE*) systemSID;
+		std::wcout << L"Cannot create system SID" << std::endl;
+		return false;
+	}
+
+	if (!EqualSid(systemSID, tokenUser->User.Sid)) {
+		delete[](BYTE*) systemSID;
+		delete[](BYTE*) tokenUser;
+		return false;
+	}
+
+	delete[](BYTE*) systemSID;
+	delete[](BYTE*) tokenUser;
+	return true;
+}
+
+std::optional<HANDLE> getProcessUnderLocalSystem(std::vector<DWORD> processes){
+	for (auto const& processPid : processes)
+	{
+		HANDLE processHandle;
+		if ((processHandle = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, processPid)) == NULL) continue;
+		if (processIsLocalSystem(processHandle))
+		{
+			return processHandle;
+		}
+		CloseHandle(processHandle);
+	}
+	return std::nullopt;
+}
+
 ULONG getCurrentSessionID() {
 	DWORD count = 0;
 	PWTS_SESSION_INFO  info;

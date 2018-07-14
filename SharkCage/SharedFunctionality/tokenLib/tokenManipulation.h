@@ -42,9 +42,9 @@ namespace tokenLib {
 
 
 	/**
-	* Functions findes a process in a system with SeCreateTokenPrivilege present in its token, gets this token duplicates it and returns a handle
+	* Functions findes a process running under LocalSystem with SE_CREATE_TOKEN_NAME and SE_TCB_NAME present in its token, gets this token duplicates it and returns a handle
 	* @param token handle to new token having SeCreateTokenPrivilege
 	* @return true if success
 	**/
-	DLLEXPORT bool aquireTokenWithSeCreateTokenPrivilege(HANDLE &token);
+	DLLEXPORT bool aquireTokenWithPrivilegesForTokenManipulation(HANDLE &token);
 }

@@ -33,10 +33,12 @@ std::optional<HANDLE> CageService::CreateImpersonatingUserToken()
 		return std::nullopt;
 	}
 
-	if (!tokenLib::aquireTokenWithSeCreateTokenPrivilege(appropriateToken)) {
+	if (!tokenLib::aquireTokenWithPrivilegesForTokenManipulation(appropriateToken)) {
 		std::wostringstream os;
 		os << "The token aquisition unsuccessfull!";
 		::OutputDebugString(os.str().c_str());
+
+		return std::nullopt;
 	}
 
 	if (!::SetTokenInformation(appropriateToken, TokenSessionId, &session_id, sizeof DWORD))
