@@ -56,8 +56,6 @@ bool CageDesktop::Init(HDESK &desktop_handle)
 		return false;
 	}
 
-	// FIXME close ctfmon.exe (input handler, leaks on win7 according to keepass)
-
 	desktop_handle = new_desktop;
 
 	return true;

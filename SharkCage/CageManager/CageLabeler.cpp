@@ -21,9 +21,9 @@ static bool GetBottomFromMonitor(int &monitor_bottom);
 static bool ShowExitButton(HWND &hwnd);
 static bool ShowConfigMetadata(HWND &hwnd);
 
-static HWND hwnd_lb;
-static HWND hwnd_bg;
-static HWND hwnd_lb_bg;
+static HWND labeler_window;
+static HWND background_window;
+static HWND labeler_background_window;
 
 static HWND gotodesk_button;
 static HWND app_title;
@@ -84,7 +84,7 @@ LRESULT CALLBACK WndProc_background(HWND hwnd, UINT msg, WPARAM w_param, LPARAM 
 	{
 	case WM_PAINT:
 	{
-		if (hwnd != hwnd_bg)
+		if (hwnd != background_window)
 		{
 			break;
 		}
@@ -93,7 +93,7 @@ LRESULT CALLBACK WndProc_background(HWND hwnd, UINT msg, WPARAM w_param, LPARAM 
 		HDC hdc = ::BeginPaint(hwnd, &ps);
 	
 		wchar_t wallpaper_path[MAX_PATH];
-		auto got_wp = SystemParametersInfo(SPI_GETDESKWALLPAPER, MAX_PATH, wallpaper_path, 0);
+		auto got_wp = ::SystemParametersInfo(SPI_GETDESKWALLPAPER, MAX_PATH, wallpaper_path, 0);
 
 		if (got_wp)
 		{
@@ -111,13 +111,13 @@ LRESULT CALLBACK WndProc_background(HWND hwnd, UINT msg, WPARAM w_param, LPARAM 
 	case WM_WINDOWPOSCHANGING:
 	{
 		auto window_pos = (WINDOWPOS*)l_param;
-		if (hwnd != hwnd_lb_bg)
+		if (hwnd != labeler_background_window)
 		{
 			window_pos->flags |= SWP_NOZORDER;
 		}
 		else
 		{
-			window_pos->hwndInsertAfter = hwnd_lb;
+			window_pos->hwndInsertAfter = labeler_window;
 		}
 		return 0;
 	}
@@ -260,7 +260,7 @@ bool CageLabeler::ShowLabelerWindow()
 		return false;
 	}
 
-	hwnd_bg = ::CreateWindowEx(
+	background_window = ::CreateWindowEx(
 		WS_EX_LEFT | WS_EX_TOOLWINDOW,
 		bg_class.c_str(),
 		L"",
@@ -288,7 +288,7 @@ bool CageLabeler::ShowLabelerWindow()
 		nullptr,
 		nullptr);
 
-	hwnd_lb_bg = ::CreateWindowEx(
+	labeler_background_window = ::CreateWindowEx(
 		WS_EX_LEFT | WS_EX_LAYERED | WS_EX_TOOLWINDOW,
 		background_class.c_str(),
 		L"",
@@ -302,19 +302,19 @@ bool CageLabeler::ShowLabelerWindow()
 		nullptr,
 		nullptr);
 
-	if (hwnd_bg && hwnd_overlay && hwnd_lb_bg)
+	if (background_window && hwnd_overlay && labeler_background_window)
 	{
 		double transparency_over = 50;
 		::SetLayeredWindowAttributes(hwnd_overlay, 0, static_cast<BYTE>(((100 - transparency_over) / 100) * 255), LWA_ALPHA);
-		::SetLayeredWindowAttributes(hwnd_lb_bg, 0, static_cast<BYTE>(((100 - transparency_over) / 100) * 255), LWA_ALPHA);
+		::SetLayeredWindowAttributes(labeler_background_window, 0, static_cast<BYTE>(((100 - transparency_over) / 100) * 255), LWA_ALPHA);
 
-		::SetWindowPos(hwnd_bg, HWND_BOTTOM, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+		::SetWindowPos(background_window, HWND_BOTTOM, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
 		::SetWindowPos(hwnd_overlay, HWND_BOTTOM, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
-		::SetWindowPos(hwnd_lb_bg, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+		::SetWindowPos(labeler_background_window, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
 
-		::ShowWindow(hwnd_bg, SW_SHOW);
+		::ShowWindow(background_window, SW_SHOW);
 		::ShowWindow(hwnd_overlay, SW_SHOW);
-		::ShowWindow(hwnd_lb_bg, SW_SHOW);
+		::ShowWindow(labeler_background_window, SW_SHOW);
 	}
 	else
 	{
@@ -328,7 +328,7 @@ bool CageLabeler::ShowLabelerWindow()
 		return false;
 	}
 
-	hwnd_lb = ::CreateWindowEx(
+	labeler_window = ::CreateWindowEx(
 		WS_EX_LEFT | WS_EX_TOPMOST | WS_EX_LAYERED,
 		window_class_name.c_str(),
 		L"",
@@ -342,21 +342,21 @@ bool CageLabeler::ShowLabelerWindow()
 		nullptr,
 		nullptr);
 
-	if (hwnd_lb == nullptr)
+	if (labeler_window == nullptr)
 	{
 		std::wcout << L"Creating window failed\n" << std::endl;
 		return false;
 	}
 
-	::SetLayeredWindowAttributes(hwnd_lb, transparent_color, 255, LWA_COLORKEY);
+	::SetLayeredWindowAttributes(labeler_window, transparent_color, 255, LWA_COLORKEY);
 
 	// Remove the window title bar
-	if (!::SetWindowLong(hwnd_lb, GWL_STYLE, 0))
+	if (!::SetWindowLong(labeler_window, GWL_STYLE, 0))
 	{
 		std::wcout << L"Failed to remove the titlebar, error: " << ::GetLastError() << std::endl;
 	}
 
-	::ShowWindow(hwnd_lb, SW_SHOW);
+	::ShowWindow(labeler_window, SW_SHOW);
 
 	MSG msg = {};
 	while (::GetMessage(&msg, nullptr, 0, 0) > 0)
