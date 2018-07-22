@@ -31,6 +31,8 @@ CageDesktop::~CageDesktop()
 	{
 		std::cout << "Failed to switch back to old desktop. Error " << ::GetLastError() << std::endl;
 	}
+
+	::CloseDesktop(new_desktop);
 }
 
 bool CageDesktop::Init(HDESK &desktop_handle)
@@ -53,6 +55,8 @@ bool CageDesktop::Init(HDESK &desktop_handle)
 		std::cout << "Failed to set area too fullscreen" << std::endl;
 		return false;
 	}
+
+	// FIXME close ctfmon.exe (input handler, leaks on win7 according to keepass)
 
 	desktop_handle = new_desktop;
 
