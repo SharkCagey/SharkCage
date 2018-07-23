@@ -35,8 +35,7 @@ std::optional<HANDLE> CageService::CreateImpersonatingUserToken()
 		return std::nullopt;
 	}
 
-	if (!tokenLib::aquireTokenWithPrivilegesForTokenManipulation(appropriate_token))
-	{
+	if (!tokenLib::aquireTokenWithPrivilegesForTokenManipulation(appropriate_token)) {
 		std::wostringstream os;
 		os << "The token aquisition was unsuccessfull!";
 		::OutputDebugString(os.str().c_str());
