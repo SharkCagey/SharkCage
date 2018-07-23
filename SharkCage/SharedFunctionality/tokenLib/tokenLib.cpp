@@ -121,10 +121,6 @@ namespace tokenLib {
 	}
 
 	DLLEXPORT bool constructUserTokenWithGroup(PSID sid, HANDLE &token) {
-<<<<<<< HEAD
-=======
-		HANDLE userToken = nullptr;
->>>>>>> origin/develop
 
 		//get handle to token of current process
 		auto userTokenHandleOpt = getCurrentUserToken();
