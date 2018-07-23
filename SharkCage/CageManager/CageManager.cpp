@@ -18,6 +18,7 @@
 #pragma comment(lib, "Rpcrt4.lib")
 
 NetworkManager network_manager(ContextType::MANAGER);
+std::optional<std::wstring> generateUuid();;
 
 int main()
 {
@@ -25,29 +26,11 @@ int main()
 
 	SecuritySetup security_setup;
 	//randomize the group name
-	UUID uuid;
-	if (::UuidCreate(&uuid) != RPC_S_OK)
-	{
-		std::cout << "Failed to create UUID" << std::endl;
+	auto uuid_stl_opt = generateUuid();
+	if (!uuid_stl_opt.has_value()) {
 		return 1;
 	}
-
-	RPC_WSTR uuid_str;
-	if (::UuidToString(&uuid, &uuid_str) != RPC_S_OK)
-	{
-		std::cout << "Failed to convert UUID to rpc string" << std::endl;
-		return 1;
-	}
-
-	std::wstring uuid_stl(reinterpret_cast<wchar_t*>(uuid_str));
-	if (uuid_stl.empty())
-	{
-		::RpcStringFree(&uuid_str);
-		std::cout << "Failed to convert UUID rpc string to stl string" << std::endl;
-		return 1;
-	}
-
-	::RpcStringFree(&uuid_str);
+	auto uuid_stl = uuid_stl_opt.value();;
 
 	std::wstring group_name = std::wstring(L"shark_cage_group_").append(uuid_stl);
 	auto security_attributes = security_setup.GetSecurityAttributes(group_name);
@@ -65,7 +48,6 @@ int main()
 
 	if (parse_result != CageMessage::START_PROCESS)
 	{
-		//tokenLib::deleteLocalGroup(static_cast<LPWSTR const>(const_cast<wchar_t*>((group_name.c_str()))));
 		tokenLib::deleteLocalGroup(const_cast<wchar_t*>((group_name.c_str())));
 		std::cout << "Could not process incoming message" << std::endl;
 		return 1;
@@ -93,33 +75,14 @@ int main()
 	return 0;
 }
 
-void CageManager::StartCage(SECURITY_ATTRIBUTES security_attributes, const CageData &cage_data, const std::wstring group_name)
+void CageManager::StartCage(SECURITY_ATTRIBUTES security_attributes, const CageData &cage_data, const std::wstring &group_name)
 {
 	// name should be unique every time -> create UUID
-	UUID uuid;
-	if (::UuidCreate(&uuid) != RPC_S_OK)
-	{
-		std::cout << "Failed to create UUID" << std::endl;
+	auto uuid_stl_opt = generateUuid();
+	if (!uuid_stl_opt.has_value()) {
 		return;
 	}
-
-	RPC_WSTR uuid_str;
-	if (::UuidToString(&uuid, &uuid_str) != RPC_S_OK)
-	{
-		std::cout << "Failed to convert UUID to rpc string" << std::endl;
-		return;
-	}
-
-	std::wstring uuid_stl(reinterpret_cast<wchar_t*>(uuid_str));
-	if (uuid_stl.empty())
-	{
-		::RpcStringFree(&uuid_str);
-		std::cout << "Failed to convert UUID rpc string to stl string" << std::endl;
-		return;
-	}
-
-	::RpcStringFree(&uuid_str);
-	
+	auto uuid_stl = uuid_stl_opt.value();
 	HANDLE tokenHandle = nullptr;
 	//TODO: close this handle
 	if (!tokenLib::constructUserTokenWithGroup(const_cast<wchar_t*>((group_name.c_str())), tokenHandle)) {
@@ -342,4 +305,31 @@ BOOL CALLBACK CageManager::GetOpenWindowHandles(_In_ HWND hwnd, _In_ LPARAM l_pa
 	}
 
 	return TRUE;
+}
+
+std::optional<std::wstring> generateUuid() {
+	UUID uuid;
+	if (::UuidCreate(&uuid) != RPC_S_OK)
+	{
+		std::cout << "Failed to create UUID" << std::endl;
+		return std::nullopt;
+	}
+
+	RPC_WSTR uuid_str;
+	if (::UuidToString(&uuid, &uuid_str) != RPC_S_OK)
+	{
+		std::cout << "Failed to convert UUID to rpc string" << std::endl;
+		return std::nullopt;
+	}
+
+	std::wstring uuid_stl(reinterpret_cast<wchar_t*>(uuid_str));
+	if (uuid_stl.empty())
+	{
+		::RpcStringFree(&uuid_str);
+		std::cout << "Failed to convert UUID rpc string to stl string" << std::endl;
+		return std::nullopt;
+	}
+
+	::RpcStringFree(&uuid_str);
+	return uuid_stl;
 }

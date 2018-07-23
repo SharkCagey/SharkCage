@@ -8,7 +8,7 @@
 
 #pragma comment(lib, "netapi32.lib")
 
-std::optional<SECURITY_ATTRIBUTES> SecuritySetup::GetSecurityAttributes(std::wstring group_name)
+std::optional<SECURITY_ATTRIBUTES> SecuritySetup::GetSecurityAttributes(const std::wstring &group_name)
 {
 	auto group_sid = CreateSID(group_name);
 	auto access_control_list = CreateACL(std::move(group_sid));
@@ -58,7 +58,7 @@ std::optional<SECURITY_ATTRIBUTES> SecuritySetup::GetSecurityAttributes(std::wst
 	return security_attributes;
 }
 
-std::unique_ptr<PSID, decltype(local_free_deleter<PSID>)> SecuritySetup::CreateSID(std::wstring group_name)
+std::unique_ptr<PSID, decltype(local_free_deleter<PSID>)> SecuritySetup::CreateSID(const std::wstring &group_name)
 {
 	LOCALGROUP_INFO_0 localgroup_info;
 	DWORD buffer_size = 0;
