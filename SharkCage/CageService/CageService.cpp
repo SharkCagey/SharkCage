@@ -4,6 +4,7 @@
 
 #include "CageService.h"
 #include "../SharedFunctionality/SharedFunctions.h"
+#include "../SharedFunctionality/TokenLib/groupManipulation.h"
 
 const std::wstring CAGE_MANAGER_NAME = L"CageManager.exe";
 
@@ -21,8 +22,7 @@ std::optional<HANDLE> CageService::CreateImpersonatingUserToken()
 {
 	DWORD session_id = ::WTSGetActiveConsoleSessionId();
 
-	HANDLE service_token_handle;
-	HANDLE user_session_token_handle;
+	HANDLE appropriate_token = nullptr;
 
 	// Use new token with privileges for the trusting computing base
 	if (!::ImpersonateSelf(SecurityImpersonation))
@@ -33,33 +33,25 @@ std::optional<HANDLE> CageService::CreateImpersonatingUserToken()
 		return std::nullopt;
 	}
 
-	if (!::OpenThreadToken(::GetCurrentThread(), TOKEN_ALL_ACCESS, false, &service_token_handle))
-	{
+	if (!tokenLib::aquireTokenWithPrivilegesForTokenManipulation(appropriate_token)) {
 		std::wostringstream os;
-		os << "OpenThreadToken failed (" << ::GetLastError() << "): " << GetLastErrorAsString(::GetLastError());
+		os << "The token aquisition was unsuccessfull!";
 		::OutputDebugString(os.str().c_str());
+
 		return std::nullopt;
 	}
 
-	if (!::DuplicateTokenEx(service_token_handle, 0, NULL, SecurityImpersonation, TokenPrimary, &user_session_token_handle))
-	{
-		std::wostringstream os;
-		os << "DuplicateTokenEx failed (" << ::GetLastError() << "): " << GetLastErrorAsString(::GetLastError());
-		::OutputDebugString(os.str().c_str());
-		return std::nullopt;
-	}
-
-	if (!::SetTokenInformation(user_session_token_handle, TokenSessionId, &session_id, sizeof DWORD))
+	if (!::SetTokenInformation(appropriate_token, TokenSessionId, &session_id, sizeof DWORD))
 	{
 		std::wostringstream os;
 		os << "SetTokenInformation failed (" << ::GetLastError() << "): " << GetLastErrorAsString(::GetLastError());
 		::OutputDebugString(os.str().c_str());
-		::CloseHandle(user_session_token_handle);
+		::CloseHandle(appropriate_token);
 
 		return std::nullopt;
 	}
 
-	return user_session_token_handle;
+	return appropriate_token;
 }
 
 DWORD CageService::StartCageManager(DWORD session_id, HANDLE &user_token)
