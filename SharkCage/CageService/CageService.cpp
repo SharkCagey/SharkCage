@@ -22,7 +22,7 @@ std::optional<HANDLE> CageService::CreateImpersonatingUserToken()
 {
 	DWORD session_id = ::WTSGetActiveConsoleSessionId();
 
-	HANDLE appropriateToken = 0;
+	HANDLE appropriate_token = nullptr;
 
 	// Use new token with privileges for the trusting computing base
 	if (!::ImpersonateSelf(SecurityImpersonation))
@@ -33,25 +33,25 @@ std::optional<HANDLE> CageService::CreateImpersonatingUserToken()
 		return std::nullopt;
 	}
 
-	if (!tokenLib::aquireTokenWithPrivilegesForTokenManipulation(appropriateToken)) {
+	if (!tokenLib::aquireTokenWithPrivilegesForTokenManipulation(appropriate_token)) {
 		std::wostringstream os;
-		os << "The token aquisition unsuccessfull!";
+		os << "The token aquisition was unsuccessfull!";
 		::OutputDebugString(os.str().c_str());
 
 		return std::nullopt;
 	}
 
-	if (!::SetTokenInformation(appropriateToken, TokenSessionId, &session_id, sizeof DWORD))
+	if (!::SetTokenInformation(appropriate_token, TokenSessionId, &session_id, sizeof DWORD))
 	{
 		std::wostringstream os;
 		os << "SetTokenInformation failed (" << ::GetLastError() << "): " << GetLastErrorAsString(::GetLastError());
 		::OutputDebugString(os.str().c_str());
-		::CloseHandle(appropriateToken);
+		::CloseHandle(appropriate_token);
 
 		return std::nullopt;
 	}
 
-	return appropriateToken;
+	return appropriate_token;
 }
 
 DWORD CageService::StartCageManager(DWORD session_id, HANDLE &user_token)

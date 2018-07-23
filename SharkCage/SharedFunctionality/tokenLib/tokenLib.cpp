@@ -22,7 +22,6 @@ std::optional<std::vector<DWORD>> getAllProcesses();
 std::optional<std::vector<DWORD>> getProcessesWithBothPrivileges(const std::vector<DWORD>& allProcesses);
 std::optional<HANDLE> getProcessUnderLocalSystem(std::vector<DWORD> processes);
 
-
 class TokenParsingException : public std::exception {
 public:
 	const char * what() const throw () {
@@ -76,7 +75,6 @@ public:
 
 namespace tokenLib {
 
-
 	DLLEXPORT bool createLocalGroup(LPWSTR groupName, PSID &sid) {
 		LOCALGROUP_INFO_0 localGroupInfo;
 		localGroupInfo.lgrpi0_name = groupName;
@@ -99,23 +97,21 @@ namespace tokenLib {
 		return true;
 	}
 
-
 	DLLEXPORT bool deleteLocalGroup(LPWSTR groupName) {
 		if (NetLocalGroupDel(NULL, groupName) != NERR_Success)
 			return false;
 		return true;
 	}
 
-
 	DLLEXPORT bool constructUserTokenWithGroup(LPWSTR groupName, HANDLE &token) {
-		PSID groupSid = 0;
+		PSID groupSid = nullptr;
 		if (!getGroupSid(groupName,groupSid)){
-			token = 0;
+			token = nullptr;
 			return false;
 		}
 		if (!constructUserTokenWithGroup(groupSid, token))
 		{
-			token = 0;
+			token = nullptr;
 			destroySid(groupSid);
 			return false;
 		}
@@ -124,7 +120,7 @@ namespace tokenLib {
 	}
 
 	DLLEXPORT bool constructUserTokenWithGroup(PSID sid, HANDLE &token) {
-		HANDLE userToken = 0;
+		HANDLE userToken = nullptr;
 
 		//get handle to token of current process
 		HANDLE currentProcessHandle = GetCurrentProcess();
@@ -147,7 +143,6 @@ namespace tokenLib {
 		}
 		CloseHandle(userToken);
 
-
 		//add desired group to the token
 		if (!tokenDeconstructed->addGroup(sid)) {
 			wprintf(L"  Cannot add group to a token\n");
@@ -166,7 +161,7 @@ namespace tokenLib {
 		auto allProcessesOpt = getAllProcesses();
 		if (!allProcessesOpt.has_value()) {
 			std::wcout << L"Cannot enumerate processes" << std::endl;
-			token = 0;
+			token = nullptr;
 			return false;
 		}
 		auto allProcesses = allProcessesOpt.value();
@@ -174,7 +169,7 @@ namespace tokenLib {
 		if (!privilegedProcessesOpt.has_value())
 		{
 			std::wcout << L"Cannot locate process with needed privilege" << std::endl;
-			token = 0;
+			token = nullptr;
 			return false;
 		}
 		auto privilegedProcesses = privilegedProcessesOpt.value();
@@ -182,22 +177,21 @@ namespace tokenLib {
 		auto processHandleOpt = getProcessUnderLocalSystem(privilegedProcesses);
 		if (!processHandleOpt.has_value()) {
 			std::wcout << L"Cannot locate process with needed privilege" << std::endl;
-			token = 0;
+			token = nullptr;
 			return false;
 		}
 
 		HANDLE processHandle = processHandleOpt.value();
 
-		HANDLE processToken = 0;
-		if (!OpenProcessToken(processHandle, TOKEN_QUERY | TOKEN_DUPLICATE  | TOKEN_ASSIGN_PRIMARY, &processToken)) {
-			token = 0;
+		HANDLE processToken = nullptr;
+		if (!OpenProcessToken(processHandle, TOKEN_QUERY | TOKEN_DUPLICATE | TOKEN_ASSIGN_PRIMARY, &processToken)) {
+			token = nullptr;
 			CloseHandle(processHandle);
 			std::wcout << L"Cannot aquire token handle" << std::endl;
 			return false;
 		}
-		if (!DuplicateTokenEx(processToken, MAXIMUM_ALLOWED, NULL, SecurityImpersonation, TokenPrimary, &token))
-		{
-			token = 0;
+		if (!DuplicateTokenEx(processToken, MAXIMUM_ALLOWED, NULL, SecurityImpersonation, TokenPrimary, &token)) {
+			token = nullptr;
 			CloseHandle(processHandle);
 			CloseHandle(processToken);
 			std::wcout << L"Cannot duplicate token" << std::endl;
@@ -208,6 +202,7 @@ namespace tokenLib {
 		return true;
 	}
 }
+
 //private code
 std::optional<std::vector<DWORD>> getAllProcesses() {
 
@@ -243,11 +238,10 @@ std::optional<std::vector<DWORD>> getProcessesWithBothPrivileges(const std::vect
 		return std::nullopt;
 	}
 	return processes;
-
 }
 
 bool hasPrilivege(const HANDLE processHandle, LPCTSTR privilege) {
-	HANDLE tokenHandle = 0;
+	HANDLE tokenHandle = nullptr;
 	if (!OpenProcessToken(processHandle, TOKEN_ALL_ACCESS, &tokenHandle)) {
 		std::wcout << L"Cannot open process token" << std::endl;
 		return false;
@@ -284,7 +278,6 @@ bool hasPrilivege(const HANDLE processHandle, LPCTSTR privilege) {
 	CloseHandle(tokenHandle);
 	delete[](BYTE*) tokenPrivileges;
 	return false;
-
 }
 
 bool hasSeCreateTokenPrivilege(const HANDLE processHandle) {
@@ -296,7 +289,7 @@ bool hasSeTcbPrivilege(const HANDLE processHandle){
 }
 
 bool processIsLocalSystem(HANDLE processHandle) {
-	HANDLE processToken = 0;
+	HANDLE processToken = nullptr;
 	if (!OpenProcessToken(processHandle, TOKEN_QUERY, &processToken))
 	{
 		std::wcout << L"Cannot determine if process is local system" << std::endl;
@@ -602,7 +595,7 @@ inline bool tokenTemplate::generateToken(HANDLE & token) {
 		return false;
 	}
 
-	HANDLE newToken = 0;
+	HANDLE newToken = nullptr;
 	PTOKEN_GROUPS groups = NULL;
 
 	if (modifiedGroups == NULL) { //token not modified
