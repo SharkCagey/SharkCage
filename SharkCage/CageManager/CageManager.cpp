@@ -119,13 +119,11 @@ void CageManager::StartCage(SECURITY_ATTRIBUTES security_attributes, const CageD
 
 	::RpcStringFree(&uuid_str);
 	
-	HANDLE tokenHandle = 0;
+	HANDLE tokenHandle = nullptr;
 	//TODO: close this handle
 	if (!tokenLib::constructUserTokenWithGroup(static_cast<LPWSTR>(const_cast<wchar_t*>((group_name.c_str()))), tokenHandle)) {
 		std::cout << "Cannot create required token" << std::endl;
-		getchar();
 		return;
-		
 	}
 
 	const std::wstring DESKTOP_NAME = std::wstring(L"shark_cage_desktop_").append(uuid_stl);
