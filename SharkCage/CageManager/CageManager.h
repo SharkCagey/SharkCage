@@ -3,7 +3,7 @@
 class CageManager
 {
 public:
-	void CageManager::StartCage(SECURITY_ATTRIBUTES security_attributes, const CageData &cage_data,const std::wstring group_name);
+	void CageManager::StartCage(SECURITY_ATTRIBUTES security_attributes, const CageData &cage_data, const std::wstring &group_name);
 	bool CageManager::ProcessRunning(const std::wstring &process_path);
 
 private:
@@ -20,6 +20,7 @@ private:
 		SECURITY_ATTRIBUTES security_attributes,
 		STARTUPINFO info,
 		std::vector<HANDLE> &handles);
+
 
 	// FIXME: extra class for this? process handling? -> could also do the wait stuff
 	static BOOL CALLBACK GetOpenWindowHandles(_In_ HWND hwnd, _In_ LPARAM l_param);
