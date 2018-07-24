@@ -18,12 +18,13 @@
 #pragma comment(lib, "Rpcrt4.lib")
 
 NetworkManager network_manager(ContextType::MANAGER);
-std::optional<std::wstring> generateUuid();;
+std::optional<std::wstring> generateUuid();
 
 int main()
 {
+	getchar();
 	CageManager cage_manager;
-
+	
 	SecuritySetup security_setup;
 	//randomize the group name
 	auto uuid_stl_opt = generateUuid();
