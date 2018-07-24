@@ -19,6 +19,9 @@ enum class DLLEXPORT ContextType
 	CHOOSER
 };
 
+/*!
+ * \brief 
+ */
 class NetworkManager
 {
 	using tcp = asio::ip::tcp;
@@ -34,23 +37,28 @@ private:
 	const int LISTEN_PORT_CHOOSER = 51236;
 
 public:
-	/*
-	* Constructor
-	* type variable says in what role network manager should be initialized
-	*/
+	/*!
+	 * \brief Constructor.
+	 * @param context type variable says in what role network manager should be initialized
+	 */
 	DLLEXPORT NetworkManager(ContextType context);
 
-	/**
-	* Function to be used to send messages
-	* max message lenght is 1024 characters
-	*
-	**/
+	/*!
+	 * \brief Function to be used to send messages.
+	 * @param msg the message string, max 1024 characters
+	 * @param context the role of the receiving Network Manager
+	 * @return true if successful
+	 * @throws std::exception if GetPort doesn't find a port.
+	 */
 	DLLEXPORT bool Send(const std::wstring &msg, ContextType context);
 
-	/**
-	* function used by all components to listen for messages
-	*
-	**/
+	/*!
+	 * \brief Function used by all components to listen for messages.
+	 * Uses async read and a timeout in seconds. 
+	 * @param timeout_seconds how many seconds until timeout, never for less than 0
+	 * @return a wstring containing the received message.
+	 * @throws an std::system_error with the error code of the most recent failed async function
+	 */
 	DLLEXPORT std::wstring Listen(long timeout_seconds = -1);
 
 private:
@@ -58,7 +66,7 @@ private:
 
 	std::vector<char> StringToVec(const std::wstring &string) const;
 
-	std::optional<const int> GetPort(ContextType type) const
+	std::optional<const int> (ContextType type) const
 	{
 		switch (type)
 		{

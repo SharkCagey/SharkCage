@@ -1,8 +1,18 @@
 #pragma once
 
+/*!
+ * Strarts the sharkcage process in the new desktop, and starts the CageLabeler.
+ */
 class CageManager
 {
 public:
+	/*!
+	 * Starts the sharkcage process in the new desktop, with the chosen config and application
+	 * to run inside the Cage.
+	 * @param security_attributes the security descriptor
+	 * @param &cage_data the adress of the struct containing the config path, and chosen
+	 * application info as well as the additional application, if any
+	 */
 	void CageManager::StartCage(SECURITY_ATTRIBUTES security_attributes, const CageData &cage_data);
 
 private:

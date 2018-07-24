@@ -4,6 +4,9 @@
 #include <string>
 #include "FullWorkArea.h"
 
+/*!
+ * contains desktop information.
+ */
 class CageDesktop
 {
 public:
