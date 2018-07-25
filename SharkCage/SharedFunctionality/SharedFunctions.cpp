@@ -112,7 +112,7 @@ namespace SharedFunctions
 					L"Sharkcage_ActivateMainApp"
 				);
 
-				if (cage_data.activiate_app.value() == NULL)
+				if (cage_data.activiate_app == NULL)
 				{
 					std::cout << "Create restart Event for app failed. Error: " << GetLastError() << std::endl;
 					return false;

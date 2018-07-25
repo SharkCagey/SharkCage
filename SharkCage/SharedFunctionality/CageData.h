@@ -14,7 +14,7 @@ struct CageData
 	std::optional<std::wstring> additional_app_path;
 	bool restrict_closing;
 
-	std::optional<HANDLE> activiate_app;
+	HANDLE activiate_app;
 	std::optional<HANDLE> activate_additional_app;
 
 	bool hasAdditionalAppInfo() const

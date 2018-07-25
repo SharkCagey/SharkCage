@@ -126,11 +126,9 @@ void CageManager::StartCage(SECURITY_ATTRIBUTES security_attributes, const CageD
 
 	// Create the process.
 	PROCESS_INFORMATION process_info = {};
-	std::vector<wchar_t> path_buf(cage_data.app_path.begin(), cage_data.app_path.end());
-	path_buf.push_back(0);
-
+	
 	if (::CreateProcess(
-		path_buf.data(),
+		cage_data.app_path.c_str(),
 		nullptr,
 		&security_attributes,
 		nullptr,
@@ -147,11 +145,8 @@ void CageManager::StartCage(SECURITY_ATTRIBUTES security_attributes, const CageD
 	PROCESS_INFORMATION process_info_additional_app = { 0 };
 	if (cage_data.hasAdditionalAppInfo())
 	{
-		std::vector<wchar_t> additional_app_path_buf(cage_data.additional_app_path->begin(), cage_data.additional_app_path->end());
-		additional_app_path_buf.push_back(0);
-
 		if (::CreateProcess(
-			additional_app_path_buf.data(),
+			cage_data.additional_app_path.value().c_str(),
 			nullptr,
 			&security_attributes,
 			nullptr,
@@ -171,7 +166,7 @@ void CageManager::StartCage(SECURITY_ATTRIBUTES security_attributes, const CageD
 	std::vector<HANDLE> handles = { labeler_thread.native_handle(), process_info.hProcess };
 	std::vector<HANDLE> wait_handles;
 
-	wait_handles.push_back(cage_data.activiate_app.value());
+	wait_handles.push_back(cage_data.activiate_app);
 
 	if (cage_data.hasAdditionalAppInfo())
 	{
@@ -207,92 +202,27 @@ void CageManager::StartCage(SECURITY_ATTRIBUTES security_attributes, const CageD
 						auto iterator = handles.begin();
 						std::advance(iterator, i);
 
-						if (cage_data.hasAdditionalAppInfo() && *iterator == cage_data.activate_additional_app.value())
+						if (*iterator == cage_data.activiate_app)
 						{
-							std::cout << "restart additional app" << std::endl;
-
-							if (!::ResetEvent(cage_data.activate_additional_app.value()))
-							{
-								std::cout << "Reset event failed. Error: " << ::GetLastError() << std::endl;
-							}
-
-							std::vector<wchar_t> additional_app_path_buf(cage_data.additional_app_path->begin(), cage_data.additional_app_path->end());
-							additional_app_path_buf.push_back(0);
-
-							if (CageManager::ProcessRunning(cage_data.additional_app_path.value()))
-							{
-								::EnumDesktopWindows(
-									desktop_handle,
-									&CageManager::ActivateProcess,
-									reinterpret_cast<LPARAM>(&process_info_additional_app.dwProcessId)
-								);
-							}
-							else
-							{
-								::CloseHandle(process_info_additional_app.hProcess);
-								::CloseHandle(process_info_additional_app.hThread);
-
-								if (::CreateProcess(
-									additional_app_path_buf.data(),
-									nullptr,
-									&security_attributes,
-									nullptr,
-									FALSE,
-									0,
-									nullptr,
-									nullptr,
-									&info,
-									&process_info_additional_app) == 0)
-								{
-									std::cout << "Failed to start additional process. Error: " << GetLastError() << std::endl;
-								}
-								else
-								{
-									handles.push_back(process_info_additional_app.hProcess);
-								}
-							}
+							CageManager::ActivateApp(
+								cage_data.app_path,
+								cage_data.activiate_app,
+								desktop_handle,
+								process_info,
+								security_attributes,
+								info,
+								handles);
 						}
-						else if (*iterator == cage_data.activiate_app.value())
+						else if (cage_data.hasAdditionalAppInfo() && *iterator == cage_data.activate_additional_app.value())
 						{
-							std::cout << "restart additional app" << std::endl;
-
-							if (!::ResetEvent(cage_data.activiate_app.value()))
-							{
-								std::cout << "Reset event failed. Error: " << ::GetLastError() << std::endl;
-							}
-
-							if (CageManager::ProcessRunning(cage_data.app_path))
-							{
-								::EnumDesktopWindows(
-									desktop_handle,
-									&CageManager::ActivateProcess,
-									reinterpret_cast<LPARAM>(&process_info.dwProcessId)
-								);
-							}
-							else
-							{
-								::CloseHandle(process_info.hProcess);
-								::CloseHandle(process_info.hThread);
-
-								if (::CreateProcess(
-									path_buf.data(),
-									nullptr,
-									&security_attributes,
-									nullptr,
-									FALSE,
-									0,
-									nullptr,
-									nullptr,
-									&info,
-									&process_info) == 0)
-								{
-									std::cout << "Failed to start process. Error: " << ::GetLastError() << std::endl;
-								}
-								else
-								{
-									handles.push_back(process_info.hProcess);
-								}
-							}
+							CageManager::ActivateApp(
+								cage_data.additional_app_path.value(),
+								cage_data.activate_additional_app.value(),
+								desktop_handle,
+								process_info_additional_app,
+								security_attributes,
+								info,
+								handles);
 						}
 						else
 						{
@@ -381,7 +311,7 @@ void CageManager::StartCage(SECURITY_ATTRIBUTES security_attributes, const CageD
 	{
 		::CloseHandle(process_info_additional_app.hProcess);
 		::CloseHandle(process_info_additional_app.hThread);
-		::CloseHandle(cage_data.activiate_app.value());
+		::CloseHandle(cage_data.activiate_app);
 		::CloseHandle(cage_data.activate_additional_app.value());
 	}
 }
@@ -492,4 +422,54 @@ bool CageManager::ProcessRunning(const std::wstring &process_path)
 	}
 
 	return app_running;
+}
+
+void CageManager::ActivateApp(
+	const std::wstring &path,
+	const HANDLE &event,
+	const HDESK &desktop_handle,
+	PROCESS_INFORMATION &process_info,
+	SECURITY_ATTRIBUTES security_attributes,
+	STARTUPINFO info,
+	std::vector<HANDLE> &handles)
+{
+	std::cout << "restart additional app" << std::endl;
+
+	if (!::ResetEvent(event))
+	{
+		std::cout << "Reset event failed. Error: " << ::GetLastError() << std::endl;
+	}
+
+	if (CageManager::ProcessRunning(path))
+	{
+		::EnumDesktopWindows(
+			desktop_handle,
+			&CageManager::ActivateProcess,
+			reinterpret_cast<LPARAM>(&process_info.dwProcessId)
+		);
+	}
+	else
+	{
+		::CloseHandle(process_info.hProcess);
+		::CloseHandle(process_info.hThread);
+
+		if (::CreateProcess(
+			path.c_str(),
+			nullptr,
+			&security_attributes,
+			nullptr,
+			FALSE,
+			0,
+			nullptr,
+			nullptr,
+			&info,
+			&process_info) == 0)
+		{
+			std::cout << "Failed to start process. Error: " << ::GetLastError() << std::endl;
+		}
+		else
+		{
+			handles.push_back(process_info.hProcess);
+		}
+	}
 }
