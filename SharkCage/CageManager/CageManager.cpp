@@ -34,13 +34,17 @@ int main()
 	// listen for the message
 	std::wstring message = network_manager.Listen(10);
 	std::wstring message_data;
-	auto parse_result = SharedFunctions::ParseMessage(message, message_data);
+	ContextType sender;
+	auto parse_result = SharedFunctions::ParseMessage(message, sender, message_data);
 
 	if (parse_result != CageMessage::START_PROCESS)
 	{
 		std::cout << "Could not process incoming message" << std::endl;
 		return 1;
 	}
+
+	std::wstring result_data;
+	network_manager.Send(sender, CageMessage::RESPONSE_SUCCESS, L"", result_data);
 
 	CageData cage_data = { message_data };
 	if (!SharedFunctions::ParseStartProcessMessage(cage_data))
