@@ -5,6 +5,7 @@
 #include "../SharedFunctionality/CageData.h"
 
 #include "Aclapi.h"
+#include "tlhelp32.h"
 
 #include <unordered_set>
 #include <thread>
@@ -43,15 +44,27 @@ int main()
 		return 1;
 	}
 
-	std::wstring result_data;
-	network_manager.Send(sender, CageMessage::RESPONSE_SUCCESS, L"", result_data);
-
 	CageData cage_data = { message_data };
 	if (!SharedFunctions::ParseStartProcessMessage(cage_data))
 	{
 		std::cout << "Could not process start process message" << std::endl;
 		return 1;
 	}
+
+	if (cage_manager.ProcessAlreadyRunning(cage_data))
+	{
+		// FIXME in the future we should wait for an acknowledgement / failure response for all messages,
+		// this would allow us to report the reason for not starting the cage back to the caller (CageChooser)
+		std::cout << "Could not process start process message" << std::endl;
+
+		std::wstring result_data;
+		network_manager.Send(sender, CageMessage::RESPONSE_FAILURE, L"One or more process is already running on the default desktop, please close them and try again.", result_data);
+
+		return 1;
+	}
+
+	std::wstring result_data;
+	network_manager.Send(sender, CageMessage::RESPONSE_SUCCESS, L"", result_data);
 
 	const int work_area_width = 300;
 	std::thread desktop_thread(
@@ -107,7 +120,7 @@ void CageManager::StartCage(SECURITY_ATTRIBUTES security_attributes, const CageD
 		return;
 	}
 
-	const std::wstring LABELER_WINDOW_CLASS_NAME = std::wstring(L"shark_cage_token_window").append(uuid_stl);
+	const std::wstring LABELER_WINDOW_CLASS_NAME = std::wstring(L"shark_cage_token_window_").append(uuid_stl);
 	std::thread labeler_thread(
 		&CageManager::StartCageLabeler,
 		this,
@@ -311,4 +324,56 @@ BOOL CALLBACK CageManager::GetOpenWindowHandles(_In_ HWND hwnd, _In_ LPARAM l_pa
 	}
 
 	return TRUE;
+}
+
+bool CageManager::ProcessAlreadyRunning(const CageData &cage_data)
+{
+	bool app_running = false;
+	bool additional_app_running = false;
+
+	HANDLE process_snapshot;
+	PROCESSENTRY32 process_entry;
+	process_snapshot = ::CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+
+	if (process_snapshot == INVALID_HANDLE_VALUE)
+	{
+		app_running = false;
+	}
+	else
+	{
+		process_entry.dwSize = sizeof(PROCESSENTRY32);
+		if (::Process32First(process_snapshot, &process_entry))
+		{
+			std::wstring comparison(process_entry.szExeFile);
+			if (cage_data.app_path.find(comparison) != std::wstring::npos)
+			{
+				app_running = true;
+			}
+			else if (!additional_app_running
+				&& cage_data.additional_app_path.has_value()
+				&& cage_data.additional_app_path->find(comparison) != std::wstring::npos)
+			{
+				additional_app_running = true;
+			}
+
+			while (!app_running && !additional_app_running && ::Process32Next(process_snapshot, &process_entry))
+			{
+				comparison = std::wstring(process_entry.szExeFile);
+				if (!app_running && cage_data.app_path.find(comparison) != std::wstring::npos)
+				{
+					app_running = true;
+				}
+				else if (!additional_app_running
+					&& cage_data.additional_app_path.has_value()
+					&& cage_data.additional_app_path->find(comparison) != std::wstring::npos)
+				{
+					additional_app_running = true;
+				}
+			}
+
+			::CloseHandle(process_snapshot);
+		}
+	}
+
+	return app_running || additional_app_running;
 }

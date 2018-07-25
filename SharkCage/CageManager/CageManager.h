@@ -4,6 +4,7 @@ class CageManager
 {
 public:
 	void CageManager::StartCage(SECURITY_ATTRIBUTES security_attributes, const CageData &cage_data);
+	bool ProcessAlreadyRunning(const CageData &cage_data);
 
 private:
 	void StartCageLabeler(
