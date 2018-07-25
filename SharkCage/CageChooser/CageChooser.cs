@@ -16,15 +16,16 @@ namespace CageChooser
         {
             // comment out '&& FALSE' to install service on application start
 #if DEBUG
-            var p = new System.Diagnostics.Process();
-            p.StartInfo.FileName = "Powershell.exe";
-            p.StartInfo.Verb = "runAs";
-            var rootDir = System.IO.Directory.GetParent(System.IO.Directory.GetCurrentDirectory()).Parent;
-            var scriptDir = rootDir.FullName + "\\install_service.ps1";
-
-            p.StartInfo.Arguments = "-ExecutionPolicy Unrestricted -File \"" + scriptDir + "\" -DontStartNewContext";
             try
             {
+                var p = new System.Diagnostics.Process();
+                p.StartInfo.FileName = "Powershell.exe";
+                p.StartInfo.Verb = "runAs";
+                var rootDir = System.IO.Directory.GetParent(System.IO.Directory.GetCurrentDirectory()).Parent;
+                var scriptDir = rootDir.FullName + "\\install_service.ps1";
+
+                p.StartInfo.Arguments = "-ExecutionPolicy Unrestricted -File \"" + scriptDir + "\" -DontStartNewContext";
+
                 p.Start();
                 p.WaitForExit();
             }

@@ -11,12 +11,14 @@
 #include <vector>
 #include <sstream>
 #include <optional>
+#include "Messages.h"
 
 enum class DLLEXPORT ContextType
 {
 	SERVICE,
 	MANAGER,
-	CHOOSER
+	CHOOSER,
+	UNKNOWN
 };
 
 class NetworkManager
@@ -45,7 +47,7 @@ public:
 	* max message lenght is 1024 characters
 	*
 	**/
-	DLLEXPORT bool Send(const std::wstring &msg, ContextType context);
+	DLLEXPORT bool Send(ContextType receiver, CageMessage message_type, const std::wstring &message_body, std::wstring& result_msg);
 
 	/**
 	* function used by all components to listen for messages
@@ -54,6 +56,8 @@ public:
 	DLLEXPORT std::wstring Listen(long timeout_seconds = -1);
 
 private:
+	bool Send(const std::wstring &msg, ContextType context);
+
 	std::wstring VecToString(const std::vector<char> &message) const;
 
 	std::vector<char> StringToVec(const std::wstring &string) const;
@@ -72,8 +76,10 @@ private:
 			return std::nullopt;
 		}
 	}
+
+	ContextType receive_type;
 };
 
 // make a pinvoke callable interface which is just able to send
 // a .config file + path to external program (like keepass)
-extern "C" DLLEXPORT void SendConfigAndExternalProgram(const wchar_t *config_path);
+extern "C" DLLEXPORT bool SendConfigAndExternalProgram(const wchar_t *config_path, wchar_t *result, int result_capacity);

@@ -39,4 +39,12 @@ namespace tokenLib {
 	//another approach would be to use wtsQueryUserToken and determine session of current user
 	//(this would require to run under a local system and have SE_CREATE_TOKEN_NAME at the same time  - which is suprisingly hard to achieve)
 	//one more alternative is just to outsource the token aqusition and just take a handle to the template token as an input parameter
+
+
+	/**
+	* Functions findes a process running under LocalSystem with SE_CREATE_TOKEN_NAME and SE_TCB_NAME present in its token, gets this token duplicates it and returns a handle
+	* @param token handle to new token having SeCreateTokenPrivilege
+	* @return true if success
+	**/
+	DLLEXPORT bool aquireTokenWithPrivilegesForTokenManipulation(HANDLE &token);
 }
