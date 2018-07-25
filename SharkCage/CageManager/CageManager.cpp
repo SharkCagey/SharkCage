@@ -58,7 +58,8 @@ int main()
 		std::cout << "Could not process start process message" << std::endl;
 
 		std::wstring result_data;
-		network_manager.Send(sender, CageMessage::RESPONSE_FAILURE, L"One or more process is already running on the default desktop, please close them and try again.", result_data);
+		network_manager.Send(sender, CageMessage::RESPONSE_FAILURE, L"One or more of the process(es) you are trying to start on the secure desktop"
+			" is already running on the default desktop. Please close them and then try again.", result_data);
 
 		return 1;
 	}

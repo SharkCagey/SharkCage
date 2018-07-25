@@ -35,7 +35,7 @@ DLLEXPORT bool NetworkManager::Send(ContextType receiver, CageMessage message_ty
 
 	if (result && message_type != CageMessage::RESPONSE_SUCCESS && message_type != CageMessage::RESPONSE_FAILURE)
 	{
-		auto response = Listen(5);
+		auto response = Listen(10);
 		if (response.empty())
 		{
 			result = false;
