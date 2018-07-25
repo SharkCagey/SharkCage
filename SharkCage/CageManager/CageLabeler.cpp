@@ -43,7 +43,7 @@ static std::wstring app_hash;
 static std::optional<std::wstring> additional_app_name;
 static bool restrict_closing;
 static int labeler_width;
-static std::optional<HANDLE> activate_app;
+static HANDLE activate_app;
 static std::optional<HANDLE> activate_additional_app;
 
 CageLabeler::CageLabeler(
@@ -153,7 +153,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM w_param, LPARAM l_param)
 		else if (current_hwnd == app_activate_button)
 		{
 			// send message to manager to restart...
-			if (!::SetEvent(activate_app.value()))
+			if (!::SetEvent(activate_app))
 			{
 				std::wcout << L"Failed to send restart additional app signal, error: " << ::GetLastError() << std::endl;
 			}
