@@ -155,9 +155,9 @@ namespace CageChooser
 
                     bool result = NativeMethods.SendConfigAndExternalProgram(configPath.Text, sb, capacity);
 
-                    if (!result)
+                    if (result)
                     {
-                        MessageBox.Show("Error communicating with service: " + sb.ToString());
+                        MessageBox.Show("Error communicating with service: " + sb.ToString(), "Shark Cage", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     }
 
                     // bring the form back in focus
