@@ -27,10 +27,10 @@ static HWND labeler_background_window;
 
 static HWND gotodesk_button;
 static HWND app_title;
+static HWND app_activate_button;
 static HWND app_name_title;
-static HWND app_name_restart_button;
 static HWND additional_app_app_title;
-static HWND additional_app_restart_button;
+static HWND additional_app_activate_button;
 static HWND app_hash_text_title;
 static HWND app_hash_text;
 static HWND closing_restricted_text;
@@ -43,6 +43,8 @@ static std::wstring app_hash;
 static std::optional<std::wstring> additional_app_name;
 static bool restrict_closing;
 static int labeler_width;
+static std::optional<HANDLE> activate_app;
+static std::optional<HANDLE> activate_additional_app;
 
 CageLabeler::CageLabeler(
 	const CageData &cage_data,
@@ -56,6 +58,8 @@ CageLabeler::CageLabeler(
 	additional_app_name = cage_data.additional_app_name;
 	restrict_closing = cage_data.restrict_closing;
 	window_class_name = _window_class_name;
+	activate_additional_app = cage_data.activate_additional_app;
+	activate_app = cage_data.activiate_app;
 
 	// truncate hash
 	app_hash = cage_data.app_hash.substr(0, 20);
@@ -146,14 +150,22 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM w_param, LPARAM l_param)
 			::PostQuitMessage(0);
 			break;
 		}
-		else if (current_hwnd == app_name_restart_button)
+		else if (current_hwnd == app_activate_button)
 		{
 			// send message to manager to restart...
+			if (!::SetEvent(activate_app.value()))
+			{
+				std::wcout << L"Failed to send restart additional app signal, error: " << ::GetLastError() << std::endl;
+			}
 			return ::DefWindowProc(hwnd, msg, w_param, l_param);
 		}
-		else if (current_hwnd == additional_app_restart_button)
+		else if (current_hwnd == additional_app_activate_button)
 		{
 			// send message to manager to restart...
+			if(!::SetEvent(activate_additional_app.value()))
+			{
+				std::wcout << L"Failed to send restart additional app signal, error: " << ::GetLastError() << std::endl;
+			}
 			return ::DefWindowProc(hwnd, msg, w_param, l_param);
 		}
 		else
@@ -528,9 +540,9 @@ static bool ShowConfigMetadata(HWND &hwnd)
 		nullptr,
 		nullptr);
 
-	app_name_restart_button = ::CreateWindow(
+	app_activate_button = ::CreateWindow(
 		L"BUTTON",
-		L"Restart",
+		L"Activate",
 		WS_VISIBLE | WS_CHILD,
 		labeler_width - 112,
 		labeler_width + 79,
@@ -556,9 +568,9 @@ static bool ShowConfigMetadata(HWND &hwnd)
 			nullptr,
 			nullptr);
 
-		additional_app_restart_button = ::CreateWindow(
+		additional_app_activate_button = ::CreateWindow(
 			L"BUTTON",
-			L"Restart",
+			L"Activate",
 			WS_VISIBLE | WS_CHILD,
 			labeler_width - 112,
 			labeler_width + 128,
@@ -621,7 +633,7 @@ static bool ShowConfigMetadata(HWND &hwnd)
 		}
 	}
 
-	if (app_name_title != nullptr && app_name_restart_button != nullptr)
+	if (app_name_title != nullptr && app_activate_button != nullptr)
 	{
 		HFONT default_font = ::CreateFont(
 			16,
@@ -657,14 +669,14 @@ static bool ShowConfigMetadata(HWND &hwnd)
 
 		::SendMessage(app_title, WM_SETFONT, (WPARAM)bold_font, TRUE);
 		::SendMessage(app_name_title, WM_SETFONT, (WPARAM)default_font, TRUE);
-		::SendMessage(app_name_restart_button, BM_SETIMAGE, NULL, NULL);
+		::SendMessage(app_activate_button, BM_SETIMAGE, NULL, NULL);
 		::SendMessage(app_hash_text_title, WM_SETFONT, (WPARAM)bold_font, TRUE);
 		::SendMessage(app_hash_text, WM_SETFONT, (WPARAM)default_font, TRUE);
 
 		if (additional_app_name.has_value())
 		{
 			::SendMessage(additional_app_app_title, WM_SETFONT, (WPARAM)default_font, TRUE);
-			::SendMessage(additional_app_restart_button, BM_SETIMAGE, NULL, NULL);
+			::SendMessage(additional_app_activate_button, BM_SETIMAGE, NULL, NULL);
 		}
 
 		if (restrict_closing)
