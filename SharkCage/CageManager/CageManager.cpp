@@ -44,9 +44,6 @@ int main()
 		return 1;
 	}
 
-	std::wstring result_data;
-	network_manager.Send(sender, CageMessage::RESPONSE_SUCCESS, L"", result_data);
-
 	CageData cage_data = { message_data };
 	if (!SharedFunctions::ParseStartProcessMessage(cage_data))
 	{
@@ -59,8 +56,15 @@ int main()
 		// FIXME in the future we should wait for an acknowledgement / failure response for all messages,
 		// this would allow us to report the reason for not starting the cage back to the caller (CageChooser)
 		std::cout << "Could not process start process message" << std::endl;
+
+		std::wstring result_data;
+		network_manager.Send(sender, CageMessage::RESPONSE_FAILURE, L"One or more process is already running on the default desktop, please close them and try again.", result_data);
+
 		return 1;
 	}
+
+	std::wstring result_data;
+	network_manager.Send(sender, CageMessage::RESPONSE_SUCCESS, L"", result_data);
 
 	const int work_area_width = 300;
 	std::thread desktop_thread(
