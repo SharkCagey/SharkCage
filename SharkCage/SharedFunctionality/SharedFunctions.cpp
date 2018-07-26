@@ -160,10 +160,38 @@ namespace SharedFunctions
 				cage_data.additional_app_path = converter.from_bytes(additional_application_path);
 				cage_data.restrict_closing = restrict_closing;
 
+				cage_data.activate_app = ::CreateEvent(
+					nullptr,
+					TRUE,
+					FALSE,
+					L"Sharkcage_ActivateMainApp"
+				);
+
+				if (!cage_data.activate_app)
+				{
+					std::cout << "Create restart event for app failed. Error: " << GetLastError() << std::endl;
+					return false;
+				}
+
 				if (!cage_data.hasAdditionalAppInfo() || cage_data.additional_app_name->compare(L"None") == 0)
 				{
 					cage_data.additional_app_name.reset();
 					cage_data.additional_app_path.reset();
+				}
+				else
+				{
+					cage_data.activate_additional_app = ::CreateEvent(
+						nullptr,
+						TRUE,
+						FALSE,
+						L"Sharkcage_ActivateAdditionalApp"
+					);
+
+					if (!cage_data.activate_additional_app.value())
+					{
+						std::cout << "Create restart event for additional app failed. Error: " << GetLastError() << std::endl;
+						return false;
+					}
 				}
 
 				return true;

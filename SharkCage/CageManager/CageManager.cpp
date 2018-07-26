@@ -9,6 +9,7 @@
 
 #include <unordered_set>
 #include <thread>
+#include "tlhelp32.h"
 
 #include "CageManager.h"
 #include "CageLabeler.h"
@@ -51,12 +52,8 @@ int main()
 		return 1;
 	}
 
-	if (cage_manager.ProcessAlreadyRunning(cage_data))
+	if (cage_manager.ProcessRunning(cage_data.app_path) || (cage_data.hasAdditionalAppInfo() && cage_manager.ProcessRunning(cage_data.additional_app_path.value())))
 	{
-		// FIXME in the future we should wait for an acknowledgement / failure response for all messages,
-		// this would allow us to report the reason for not starting the cage back to the caller (CageChooser)
-		std::cout << "Could not process start process message" << std::endl;
-
 		std::wstring result_data;
 		network_manager.Send(sender, CageMessage::RESPONSE_FAILURE, L"One or more of the process(es) you are trying to start on the secure desktop"
 			" is already running on the default desktop. Please close them and then try again.", result_data);
@@ -106,7 +103,7 @@ void CageManager::StartCage(SECURITY_ATTRIBUTES security_attributes, const CageD
 	}
 
 	::RpcStringFree(&uuid_str);
-	
+
 	const std::wstring DESKTOP_NAME = std::wstring(L"shark_cage_desktop_").append(uuid_stl);
 	const int work_area_width = 300;
 	CageDesktop cage_desktop(
@@ -136,17 +133,25 @@ void CageManager::StartCage(SECURITY_ATTRIBUTES security_attributes, const CageD
 	// We need in order to create the process.
 	STARTUPINFO info = {};
 	info.dwFlags = STARTF_USESHOWWINDOW;
-	info.wShowWindow = SW_MAXIMIZE;
+	info.wShowWindow = SW_SHOW;
 
 	// The desktop's name where we are going to start the application. In this case, our new desktop.
 	info.lpDesktop = const_cast<LPWSTR>(DESKTOP_NAME.c_str());
 
 	// Create the process.
 	PROCESS_INFORMATION process_info = {};
-	std::vector<wchar_t> path_buf(cage_data.app_path.begin(), cage_data.app_path.end());
-	path_buf.push_back(0);
 
-	if (::CreateProcess(path_buf.data(), nullptr, &security_attributes, nullptr, FALSE, 0, nullptr, nullptr, &info, &process_info) == 0)
+	if (::CreateProcess(
+		cage_data.app_path.c_str(),
+		nullptr,
+		&security_attributes,
+		nullptr,
+		FALSE,
+		0,
+		nullptr,
+		nullptr,
+		&info,
+		&process_info) == 0)
 	{
 		std::cout << "Failed to start process. Error: " << ::GetLastError() << std::endl;
 	}
@@ -154,20 +159,38 @@ void CageManager::StartCage(SECURITY_ATTRIBUTES security_attributes, const CageD
 	PROCESS_INFORMATION process_info_additional_app = { 0 };
 	if (cage_data.hasAdditionalAppInfo())
 	{
-		std::vector<wchar_t> additional_app_path_buf(cage_data.additional_app_path->begin(), cage_data.additional_app_path->end());
-		additional_app_path_buf.push_back(0);
-
-		if (::CreateProcess(additional_app_path_buf.data(), nullptr, &security_attributes, nullptr, FALSE, 0, nullptr, nullptr, &info, &process_info_additional_app) == 0)
+		if (::CreateProcess(
+			cage_data.additional_app_path.value().c_str(),
+			nullptr,
+			&security_attributes,
+			nullptr,
+			FALSE,
+			0,
+			nullptr,
+			nullptr,
+			&info,
+			&process_info_additional_app) == 0)
 		{
 			std::cout << "Failed to start additional process. Error: " << GetLastError() << std::endl;
 		}
 	}
 
 	bool keep_cage_running = true;
+
 	std::vector<HANDLE> handles = { labeler_thread.native_handle(), process_info.hProcess };
+	std::vector<HANDLE> wait_handles;
+
+	wait_handles.push_back(cage_data.activate_app);
+
 	if (cage_data.hasAdditionalAppInfo())
 	{
 		handles.push_back(process_info_additional_app.hProcess);
+		wait_handles.push_back(cage_data.activate_additional_app.value());
+	}
+
+	for (auto handle : wait_handles)
+	{
+		handles.push_back(handle);
 	}
 
 	// wait for all open window handles on desktop + cage_labeler
@@ -184,23 +207,49 @@ void CageManager::StartCage(SECURITY_ATTRIBUTES security_attributes, const CageD
 			}
 			else
 			{
-				std::cout << "other handle" << std::endl;
 				// check all other handles
 				for (size_t i = 1; i < handles.size(); ++i)
 				{
 					if (res == WAIT_OBJECT_0 + i)
 					{
-						std::cout << "removing" << std::endl;
-						// remove the handle we got an event for
-						auto iter = handles.begin();
-						std::advance(iter, i);
-						handles.erase(iter);
+						// get the handle we got an event for
+						auto iterator = handles.begin();
+						std::advance(iterator, i);
+
+						if (*iterator == cage_data.activate_app)
+						{
+							CageManager::ActivateApp(
+								cage_data.app_path,
+								cage_data.activate_app,
+								desktop_handle,
+								process_info,
+								security_attributes,
+								info,
+								handles);
+						}
+						else if (cage_data.hasAdditionalAppInfo() && *iterator == cage_data.activate_additional_app.value())
+						{
+							CageManager::ActivateApp(
+								cage_data.additional_app_path.value(),
+								cage_data.activate_additional_app.value(),
+								desktop_handle,
+								process_info_additional_app,
+								security_attributes,
+								info,
+								handles);
+						}
+						else
+						{
+							// remove the handle we got an event for
+							handles.erase(iterator);
+						}
 					}
 				}
 			}
 		}
 
-		if (!keep_cage_running || (handles.size() < 2 && !cage_data.restrict_closing))
+		const int running_processes_to_keep_cage_alive = 2; // labeler + app or additional app
+		if (!keep_cage_running || (handles.size() < running_processes_to_keep_cage_alive + wait_handles.size() && !cage_data.restrict_closing))
 		{
 			// labeler still running, tell it to shut down
 			if (keep_cage_running)
@@ -271,11 +320,13 @@ void CageManager::StartCage(SECURITY_ATTRIBUTES security_attributes, const CageD
 	// close our handles
 	::CloseHandle(process_info.hProcess);
 	::CloseHandle(process_info.hThread);
+	::CloseHandle(cage_data.activate_app);
 
 	if (cage_data.hasAdditionalAppInfo())
 	{
 		::CloseHandle(process_info_additional_app.hProcess);
 		::CloseHandle(process_info_additional_app.hThread);
+		::CloseHandle(cage_data.activate_additional_app.value());
 	}
 }
 
@@ -327,48 +378,56 @@ BOOL CALLBACK CageManager::GetOpenWindowHandles(_In_ HWND hwnd, _In_ LPARAM l_pa
 	return TRUE;
 }
 
-bool CageManager::ProcessAlreadyRunning(const CageData &cage_data)
+BOOL CALLBACK CageManager::ActivateProcess(_In_ HWND hwnd, _In_ LPARAM l_param)
+{
+	auto data = reinterpret_cast<DWORD*>(l_param);
+	auto current_process_id = *data;
+
+	::SetLastError(0);
+	DWORD process_id;
+	::GetWindowThreadProcessId(hwnd, &process_id);
+
+	if (process_id == current_process_id && ::IsWindowVisible(hwnd))
+	{
+		if (::IsIconic(hwnd))
+		{
+			::ShowWindow(hwnd, SW_RESTORE);
+		}
+		else
+		{
+			::SetForegroundWindow(hwnd);
+		}
+	}
+
+	return TRUE;
+}
+
+bool CageManager::ProcessRunning(const std::wstring &process_path)
 {
 	bool app_running = false;
-	bool additional_app_running = false;
 
 	HANDLE process_snapshot;
 	PROCESSENTRY32 process_entry;
 	process_snapshot = ::CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
 
-	if (process_snapshot == INVALID_HANDLE_VALUE)
-	{
-		app_running = false;
-	}
-	else
+	if (process_snapshot != INVALID_HANDLE_VALUE)
 	{
 		process_entry.dwSize = sizeof(PROCESSENTRY32);
 		if (::Process32First(process_snapshot, &process_entry))
 		{
 			std::wstring comparison(process_entry.szExeFile);
-			if (cage_data.app_path.find(comparison) != std::wstring::npos)
+
+			if (process_path.find(comparison) != std::wstring::npos)
 			{
 				app_running = true;
 			}
-			else if (!additional_app_running
-				&& cage_data.additional_app_path.has_value()
-				&& cage_data.additional_app_path->find(comparison) != std::wstring::npos)
-			{
-				additional_app_running = true;
-			}
 
-			while (!app_running && !additional_app_running && ::Process32Next(process_snapshot, &process_entry))
+			while (!app_running && ::Process32Next(process_snapshot, &process_entry))
 			{
 				comparison = std::wstring(process_entry.szExeFile);
-				if (!app_running && cage_data.app_path.find(comparison) != std::wstring::npos)
+				if (process_path.find(comparison) != std::wstring::npos)
 				{
 					app_running = true;
-				}
-				else if (!additional_app_running
-					&& cage_data.additional_app_path.has_value()
-					&& cage_data.additional_app_path->find(comparison) != std::wstring::npos)
-				{
-					additional_app_running = true;
 				}
 			}
 
@@ -376,5 +435,55 @@ bool CageManager::ProcessAlreadyRunning(const CageData &cage_data)
 		}
 	}
 
-	return app_running || additional_app_running;
+	return app_running;
+}
+
+void CageManager::ActivateApp(
+	const std::wstring &path,
+	const HANDLE &event,
+	const HDESK &desktop_handle,
+	PROCESS_INFORMATION &process_info,
+	SECURITY_ATTRIBUTES security_attributes,
+	STARTUPINFO info,
+	std::vector<HANDLE> &handles)
+{
+	std::cout << "restart app" << std::endl;
+
+	if (!::ResetEvent(event))
+	{
+		std::cout << "Reset event failed. Error: " << ::GetLastError() << std::endl;
+	}
+
+	if (CageManager::ProcessRunning(path))
+	{
+		::EnumDesktopWindows(
+			desktop_handle,
+			&CageManager::ActivateProcess,
+			reinterpret_cast<LPARAM>(&process_info.dwProcessId)
+		);
+	}
+	else
+	{
+		::CloseHandle(process_info.hProcess);
+		::CloseHandle(process_info.hThread);
+
+		if (::CreateProcess(
+			path.c_str(),
+			nullptr,
+			&security_attributes,
+			nullptr,
+			FALSE,
+			0,
+			nullptr,
+			nullptr,
+			&info,
+			&process_info) == 0)
+		{
+			std::cout << "Failed to start process. Error: " << ::GetLastError() << std::endl;
+		}
+		else
+		{
+			handles.push_back(process_info.hProcess);
+		}
+	}
 }
