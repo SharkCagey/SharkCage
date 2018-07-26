@@ -3,6 +3,7 @@ using Microsoft.Win32;
 using System;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Windows.Forms;
 
 namespace CageChooser
@@ -12,8 +13,11 @@ namespace CageChooser
         private class NativeMethods
         {
             [DllImport("SharedFunctionality.dll", CallingConvention = CallingConvention.Cdecl)]
-            public static extern void SendConfigAndExternalProgram(
-                [MarshalAs(UnmanagedType.LPWStr)] string config_path
+            [return: MarshalAs(UnmanagedType.I1)]
+            public static extern bool SendConfigAndExternalProgram(
+                [MarshalAs(UnmanagedType.LPWStr)] string config_path,
+                [MarshalAs(UnmanagedType.LPWStr)] StringBuilder result,
+                int max_result_length
             );
         }
 
@@ -146,7 +150,15 @@ namespace CageChooser
             {
                 if (configPath.Text != String.Empty)
                 {
-                    NativeMethods.SendConfigAndExternalProgram(configPath.Text);
+                    int capacity = 1000;
+                    StringBuilder sb = new StringBuilder(capacity);
+
+                    bool result = NativeMethods.SendConfigAndExternalProgram(configPath.Text, sb, capacity);
+
+                    if (!result)
+                    {
+                        MessageBox.Show("Error communicating with service: " + sb.ToString(), "Shark Cage", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
 
                     // bring the form back in focus
                     Activate();
