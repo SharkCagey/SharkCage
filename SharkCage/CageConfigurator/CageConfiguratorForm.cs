@@ -166,7 +166,7 @@ namespace CageConfigurator
         {
             if (unsaved_data)
             {
-                var contine_unsaved = MessageBox.Show("There are unsaved changes. Do you want to continue?", "Sharc Cage", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+                var contine_unsaved = MessageBox.Show("There are unsaved changes. Do you want to continue?", "SharkCage", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
                 if (contine_unsaved == DialogResult.No)
                 {
                     return;
@@ -180,7 +180,7 @@ namespace CageConfigurator
         {
             if (unsaved_data)
             {
-                var contine_unsaved = MessageBox.Show("There are unsaved changes. Do you want to continue?", "Sharc Cage", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+                var contine_unsaved = MessageBox.Show("There are unsaved changes. Do you want to continue?", "SharkCage", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
                 if (contine_unsaved == DialogResult.No)
                 {
                     return;
@@ -202,6 +202,23 @@ namespace CageConfigurator
 
         private void LoadConfig(string config_path)
         {
+            IdentityReference built_in_administrators = new SecurityIdentifier(WellKnownSidType.BuiltinAdministratorsSid, null);
+            var file_security = new FileSecurity(config_path, AccessControlSections.Access);
+
+            var access_rules = file_security.GetAccessRules(true, true, typeof(SecurityIdentifier));
+            var access_rules_okay = access_rules.Count == 1;
+            foreach (AuthorizationRule access_rule in access_rules)
+            {
+                access_rules_okay = access_rules_okay && access_rule.IdentityReference == built_in_administrators;
+            }
+
+            if (!access_rules_okay)
+            {
+                MessageBox.Show("The config you are trying to load does not have the correct access rights, " +
+                    "it might be corrupted or a potential attacker has modified it.", "SharkCage", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                return;
+            }
+
             try
             {
                 var json = JObject.Parse(File.ReadAllText(config_path));
@@ -218,6 +235,7 @@ namespace CageConfigurator
                 current_config_name = Path.GetFileNameWithoutExtension(config_path);
                 configName.Text = current_config_name;
                 Text = $"Cage Configurator - {current_config_name}";
+                SetUnsavedData(false);
             }
             catch (Exception e)
             {

@@ -29,6 +29,14 @@ namespace CageChooser
 
         private void CageChooser_Load(object sender, EventArgs e)
         {
+            LoadConfigList();
+        }
+
+        private void LoadConfigList()
+        {
+            config_name_value_mapping.Clear();
+            registeredConfigs.Items.Clear();
+
             var subkey = REGISTRY_KEY.Replace("HKEY_LOCAL_MACHINE\\", "");
             var config_registry_key = Path.Combine(subkey, "Configs");
             var key = Registry.LocalMachine.OpenSubKey(config_registry_key, false);
@@ -41,7 +49,30 @@ namespace CageChooser
                     config_name_value_mapping.Add(value_name, value);
                     registeredConfigs.Items.Insert(registeredConfigs.Items.Count, value_name);
                 }
+
+                if (registeredConfigs.Items.Count > 0)
+                {
+                    registeredConfigs.SelectedIndex = 0;
+                }
             }
+
+            openButton.Enabled = registeredConfigs.SelectedItem != null;
+        }
+
+        protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
+        {
+            bool bHandled = false;
+            switch (keyData)
+            {
+                case Keys.F5:
+                    LoadConfigList();
+
+                    bHandled = true;
+                    break;
+                default:
+                    return base.ProcessCmdKey(ref msg, keyData);
+            }
+            return bHandled;
         }
 
         #endregion
@@ -86,14 +117,22 @@ namespace CageChooser
 
             var p = new System.Diagnostics.Process();
             p.StartInfo.FileName = $@"{install_dir}\CageConfigurator.exe";
+
             var selected_item = registeredConfigs.SelectedItem?.ToString() ?? String.Empty;
-            if (selected_item != String.Empty)
+            var config_path = String.Empty;
+            config_name_value_mapping.TryGetValue(selected_item, out config_path);
+            if (config_path != String.Empty)
             {
-                p.StartInfo.Arguments = $@"""{selected_item}""";
+                p.StartInfo.Arguments = $@"""{config_path}""";
             }
             p.Start();
         }
 
         #endregion
+
+        private void registeredConfigs_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            openButton.Enabled = registeredConfigs.SelectedItem != null;
+        }
     }
 }

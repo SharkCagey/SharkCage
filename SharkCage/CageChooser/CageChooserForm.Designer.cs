@@ -28,10 +28,12 @@
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             this.registeredConfigs = new System.Windows.Forms.ListBox();
             this.registeredConfigsLabel = new System.Windows.Forms.Label();
             this.openButton = new System.Windows.Forms.Button();
             this.openCageConfiguratorButton = new System.Windows.Forms.Button();
+            this.refreshTooltip = new System.Windows.Forms.ToolTip(this.components);
             this.SuspendLayout();
             // 
             // registeredConfigs
@@ -41,6 +43,8 @@
             this.registeredConfigs.Name = "registeredConfigs";
             this.registeredConfigs.Size = new System.Drawing.Size(446, 186);
             this.registeredConfigs.TabIndex = 4;
+            this.refreshTooltip.SetToolTip(this.registeredConfigs, "Press F5 to refresh this list");
+            this.registeredConfigs.SelectedIndexChanged += new System.EventHandler(this.registeredConfigs_SelectedIndexChanged);
             // 
             // registeredConfigsLabel
             // 
@@ -71,6 +75,12 @@
             this.openCageConfiguratorButton.UseVisualStyleBackColor = true;
             this.openCageConfiguratorButton.Click += new System.EventHandler(this.openCageConfiguratorButton_Click);
             // 
+            // refreshTooltip
+            // 
+            this.refreshTooltip.AutoPopDelay = 30000;
+            this.refreshTooltip.InitialDelay = 500;
+            this.refreshTooltip.ReshowDelay = 100;
+            // 
             // CageChooserForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -94,6 +104,7 @@
         private System.Windows.Forms.Label registeredConfigsLabel;
         private System.Windows.Forms.Button openButton;
         private System.Windows.Forms.Button openCageConfiguratorButton;
+        private System.Windows.Forms.ToolTip refreshTooltip;
     }
 }
 
