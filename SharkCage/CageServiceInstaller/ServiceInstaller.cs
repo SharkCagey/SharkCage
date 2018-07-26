@@ -1,10 +1,21 @@
-﻿namespace CageServiceInstaller
+﻿/// \file ServiceIntaller.cs
+/// \brief Graphical Installer for CageService, for user friendly installation. 
+///
+
+///
+/// \brief The namespace for the Installer, containing the ServiceInstaller class,
+/// as well as all other functionalities.
+///
+namespace CageServiceInstaller
 {
 
     using System;
     using System.Runtime.InteropServices;
     using System.Threading;
 
+    ///
+    /// \brief The ServiceInstaller for user friendly installation of CageService.
+    ///
     public static class ServiceInstaller
     {
         private const int STANDARD_RIGHTS_REQUIRED = 0xF0000;
@@ -23,6 +34,9 @@
         }
 
         #region OpenSCManager
+        ///
+        /// \brief Opens the Service Control Manager.
+        /// 
         [DllImport("advapi32.dll", EntryPoint = "OpenSCManagerW", ExactSpelling = true, CharSet = CharSet.Unicode, SetLastError = true)]
         static extern IntPtr OpenSCManager(string machine_name, string database_name, ScmAccessRights dw_desired_access);
         #endregion

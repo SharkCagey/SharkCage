@@ -20,7 +20,7 @@ struct CageData
 	std::wstring app_hash; /*!< the hash to go with the token */
 	std::optional<std::wstring> additional_app_name; /*!< the name of the additional application, if chosen */
 	std::optional<std::wstring> additional_app_path; /*!< the path to the additional application, if chosen */
-	bool restrict_closing; /*!< TODO: whether the cage is closable */
+	bool restrict_closing; /*!< whether closing is restricted to the provided exit button */
 	/*@}*/
 
 	/*@{*/
