@@ -166,7 +166,7 @@ void CageManager::StartCage(SECURITY_ATTRIBUTES security_attributes, const CageD
 	std::vector<HANDLE> handles = { labeler_thread.native_handle(), process_info.hProcess };
 	std::vector<HANDLE> wait_handles;
 
-	wait_handles.push_back(cage_data.activiate_app);
+	wait_handles.push_back(cage_data.activate_app);
 
 	if (cage_data.hasAdditionalAppInfo())
 	{
@@ -202,11 +202,11 @@ void CageManager::StartCage(SECURITY_ATTRIBUTES security_attributes, const CageD
 						auto iterator = handles.begin();
 						std::advance(iterator, i);
 
-						if (*iterator == cage_data.activiate_app)
+						if (*iterator == cage_data.activate_app)
 						{
 							CageManager::ActivateApp(
 								cage_data.app_path,
-								cage_data.activiate_app,
+								cage_data.activate_app,
 								desktop_handle,
 								process_info,
 								security_attributes,
@@ -306,12 +306,12 @@ void CageManager::StartCage(SECURITY_ATTRIBUTES security_attributes, const CageD
 	// close our handles
 	::CloseHandle(process_info.hProcess);
 	::CloseHandle(process_info.hThread);
+	::CloseHandle(cage_data.activate_app);
 
 	if (cage_data.hasAdditionalAppInfo())
 	{
 		::CloseHandle(process_info_additional_app.hProcess);
 		::CloseHandle(process_info_additional_app.hThread);
-		::CloseHandle(cage_data.activiate_app);
 		::CloseHandle(cage_data.activate_additional_app.value());
 	}
 }
@@ -388,7 +388,6 @@ BOOL CALLBACK CageManager::ActivateProcess(_In_ HWND hwnd, _In_ LPARAM l_param)
 	return TRUE;
 }
 
-
 bool CageManager::ProcessRunning(const std::wstring &process_path)
 {
 	bool app_running = false;
@@ -433,7 +432,7 @@ void CageManager::ActivateApp(
 	STARTUPINFO info,
 	std::vector<HANDLE> &handles)
 {
-	std::cout << "restart additional app" << std::endl;
+	std::cout << "restart app" << std::endl;
 
 	if (!::ResetEvent(event))
 	{

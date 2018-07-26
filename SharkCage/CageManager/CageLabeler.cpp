@@ -27,8 +27,8 @@ static HWND labeler_background_window;
 
 static HWND gotodesk_button;
 static HWND app_title;
-static HWND app_activate_button;
 static HWND app_name_title;
+static HWND app_activate_button;
 static HWND additional_app_app_title;
 static HWND additional_app_activate_button;
 static HWND app_hash_text_title;
@@ -58,8 +58,8 @@ CageLabeler::CageLabeler(
 	additional_app_name = cage_data.additional_app_name;
 	restrict_closing = cage_data.restrict_closing;
 	window_class_name = _window_class_name;
+	activate_app = cage_data.activate_app;
 	activate_additional_app = cage_data.activate_additional_app;
-	activate_app = cage_data.activiate_app;
 
 	// truncate hash
 	app_hash = cage_data.app_hash.substr(0, 20);
@@ -155,7 +155,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM w_param, LPARAM l_param)
 			// send message to manager to restart...
 			if (!::SetEvent(activate_app))
 			{
-				std::wcout << L"Failed to send restart additional app signal, error: " << ::GetLastError() << std::endl;
+				std::wcout << L"Failed to send restart app signal, error: " << ::GetLastError() << std::endl;
 			}
 			return ::DefWindowProc(hwnd, msg, w_param, l_param);
 		}
