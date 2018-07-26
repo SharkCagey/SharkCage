@@ -62,7 +62,7 @@ bool NetworkManager::Send(const std::wstring &msg, ContextType receiver)
 	io_context.restart();
 
 	std::vector<char> message = StringToVec(msg);
-	
+
 	try
 	{
 		auto send_port = GetPort(receiver);
@@ -98,7 +98,7 @@ DLLEXPORT std::wstring NetworkManager::Listen(long timeout_seconds)
 
 	tcp::socket socket(io_context);
 	asio::streambuf buffer;
-	
+
 	try
 	{
 		asio::error_code err_code;
