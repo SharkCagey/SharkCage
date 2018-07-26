@@ -1,6 +1,6 @@
-﻿using CageChooser.Properties;
-using Microsoft.Win32;
+﻿using Microsoft.Win32;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
@@ -9,6 +9,9 @@ namespace CageChooser
 {
     public partial class CageChooserForm : Form
     {
+        private const string REGISTRY_KEY = @"HKEY_LOCAL_MACHINE\SOFTWARE\SharkCage";
+        private Dictionary<string, string> config_name_value_mapping = new Dictionary<string, string>();
+
         private class NativeMethods
         {
             [DllImport("SharedFunctionality.dll", CallingConvention = CallingConvention.Cdecl)]
@@ -26,113 +29,18 @@ namespace CageChooser
 
         private void CageChooser_Load(object sender, EventArgs e)
         {
-            if (!File.Exists(Settings.Default.PersistentConfigPath))
+            var subkey = REGISTRY_KEY.Replace("HKEY_LOCAL_MACHINE\\", "");
+            var config_registry_key = Path.Combine(subkey, "Configs");
+            var key = Registry.LocalMachine.OpenSubKey(config_registry_key, false);
+
+            if (key != null)
             {
-                configPath.Text = String.Empty;
-            }
-            if (Settings.Default.PersistentLRUConfigs != null)
-            {
-                foreach (string lruConfig in Settings.Default.PersistentLRUConfigs)
+                foreach (var value_name in key.GetValueNames())
                 {
-                    if (File.Exists(lruConfig))
-                    {
-                        lruConfigs.Items.Add(lruConfig);
-                    }
+                    var value = (key.GetValue(value_name) as string) ?? String.Empty;
+                    config_name_value_mapping.Add(value_name, value);
+                    registeredConfigs.Items.Insert(registeredConfigs.Items.Count, value_name);
                 }
-            }
-        }
-
-        private void CageChooser_FormClosed(object sender, FormClosedEventArgs e)
-        {
-            Settings.Default.PersistentLRUConfigs = new System.Collections.Specialized.StringCollection();
-            foreach (string lruConfig in lruConfigs.Items)
-            {
-                Settings.Default.PersistentLRUConfigs.Add(lruConfig);
-            }
-            Settings.Default.Save();
-        }
-
-        #endregion
-
-        #region Config
-
-        private void configBrowseButton_Click(object sender, EventArgs e)
-        {
-            var file_dialog = new OpenFileDialog();
-            file_dialog.CheckFileExists = true;
-            file_dialog.Filter = "SharkCage configuration|*.sconfig";
-            var result = file_dialog.ShowDialog();
-            if (result == DialogResult.OK)
-            {
-                var chosen_file = file_dialog.FileName;
-                CheckConfigPath(chosen_file, (string path) =>
-                {
-                    configPath.Text = path;
-                    addToLRUconfigs(path);
-
-                    configPath.SelectionStart = configPath.Text.Length;
-                    configPath.ScrollToCaret();
-                });
-            }
-        }
-
-        private void configPath_Leave(object sender, EventArgs e)
-        {
-            CheckConfigPath(configPath.Text, addToLRUconfigs);
-        }
-
-        private void CheckConfigPath(string config_path, Action<string> onSuccess)
-        {
-            if (config_path.Length == 0)
-            {
-                return;
-            }
-
-            if (config_path.EndsWith(".sconfig") && File.Exists(config_path))
-            {
-                onSuccess(config_path);
-            }
-            else
-            {
-                MessageBox.Show("Can only choose existing .sconfig files!", "Shark Cage", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                configPath.Focus();
-            }
-        }
-
-        #endregion
-
-        #region Last Recently Used List
-
-        private void lruConfigs_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            if (lruConfigs.SelectedItem != null)
-            {
-                var selected_item = lruConfigs.SelectedItem.ToString();
-                configPath.Text = selected_item;
-
-                configPath.SelectionStart = configPath.Text.Length;
-                configPath.ScrollToCaret();
-            }
-        }
-
-        private void addToLRUconfigs(string config_path)
-        {
-            if (lruConfigs.Items.Contains(config_path))
-            {
-                lruConfigs.Items.Remove(config_path);
-            }
-            while (lruConfigs.Items.Count > 9)
-            {
-                lruConfigs.Items.RemoveAt(lruConfigs.Items.Count - 1);
-            }
-            lruConfigs.Items.Insert(0, config_path);
-        }
-
-        private void lruConfigs_KeyUp(object sender, KeyEventArgs e)
-        {
-            if (e.KeyCode == Keys.Delete && lruConfigs.SelectedItem != null)
-            {
-                lruConfigs.Items.Remove(lruConfigs.SelectedItem);
             }
         }
 
@@ -144,9 +52,13 @@ namespace CageChooser
         {
             try
             {
-                if (configPath.Text != String.Empty)
+                var selected_item = registeredConfigs.SelectedItem?.ToString() ?? String.Empty;
+                var config_path = String.Empty;
+                config_name_value_mapping.TryGetValue(selected_item, out config_path);
+
+                if (config_path != String.Empty)
                 {
-                    NativeMethods.SendConfigAndExternalProgram(configPath.Text);
+                    NativeMethods.SendConfigAndExternalProgram(config_path);
 
                     // bring the form back in focus
                     Activate();
@@ -164,10 +76,9 @@ namespace CageChooser
 
         private void openCageConfiguratorButton_Click(object sender, EventArgs e)
         {
-            const string registry_key = @"HKEY_LOCAL_MACHINE\SOFTWARE\SharkCage";
-            var install_dir = Registry.GetValue(registry_key, "InstallDir", "") as string;
+            var install_dir = Registry.GetValue(REGISTRY_KEY, "InstallDir", "") as string ?? String.Empty;
 
-            if (install_dir.Length == 0)
+            if (install_dir == String.Empty)
             {
                 MessageBox.Show("Could not read installation directory from registry, opening CageConfigurator not possible", "Shark Cage", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return;
@@ -175,7 +86,11 @@ namespace CageChooser
 
             var p = new System.Diagnostics.Process();
             p.StartInfo.FileName = $@"{install_dir}\CageConfigurator.exe";
-            p.StartInfo.Arguments = $@"""{configPath.Text}""";
+            var selected_item = registeredConfigs.SelectedItem?.ToString() ?? String.Empty;
+            if (selected_item != String.Empty)
+            {
+                p.StartInfo.Arguments = $@"""{selected_item}""";
+            }
             p.Start();
         }
 

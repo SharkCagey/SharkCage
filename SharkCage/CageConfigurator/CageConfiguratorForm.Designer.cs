@@ -47,13 +47,15 @@
             this.videoSources = new System.Windows.Forms.ComboBox();
             this.restrictExitButton = new System.Windows.Forms.CheckBox();
             this.restrictExitTooltip = new System.Windows.Forms.ToolTip(this.components);
+            this.configNameLabel = new System.Windows.Forms.Label();
+            this.configName = new System.Windows.Forms.TextBox();
             this.menuStrip.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.tokenBox)).BeginInit();
             this.SuspendLayout();
             // 
             // openCageChooserButton
             // 
-            this.openCageChooserButton.Location = new System.Drawing.Point(12, 445);
+            this.openCageChooserButton.Location = new System.Drawing.Point(12, 485);
             this.openCageChooserButton.Name = "openCageChooserButton";
             this.openCageChooserButton.Size = new System.Drawing.Size(221, 24);
             this.openCageChooserButton.TabIndex = 10;
@@ -72,11 +74,11 @@
             // 
             // saveButton
             // 
-            this.saveButton.Location = new System.Drawing.Point(251, 445);
+            this.saveButton.Location = new System.Drawing.Point(251, 485);
             this.saveButton.Name = "saveButton";
             this.saveButton.Size = new System.Drawing.Size(221, 24);
             this.saveButton.TabIndex = 11;
-            this.saveButton.Text = "Save configuration ...";
+            this.saveButton.Text = "Save configuration";
             this.saveButton.UseVisualStyleBackColor = true;
             this.saveButton.Click += new System.EventHandler(this.saveButton_Click);
             // 
@@ -117,6 +119,7 @@
             // 
             // applicationPath
             // 
+            this.applicationPath.AllowDrop = true;
             this.applicationPath.Location = new System.Drawing.Point(12, 56);
             this.applicationPath.Name = "applicationPath";
             this.applicationPath.Size = new System.Drawing.Size(354, 20);
@@ -214,11 +217,30 @@
             this.restrictExitTooltip.ReshowDelay = 100;
             this.restrictExitTooltip.Tag = "";
             // 
+            // configNameLabel
+            // 
+            this.configNameLabel.AutoSize = true;
+            this.configNameLabel.Location = new System.Drawing.Point(13, 430);
+            this.configNameLabel.Name = "configNameLabel";
+            this.configNameLabel.Size = new System.Drawing.Size(114, 13);
+            this.configNameLabel.TabIndex = 12;
+            this.configNameLabel.Text = "Name of configuration:";
+            // 
+            // configName
+            // 
+            this.configName.Location = new System.Drawing.Point(12, 446);
+            this.configName.Name = "configName";
+            this.configName.Size = new System.Drawing.Size(460, 20);
+            this.configName.TabIndex = 13;
+            this.configName.TextChanged += new System.EventHandler(this.configName_TextChanged);
+            // 
             // CageConfiguratorForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(484, 481);
+            this.ClientSize = new System.Drawing.Size(484, 521);
+            this.Controls.Add(this.configName);
+            this.Controls.Add(this.configNameLabel);
             this.Controls.Add(this.restrictExitButton);
             this.Controls.Add(this.videoSources);
             this.Controls.Add(this.tokenBox);
@@ -265,6 +287,8 @@
         private System.Windows.Forms.ComboBox videoSources;
         private System.Windows.Forms.CheckBox restrictExitButton;
         private System.Windows.Forms.ToolTip restrictExitTooltip;
+        private System.Windows.Forms.Label configNameLabel;
+        private System.Windows.Forms.TextBox configName;
     }
 }
 

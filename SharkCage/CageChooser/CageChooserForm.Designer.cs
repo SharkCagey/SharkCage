@@ -28,52 +28,28 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.lruConfigs = new System.Windows.Forms.ListBox();
-            this.lruConfigsLabel = new System.Windows.Forms.Label();
-            this.configChooseLabel = new System.Windows.Forms.Label();
-            this.configBrowseButton = new System.Windows.Forms.Button();
+            this.registeredConfigs = new System.Windows.Forms.ListBox();
+            this.registeredConfigsLabel = new System.Windows.Forms.Label();
             this.openButton = new System.Windows.Forms.Button();
-            this.configPath = new System.Windows.Forms.TextBox();
             this.openCageConfiguratorButton = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
-            // lruConfigs
+            // registeredConfigs
             // 
-            this.lruConfigs.FormattingEnabled = true;
-            this.lruConfigs.Location = new System.Drawing.Point(16, 86);
-            this.lruConfigs.Name = "lruConfigs";
-            this.lruConfigs.Size = new System.Drawing.Size(446, 134);
-            this.lruConfigs.TabIndex = 4;
-            this.lruConfigs.SelectedIndexChanged += new System.EventHandler(this.lruConfigs_SelectedIndexChanged);
-            this.lruConfigs.KeyUp += new System.Windows.Forms.KeyEventHandler(this.lruConfigs_KeyUp);
+            this.registeredConfigs.FormattingEnabled = true;
+            this.registeredConfigs.Location = new System.Drawing.Point(16, 34);
+            this.registeredConfigs.Name = "registeredConfigs";
+            this.registeredConfigs.Size = new System.Drawing.Size(446, 186);
+            this.registeredConfigs.TabIndex = 4;
             // 
-            // lruConfigsLabel
+            // registeredConfigsLabel
             // 
-            this.lruConfigsLabel.AutoSize = true;
-            this.lruConfigsLabel.Location = new System.Drawing.Point(13, 70);
-            this.lruConfigsLabel.Name = "lruConfigsLabel";
-            this.lruConfigsLabel.Size = new System.Drawing.Size(147, 13);
-            this.lruConfigsLabel.TabIndex = 3;
-            this.lruConfigsLabel.Text = "Recently used configurations:";
-            // 
-            // configChooseLabel
-            // 
-            this.configChooseLabel.AutoSize = true;
-            this.configChooseLabel.Location = new System.Drawing.Point(13, 16);
-            this.configChooseLabel.Name = "configChooseLabel";
-            this.configChooseLabel.Size = new System.Drawing.Size(137, 13);
-            this.configChooseLabel.TabIndex = 0;
-            this.configChooseLabel.Text = "Selected config to execute:";
-            // 
-            // configBrowseButton
-            // 
-            this.configBrowseButton.Location = new System.Drawing.Point(366, 30);
-            this.configBrowseButton.Name = "configBrowseButton";
-            this.configBrowseButton.Size = new System.Drawing.Size(96, 24);
-            this.configBrowseButton.TabIndex = 2;
-            this.configBrowseButton.Text = "Browse ...";
-            this.configBrowseButton.UseVisualStyleBackColor = true;
-            this.configBrowseButton.Click += new System.EventHandler(this.configBrowseButton_Click);
+            this.registeredConfigsLabel.AutoSize = true;
+            this.registeredConfigsLabel.Location = new System.Drawing.Point(13, 16);
+            this.registeredConfigsLabel.Name = "registeredConfigsLabel";
+            this.registeredConfigsLabel.Size = new System.Drawing.Size(130, 13);
+            this.registeredConfigsLabel.TabIndex = 3;
+            this.registeredConfigsLabel.Text = "Registered configurations:";
             // 
             // openButton
             // 
@@ -84,16 +60,6 @@
             this.openButton.Text = "Start";
             this.openButton.UseVisualStyleBackColor = true;
             this.openButton.Click += new System.EventHandler(this.openButton_Click);
-            // 
-            // configPath
-            // 
-            this.configPath.DataBindings.Add(new System.Windows.Forms.Binding("Text", global::CageChooser.Properties.Settings.Default, "PersistentConfigPath", true, System.Windows.Forms.DataSourceUpdateMode.OnPropertyChanged));
-            this.configPath.Location = new System.Drawing.Point(16, 32);
-            this.configPath.Name = "configPath";
-            this.configPath.Size = new System.Drawing.Size(340, 20);
-            this.configPath.TabIndex = 1;
-            this.configPath.Text = global::CageChooser.Properties.Settings.Default.PersistentConfigPath;
-            this.configPath.Leave += new System.EventHandler(this.configPath_Leave);
             // 
             // openCageConfiguratorButton
             // 
@@ -112,15 +78,11 @@
             this.ClientSize = new System.Drawing.Size(478, 276);
             this.Controls.Add(this.openCageConfiguratorButton);
             this.Controls.Add(this.openButton);
-            this.Controls.Add(this.configBrowseButton);
-            this.Controls.Add(this.configChooseLabel);
-            this.Controls.Add(this.configPath);
-            this.Controls.Add(this.lruConfigsLabel);
-            this.Controls.Add(this.lruConfigs);
+            this.Controls.Add(this.registeredConfigsLabel);
+            this.Controls.Add(this.registeredConfigs);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.Name = "CageChooserForm";
             this.Text = "Cage Chooser";
-            this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.CageChooser_FormClosed);
             this.Load += new System.EventHandler(this.CageChooser_Load);
             this.ResumeLayout(false);
             this.PerformLayout();
@@ -128,11 +90,8 @@
         }
 
         #endregion
-        private System.Windows.Forms.ListBox lruConfigs;
-        private System.Windows.Forms.Label lruConfigsLabel;
-        private System.Windows.Forms.TextBox configPath;
-        private System.Windows.Forms.Label configChooseLabel;
-        private System.Windows.Forms.Button configBrowseButton;
+        private System.Windows.Forms.ListBox registeredConfigs;
+        private System.Windows.Forms.Label registeredConfigsLabel;
         private System.Windows.Forms.Button openButton;
         private System.Windows.Forms.Button openCageConfiguratorButton;
     }
