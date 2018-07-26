@@ -124,7 +124,6 @@ namespace SharedFunctions
 				}
 				else
 				{
-
 					cage_data.activate_additional_app = ::CreateEvent(
 						nullptr,
 						TRUE,
