@@ -3,6 +3,7 @@
 #include <sstream>
 
 #include "CageService.h"
+#include "ValidateBinary.h"
 #include "../SharedFunctionality/SharedFunctions.h"
 #include "../SharedFunctionality/TokenLib/groupManipulation.h"
 
@@ -64,7 +65,17 @@ DWORD CageService::StartCageManager(DWORD session_id, HANDLE &user_token)
 	if (pos != std::wstring::npos)
 	{
 		filename = filename.substr(0, pos) + L"\\" + CAGE_MANAGER_NAME;
-		return StartCageManager(session_id, filename, user_token);
+
+		auto validator = ValidateBinary();
+		if (validator.ValidateCertificate(filename))
+		{
+			return StartCageManager(session_id, filename, user_token);
+		}
+		else
+		{
+			// TODO write error message
+			return 0;
+		}
 	}
 
 	return 0;
