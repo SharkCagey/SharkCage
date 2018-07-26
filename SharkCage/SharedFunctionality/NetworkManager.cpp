@@ -33,6 +33,7 @@ DLLEXPORT bool NetworkManager::Send(ContextType receiver, CageMessage message_ty
 
 	auto result = Send(msg, receiver);
 
+	// only wait for response if send worked and the message we sent was not already a response
 	if (result && message_type != CageMessage::RESPONSE_SUCCESS && message_type != CageMessage::RESPONSE_FAILURE)
 	{
 		auto response = Listen(10);
