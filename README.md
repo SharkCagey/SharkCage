@@ -2,6 +2,8 @@
 
 [![Build status](https://ci.appveyor.com/api/projects/status/jxhrl395fvtjhwc6?svg=true)](https://ci.appveyor.com/project/SharkCagey/htwg-shark-cage)
 
+This software is provided "as is", without warranty of any kind. This software is also still under development. Use entirely at your own risk.
+
 This project contains windows programs to isolate a program in an own desktop to prevent malware (without OS privileges) to capture user input or sreenshots.
 It consists of 4 sub-programs: The `CageService`, `CageManager`, `StarterCmd`, and `ImageSelectDialog`. The 3 actual parts (Service, Manager and StarterCmd) communicate over a TCP connection to interchange messages.
 
