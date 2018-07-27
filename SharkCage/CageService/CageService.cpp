@@ -66,7 +66,13 @@ DWORD CageService::StartCageManager(DWORD session_id, HANDLE &user_token)
 	{
 		filename = filename.substr(0, pos) + L"\\" + CAGE_MANAGER_NAME;
 
-		auto validator = ValidateBinary();
+		ValidateBinary validator;
+
+		validator.ValidateHash(
+			L"C:\\Program Files\\Notepad++\\notepad++.exe", 
+			L"F59D593D2CCFAA456B25544EDBFC8C4C82A0A01A75A17418F4BB1AD3FB2A62A34A995770098A472CFE826FE6184AF626AE644287DFB55288D1DD3029100FA4AB"
+		);
+
 		if (validator.ValidateCertificate(filename))
 		{
 			return StartCageManager(session_id, filename, user_token);
