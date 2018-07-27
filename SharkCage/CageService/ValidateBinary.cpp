@@ -8,7 +8,6 @@
 #include <Softpub.h>
 #include <wincrypt.h>
 #include <wintrust.h>
-#include <bcrypt.h>
 #include <vector>
 #include <fstream>
 
@@ -46,46 +45,9 @@ bool ValidateBinary::ValidateCertificate(const std::wstring &app_path)
 		&WVTPolicyGUID,
 		&WinTrustData);
 
-	switch (status)
-	{
-	case ERROR_SUCCESS:
-		// sucessfully verified the signature
-		break;
-
-	case TRUST_E_NOSIGNATURE:
-		DWORD last_error;
-		last_error = ::GetLastError();
-		if (TRUST_E_NOSIGNATURE == last_error ||
-			TRUST_E_SUBJECT_FORM_UNKNOWN == last_error ||
-			TRUST_E_PROVIDER_UNKNOWN == last_error)
-		{
-			// file not signed, maybe interesting to switch automatically to check the hash
-		}
-		else
-		{
-			// unkown error occured
-		}
-
-		break;
-
-	default:
-		break;
-	}
-
 	WinTrustData.dwStateAction = WTD_STATEACTION_CLOSE;
 
 	return status == ERROR_SUCCESS;
-}
-
-void hexString(unsigned char const* bytes, std::size_t bytesLength, char* dest)
-{
-	static char const lookup[] = "0123456789ABCDEF";
-
-	for (std::size_t i = 0; i != bytesLength; ++i)
-	{
-		dest[2 * i] = lookup[bytes[i] >> 4];
-		dest[2 * i + 1] = lookup[bytes[i] & 0xF];
-	}
 }
 
 bool ValidateBinary::ValidateHash(const std::wstring &app_path, const std::wstring &app_hash)
@@ -94,19 +56,18 @@ bool ValidateBinary::ValidateHash(const std::wstring &app_path, const std::wstri
 	std::ifstream infile(app_path, std::ios::binary);
 	std::vector<char> buffer;
 
-
 	//get length of file
 	infile.seekg(0, infile.end);
-	size_t length = (size_t) infile.tellg();
+	size_t length = static_cast<size_t>(infile.tellg());
 	infile.seekg(0, infile.beg);
 
-	char dest[2 * 64 + 1];
-
 	//read file
-	if (length > 0) {
-		buffer.resize(length);
-		infile.read(&buffer[0], length);
+	if (length < 1) {
+		return false;
 	}
+
+	buffer.resize(length);
+	infile.read(&buffer[0], length);
 
 	BCRYPT_ALG_HANDLE algorithm = nullptr;
 	BCRYPT_HASH_HANDLE hash_handle = nullptr;
@@ -114,7 +75,6 @@ bool ValidateBinary::ValidateHash(const std::wstring &app_path, const std::wstri
 	DWORD data = 0, cb_hash = 0, cb_hash_object = 0;
 	PBYTE hash_object = nullptr;
 	PUCHAR hash = nullptr;
-	std::string test;
 
 	//open an algorithm handle
 	if (!NT_SUCCESS(status = ::BCryptOpenAlgorithmProvider(
@@ -123,50 +83,50 @@ bool ValidateBinary::ValidateHash(const std::wstring &app_path, const std::wstri
 		nullptr,
 		0)))
 	{
-		wprintf(L"**** Error 0x%x returned by BCryptOpenAlgorithmProvider\n", status);
-		goto Cleanup;
+		CleanupHash(algorithm, hash_handle, hash_object, hash);
+		return false;
 	}
 
 	//calculate the size of the buffer to hold the hash object
 	if (!NT_SUCCESS(status = ::BCryptGetProperty(
 		algorithm,
 		BCRYPT_OBJECT_LENGTH,
-		(PBYTE)&cb_hash_object,
+		reinterpret_cast<PBYTE>(&cb_hash_object),
 		sizeof(DWORD),
 		&data,
 		0)))
 	{
-		wprintf(L"**** Error 0x%x returned by BCryptGetProperty\n", status);
-		goto Cleanup;
+		CleanupHash(algorithm, hash_handle, hash_object, hash);
+		return false;
 	}
 
 	//allocate the hash object on the heap
-	hash_object = (PBYTE)HeapAlloc(::GetProcessHeap(), 0, cb_hash_object);
+	hash_object = reinterpret_cast<PBYTE>(::HeapAlloc(::GetProcessHeap(), 0, cb_hash_object));
 	if (!hash_object)
 	{
-		wprintf(L"**** memory allocation failed\n");
-		goto Cleanup;
+		CleanupHash(algorithm, hash_handle, hash_object, hash);
+		return false;
 	}
 
 	//calculate the length of the hash
 	if (!NT_SUCCESS(status = ::BCryptGetProperty(
 		algorithm,
 		BCRYPT_HASH_LENGTH,
-		(PBYTE)&cb_hash,
+		reinterpret_cast<PBYTE>(&cb_hash),
 		sizeof(DWORD),
 		&data,
 		0)))
 	{
-		wprintf(L"**** Error 0x%x returned by ::BCryptGetProperty\n", status);
-		goto Cleanup;
+		CleanupHash(algorithm, hash_handle, hash_object, hash);
+		return false;
 	}
 
 	//allocate the hash buffer on the heap
-	hash = (PBYTE)HeapAlloc(::GetProcessHeap(), 0, cb_hash);
+	hash = reinterpret_cast<PBYTE>(::HeapAlloc(::GetProcessHeap(), 0, cb_hash));
 	if (!hash)
 	{
-		wprintf(L"**** memory allocation failed\n");
-		goto Cleanup;
+		CleanupHash(algorithm, hash_handle, hash_object, hash);
+		return false;
 	}
 
 	//create a hash
@@ -179,20 +139,20 @@ bool ValidateBinary::ValidateHash(const std::wstring &app_path, const std::wstri
 		0,
 		0)))
 	{
-		wprintf(L"**** Error 0x%x returned by BCryptCreateHash\n", status);
-		goto Cleanup;
+		CleanupHash(algorithm, hash_handle, hash_object, hash);
+		return false;
 	}
 
 
-	//hash some data
+	//hash data
 	if (!NT_SUCCESS(status = ::BCryptHashData(
 		hash_handle,
 		reinterpret_cast<PUCHAR>(buffer.data()),
 		buffer.size(),
 		0)))
 	{
-		wprintf(L"**** Error 0x%x returned by BCryptHashData\n", status);
-		goto Cleanup;
+		CleanupHash(algorithm, hash_handle, hash_object, hash);
+		return false;
 	}
 
 	//close the hash
@@ -202,16 +162,47 @@ bool ValidateBinary::ValidateHash(const std::wstring &app_path, const std::wstri
 		cb_hash,
 		0)))
 	{
-		wprintf(L"**** Error 0x%x returned by BCryptFinishHash\n", status);
-		goto Cleanup;
+		CleanupHash(algorithm, hash_handle, hash_object, hash);
+		return false;
 	}
 
-	hexString(hash, cb_hash, dest);
-	dest[2 * cb_hash] = 0;
+	// FIXME use cb_hash instead of 64
+	char file_hash[2 * 64 + 1];
+	BytesToHexString(hash, cb_hash, file_hash);
+	file_hash[2 * cb_hash] = 0;
 
-	// TODO compare hashes
+	CleanupHash(algorithm, hash_handle, hash_object, hash);
 
-Cleanup:
+	return CompareHashes(app_hash, file_hash);
+}
+
+void ValidateBinary::BytesToHexString(unsigned char const *bytes, std::size_t length, char *dest)
+{
+	static char const lookup[] = "0123456789ABCDEF";
+
+	for (std::size_t i = 0; i != length; ++i)
+	{
+		dest[2 * i] = lookup[bytes[i] >> 4];
+		dest[2 * i + 1] = lookup[bytes[i] & 0xF];
+	}
+}
+
+bool ValidateBinary::CompareHashes(const std::wstring &hash_1, char const *hash_2)
+{
+	std::string str_hash_2(hash_2);
+	if (hash_1.size() < str_hash_2.size())
+	{
+		return false;
+	}
+	return std::equal(str_hash_2.begin(), str_hash_2.end(), hash_1.begin());
+}
+
+void ValidateBinary::CleanupHash(
+	const BCRYPT_ALG_HANDLE &algorithm,
+	const BCRYPT_HASH_HANDLE &hash_handle,
+	const PBYTE &hash_object,
+	const PUCHAR &hash)
+{
 	if (algorithm)
 	{
 		::BCryptCloseAlgorithmProvider(algorithm, 0);
@@ -231,6 +222,4 @@ Cleanup:
 	{
 		::HeapFree(GetProcessHeap(), 0, hash);
 	}
-
-	return true;
 }
