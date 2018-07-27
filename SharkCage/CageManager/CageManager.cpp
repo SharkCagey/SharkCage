@@ -5,6 +5,7 @@
 #include "../SharedFunctionality/CageData.h"
 
 #include "Aclapi.h"
+#include "tlhelp32.h"
 
 #include <unordered_set>
 #include <thread>
@@ -35,7 +36,8 @@ int main()
 	// listen for the message
 	std::wstring message = network_manager.Listen(10);
 	std::wstring message_data;
-	auto parse_result = SharedFunctions::ParseMessage(message, message_data);
+	ContextType sender;
+	auto parse_result = SharedFunctions::ParseMessage(message, sender, message_data);
 
 	if (parse_result != CageMessage::START_PROCESS)
 	{
@@ -49,6 +51,18 @@ int main()
 		std::cout << "Could not process start process message" << std::endl;
 		return 1;
 	}
+
+	if (cage_manager.ProcessRunning(cage_data.app_path) || (cage_data.hasAdditionalAppInfo() && cage_manager.ProcessRunning(cage_data.additional_app_path.value())))
+	{
+		std::wstring result_data;
+		network_manager.Send(sender, CageMessage::RESPONSE_FAILURE, L"One or more of the process(es) you are trying to start on the secure desktop"
+			" is already running on the default desktop. Please close them and then try again.", result_data);
+
+		return 1;
+	}
+
+	std::wstring result_data;
+	network_manager.Send(sender, CageMessage::RESPONSE_SUCCESS, L"", result_data);
 
 	const int work_area_width = 300;
 	std::thread desktop_thread(
@@ -104,7 +118,7 @@ void CageManager::StartCage(SECURITY_ATTRIBUTES security_attributes, const CageD
 		return;
 	}
 
-	const std::wstring LABELER_WINDOW_CLASS_NAME = std::wstring(L"shark_cage_token_window").append(uuid_stl);
+	const std::wstring LABELER_WINDOW_CLASS_NAME = std::wstring(L"shark_cage_token_window_").append(uuid_stl);
 	std::thread labeler_thread(
 		&CageManager::StartCageLabeler,
 		this,
@@ -126,7 +140,7 @@ void CageManager::StartCage(SECURITY_ATTRIBUTES security_attributes, const CageD
 
 	// Create the process.
 	PROCESS_INFORMATION process_info = {};
-	
+
 	if (::CreateProcess(
 		cage_data.app_path.c_str(),
 		nullptr,
@@ -402,6 +416,7 @@ bool CageManager::ProcessRunning(const std::wstring &process_path)
 		if (::Process32First(process_snapshot, &process_entry))
 		{
 			std::wstring comparison(process_entry.szExeFile);
+
 			if (process_path.find(comparison) != std::wstring::npos)
 			{
 				app_running = true;
