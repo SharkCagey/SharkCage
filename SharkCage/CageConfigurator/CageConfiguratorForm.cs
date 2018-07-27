@@ -14,6 +14,8 @@ using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Security.Principal;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace CageConfigurator
@@ -496,6 +498,22 @@ namespace CageConfigurator
                     stream_writer.Write(sb.ToString());
                 }
             }
+
+            // make the save label appear and disappear again (async)
+            Task.Run(() =>
+            {
+                // invoke has to be used so the control property is changed
+                // on the same thread as the control was created from
+                saveLabel.Invoke((Action)(() =>
+                {
+                    saveLabel.Visible = true;
+                }));
+                Thread.Sleep(3000);
+                saveLabel.Invoke((Action)(() =>
+                {
+                    saveLabel.Visible = false;
+                }));
+            });
 
             var config_registry_key = Path.Combine(REGISTRY_KEY, "Configs");
             Registry.SetValue(config_registry_key, configName.Text, file_name);

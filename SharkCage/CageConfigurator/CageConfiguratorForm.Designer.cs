@@ -49,6 +49,7 @@
             this.restrictExitTooltip = new System.Windows.Forms.ToolTip(this.components);
             this.configNameLabel = new System.Windows.Forms.Label();
             this.configName = new System.Windows.Forms.TextBox();
+            this.saveLabel = new System.Windows.Forms.Label();
             this.menuStrip.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.tokenBox)).BeginInit();
             this.SuspendLayout();
@@ -234,11 +235,23 @@
             this.configName.TabIndex = 13;
             this.configName.TextChanged += new System.EventHandler(this.configName_TextChanged);
             // 
+            // saveLabel
+            // 
+            this.saveLabel.AutoSize = true;
+            this.saveLabel.ForeColor = System.Drawing.Color.LimeGreen;
+            this.saveLabel.Location = new System.Drawing.Point(326, 470);
+            this.saveLabel.Name = "saveLabel";
+            this.saveLabel.Size = new System.Drawing.Size(72, 13);
+            this.saveLabel.TabIndex = 14;
+            this.saveLabel.Text = "Config saved!";
+            this.saveLabel.Visible = false;
+            // 
             // CageConfiguratorForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(484, 521);
+            this.Controls.Add(this.saveLabel);
             this.Controls.Add(this.configName);
             this.Controls.Add(this.configNameLabel);
             this.Controls.Add(this.restrictExitButton);
@@ -257,7 +270,9 @@
             this.Controls.Add(this.menuStrip);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.MainMenuStrip = this.menuStrip;
+            this.MaximizeBox = false;
             this.Name = "CageConfiguratorForm";
+            this.ShowIcon = false;
             this.Text = "Cage Configurator";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.CageConfiguratorForm_FormClosing);
             this.menuStrip.ResumeLayout(false);
@@ -289,6 +304,7 @@
         private System.Windows.Forms.ToolTip restrictExitTooltip;
         private System.Windows.Forms.Label configNameLabel;
         private System.Windows.Forms.TextBox configName;
+        private System.Windows.Forms.Label saveLabel;
     }
 }
 

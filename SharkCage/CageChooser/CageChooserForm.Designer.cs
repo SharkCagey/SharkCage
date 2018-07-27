@@ -91,7 +91,9 @@
             this.Controls.Add(this.registeredConfigsLabel);
             this.Controls.Add(this.registeredConfigs);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
+            this.MaximizeBox = false;
             this.Name = "CageChooserForm";
+            this.ShowIcon = false;
             this.Text = "Cage Chooser";
             this.Load += new System.EventHandler(this.CageChooser_Load);
             this.ResumeLayout(false);
