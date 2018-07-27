@@ -191,8 +191,9 @@ std::wstring CageService::GetLastErrorAsString(DWORD error_id)
 void CageService::HandleMessage(const std::wstring &message, NetworkManager &network_manager)
 {
 	std::wstring message_data;
-	auto parse_result = SharedFunctions::ParseMessage(message, message_data);
-	if (parse_result != CageMessage::START_PROCESS)
+	ContextType sender;
+	auto message_type = SharedFunctions::ParseMessage(message, sender, message_data);
+	if (message_type != CageMessage::START_PROCESS)
 	{
 		std::wostringstream os;
 		os << L"received unknown message: " << message << std::endl;
@@ -228,7 +229,17 @@ void CageService::HandleMessage(const std::wstring &message, NetworkManager &net
 	cage_manager_process_id = StartCageManager(session_id, created_token);
 
 	// Forward to cage manager
-	network_manager.Send(message, ContextType::MANAGER);
+	std::wstring result_data;
+	auto send_result = network_manager.Send(ContextType::MANAGER, message_type.value(), message_data, result_data);
+
+	if (send_result)
+	{
+		network_manager.Send(sender, CageMessage::RESPONSE_SUCCESS, L"", result_data);
+	}
+	else
+	{
+		network_manager.Send(sender, CageMessage::RESPONSE_FAILURE, result_data, result_data);
+	}
 
 	// wait for the cageManager to close before receiving the next message
 	// this ensures only one instance of the cage desktop / manager can run simultaneously
