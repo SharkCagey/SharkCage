@@ -22,17 +22,6 @@ NetworkManager network_manager(ContextType::MANAGER);
 
 int main()
 {
-	CageManager cage_manager;
-
-	SecuritySetup security_setup;
-	auto security_attributes = security_setup.GetSecurityAttributes();
-
-	if (!security_attributes.has_value())
-	{
-		std::cout << "Could not get security attributes" << std::endl;
-		return 1;
-	}
-
 	// listen for the message
 	std::wstring message = network_manager.Listen(10);
 	std::wstring message_data;
@@ -52,6 +41,7 @@ int main()
 		return 1;
 	}
 
+	CageManager cage_manager;
 	if (cage_manager.ProcessRunning(cage_data.app_path) || (cage_data.hasAdditionalAppInfo() && cage_manager.ProcessRunning(cage_data.additional_app_path.value())))
 	{
 		std::wstring result_data;
@@ -63,6 +53,15 @@ int main()
 
 	std::wstring result_data;
 	network_manager.Send(sender, CageMessage::RESPONSE_SUCCESS, L"", result_data);
+
+	SecuritySetup security_setup;
+	auto security_attributes = security_setup.GetSecurityAttributes();
+
+	if (!security_attributes.has_value())
+	{
+		std::cout << "Could not get security attributes" << std::endl;
+		return 1;
+	}
 
 	const int work_area_width = 300;
 	std::thread desktop_thread(

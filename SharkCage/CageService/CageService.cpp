@@ -199,7 +199,8 @@ void CageService::HandleMessage(const std::wstring &message, NetworkManager &net
 		os << L"received unknown message: " << message << std::endl;
 		::OutputDebugString(os.str().c_str());
 
-		// fixme send response failure to chooser
+		std::wstring result_data;
+		network_manager.Send(sender, CageMessage::RESPONSE_FAILURE, os.str(), result_data);
 		return;
 	}
 
@@ -209,7 +210,8 @@ void CageService::HandleMessage(const std::wstring &message, NetworkManager &net
 		os << L"Another cage instance is already running" << std::endl;
 		::OutputDebugString(os.str().c_str());
 
-		// fixme send reponse failure to chooser
+		std::wstring result_data;
+		network_manager.Send(sender, CageMessage::RESPONSE_FAILURE, os.str(), result_data);
 		return;
 	}
 
@@ -219,7 +221,8 @@ void CageService::HandleMessage(const std::wstring &message, NetworkManager &net
 		os << L"The config you are trying to load does not have the correct access rights, it might be corrupted or a potential attacker has modified it." << std::endl;
 		::OutputDebugString(os.str().c_str());
 
-		// fixme send reponse failure to chooser
+		std::wstring result_data;
+		network_manager.Send(sender, CageMessage::RESPONSE_FAILURE, os.str(), result_data);
 		return;
 	}
 

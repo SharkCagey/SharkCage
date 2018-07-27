@@ -68,6 +68,12 @@ namespace CageChooser
             bool bHandled = false;
             switch (keyData)
             {
+                case Keys.Enter:
+                    if (registeredConfigs.SelectedItem != null)
+                    {
+                        SendToCage();
+                    }
+                    break;
                 case Keys.F5:
                     LoadConfigList();
 
@@ -83,7 +89,7 @@ namespace CageChooser
 
         #region Cage Service
 
-        private void openButton_Click(object sender, EventArgs e)
+        private void SendToCage()
         {
             try
             {
@@ -96,7 +102,7 @@ namespace CageChooser
                     int capacity = 1000;
                     StringBuilder sb = new StringBuilder(capacity);
 
-                    bool result = NativeMethods.SendConfigAndExternalProgram(configPath.Text, sb, capacity);
+                    bool result = NativeMethods.SendConfigAndExternalProgram(config_path, sb, capacity);
 
                     if (!result)
                     {
@@ -111,6 +117,11 @@ namespace CageChooser
             {
                 MessageBox.Show($"An exception occured while trying to send messages to cage service: {ex.ToString()}");
             }
+        }
+
+        private void openButton_Click(object sender, EventArgs e)
+        {
+            SendToCage();
         }
 
         #endregion
