@@ -8,7 +8,6 @@
 #include <Softpub.h>
 #include <wincrypt.h>
 #include <wintrust.h>
-#include <vector>
 #include <fstream>
 
 #pragma comment(lib, "wintrust")
@@ -166,30 +165,31 @@ bool ValidateBinary::ValidateHash(const std::wstring &app_path, const std::wstri
 		return false;
 	}
 
-	// FIXME use cb_hash instead of 64
-	char file_hash[2 * 64 + 1];
-	BytesToHexString(hash, cb_hash, file_hash);
-	file_hash[2 * cb_hash] = 0;
+	std::vector<char> current_hash = BytesToHexString(hash, cb_hash);
 
 	CleanupHash(algorithm, hash_handle, hash_object, hash);
 
-	return CompareHashes(app_hash, file_hash);
+	return CompareHashes(app_hash, current_hash);
 }
 
-void ValidateBinary::BytesToHexString(unsigned char const *bytes, std::size_t length, char *dest)
+std::vector<char> ValidateBinary::BytesToHexString(unsigned char const *bytes, std::size_t length)
 {
+	std::vector<char> file_hash;
+
 	static char const lookup[] = "0123456789ABCDEF";
 
 	for (std::size_t i = 0; i != length; ++i)
 	{
-		dest[2 * i] = lookup[bytes[i] >> 4];
-		dest[2 * i + 1] = lookup[bytes[i] & 0xF];
+		file_hash.push_back(lookup[bytes[i] >> 4]);
+		file_hash.push_back(lookup[bytes[i] & 0xF]);
 	}
+
+	return file_hash;
 }
 
-bool ValidateBinary::CompareHashes(const std::wstring &hash_1, char const *hash_2)
+bool ValidateBinary::CompareHashes(const std::wstring &hash_1, const std::vector<char> &hash_2)
 {
-	std::string str_hash_2(hash_2);
+	std::string str_hash_2(hash_2.begin(), hash_2.end());
 	if (hash_1.size() < str_hash_2.size())
 	{
 		return false;

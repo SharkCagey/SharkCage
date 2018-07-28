@@ -71,7 +71,9 @@ DWORD CageService::StartCageManager(DWORD session_id, HANDLE &user_token)
 		}
 		else
 		{
-			// TODO write error message
+			std::wostringstream os;
+			os << "Failed to validate the integrity of CageManager! Not starting." << std::endl;
+			::OutputDebugString(os.str().c_str());
 			return 0;
 		}
 	}
@@ -230,7 +232,14 @@ void CageService::HandleMessage(const std::wstring &message, NetworkManager &net
 	}
 	else
 	{
-		network_manager.Send(sender, CageMessage::RESPONSE_FAILURE, result_data, result_data);
+		if (cage_manager_process_id == 0)
+		{
+			network_manager.Send(sender, CageMessage::RESPONSE_FAILURE, L"Starting CageManager failed.", result_data);
+		}
+		else
+		{
+			network_manager.Send(sender, CageMessage::RESPONSE_FAILURE, result_data, result_data);
+		}
 	}
 
 	// wait for the cageManager to close before receiving the next message

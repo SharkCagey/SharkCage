@@ -20,6 +20,9 @@
 
 NetworkManager network_manager(ContextType::MANAGER);
 
+static bool ValidateBinariesToLaunch(const CageData &cage_data);
+static bool ValidateBinary(const std::wstring &app_hash, const std::wstring &app_path);
+
 int main()
 {
 	CageManager cage_manager;
@@ -64,6 +67,12 @@ int main()
 	std::wstring result_data;
 	network_manager.Send(sender, CageMessage::RESPONSE_SUCCESS, L"", result_data);
 
+	if (!ValidateBinariesToLaunch(cage_data))
+	{
+		std::cout << "Valitidy check of binaries to launch failed." << std::endl;
+		return 1;
+	}
+
 	const int work_area_width = 300;
 	std::thread desktop_thread(
 		&CageManager::StartCage,
@@ -75,6 +84,39 @@ int main()
 	desktop_thread.join();
 
 	return 0;
+}
+
+
+static bool ValidateBinariesToLaunch(const CageData &cage_data)
+{
+	boolean status_main_app = ValidateBinary(cage_data.app_hash, cage_data.app_path);
+
+	if (cage_data.hasAdditionalAppInfo())
+	{
+		return status_main_app && SharedFunctions::ValidateCertificate(cage_data.additional_app_path.value());
+	}
+
+	return status_main_app;
+}
+
+static bool ValidateBinary(const std::wstring &app_hash, const std::wstring &app_path)
+{
+	if (app_hash.empty())
+	{
+		if (!SharedFunctions::ValidateCertificate(app_path))
+		{
+			return false;
+		}
+	}
+	else
+	{
+		if (!SharedFunctions::ValidateHash(app_path, app_hash))
+		{
+			return false;
+		}
+	}
+
+	return true;
 }
 
 void CageManager::StartCage(SECURITY_ATTRIBUTES security_attributes, const CageData &cage_data)
