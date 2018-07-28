@@ -142,7 +142,6 @@ bool ValidateBinary::ValidateHash(const std::wstring &app_path, const std::wstri
 		return false;
 	}
 
-
 	//hash data
 	if (!NT_SUCCESS(status = ::BCryptHashData(
 		hash_handle,
@@ -190,10 +189,12 @@ std::vector<char> ValidateBinary::BytesToHexString(unsigned char const *bytes, s
 bool ValidateBinary::CompareHashes(const std::wstring &hash_1, const std::vector<char> &hash_2)
 {
 	std::string str_hash_2(hash_2.begin(), hash_2.end());
+
 	if (hash_1.size() < str_hash_2.size())
 	{
 		return false;
 	}
+
 	return std::equal(str_hash_2.begin(), str_hash_2.end(), hash_1.begin());
 }
 

@@ -86,7 +86,6 @@ int main()
 	return 0;
 }
 
-
 static bool ValidateBinariesToLaunch(const CageData &cage_data)
 {
 	boolean status_main_app = ValidateBinary(cage_data.app_hash, cage_data.app_path);
