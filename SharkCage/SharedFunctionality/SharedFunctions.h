@@ -15,4 +15,6 @@ namespace SharedFunctions
 	DLLEXPORT std::optional<CageMessage> ParseMessage(const std::wstring &msg, ContextType &sender, std::wstring &message_data);
 	DLLEXPORT std::wstring MessageToString(CageMessage msg);
 	DLLEXPORT std::wstring ContextTypeToString(ContextType type);
+	DLLEXPORT bool ValidateCertificate(const std::wstring &app_path);
+	DLLEXPORT bool ValidateHash(const std::wstring &app_path, const std::wstring &app_hash);
 }

@@ -3,7 +3,6 @@
 #include <sstream>
 
 #include "CageService.h"
-#include "ValidateBinary.h"
 #include "../SharedFunctionality/SharedFunctions.h"
 #include "../SharedFunctionality/TokenLib/groupManipulation.h"
 
@@ -66,8 +65,7 @@ DWORD CageService::StartCageManager(DWORD session_id, HANDLE &user_token)
 	{
 		filename = filename.substr(0, pos) + L"\\" + CAGE_MANAGER_NAME;
 
-		ValidateBinary validator;
-		if (validator.ValidateCertificate(filename))
+		if (SharedFunctions::ValidateCertificate(filename))
 		{
 			return StartCageManager(session_id, filename, user_token);
 		}
