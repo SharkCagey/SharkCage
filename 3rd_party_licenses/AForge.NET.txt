@@ -1,6 +1,8 @@
 License from: http://www.aforgenet.com/framework/license.html
 Accessed on: 27. July 2018
 
+Hint: To use another version of this library, get the SharkCage source code from https://github.com/SharkCagey/HTWG_shark_cage and download another version via the Visual Studio nuget package manager in the CageConfigurator project.
+
 Copy of the LGPL v3 license:
 
 GNU LESSER GENERAL PUBLIC LICENSE
