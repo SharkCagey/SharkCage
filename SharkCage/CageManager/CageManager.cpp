@@ -69,7 +69,7 @@ int main()
 
 	if (!ValidateBinariesToLaunch(cage_data))
 	{
-		std::cout << "Valitidy check of binaries to launch failed." << std::endl;
+		std::cout << "Validity check of binaries to launch failed." << std::endl;
 		return 1;
 	}
 
