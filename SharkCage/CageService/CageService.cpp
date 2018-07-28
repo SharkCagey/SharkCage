@@ -65,17 +65,21 @@ DWORD CageService::StartCageManager(DWORD session_id, HANDLE &user_token)
 	{
 		filename = filename.substr(0, pos) + L"\\" + CAGE_MANAGER_NAME;
 
-		if (SharedFunctions::ValidateCertificate(filename))
-		{
+		#ifdef _DEBUG
 			return StartCageManager(session_id, filename, user_token);
-		}
-		else
-		{
-			std::wostringstream os;
-			os << "Failed to validate the integrity of CageManager! Not starting." << std::endl;
-			::OutputDebugString(os.str().c_str());
-			return 0;
-		}
+		#else
+			if (SharedFunctions::ValidateCertificate(filename))
+			{
+				return StartCageManager(session_id, filename, user_token);
+			}
+			else
+			{
+				std::wostringstream os;
+				os << "Failed to validate the integrity of CageManager! Not starting." << std::endl;
+				::OutputDebugString(os.str().c_str());
+				return 0;
+			}
+		#endif
 	}
 
 	return 0;
