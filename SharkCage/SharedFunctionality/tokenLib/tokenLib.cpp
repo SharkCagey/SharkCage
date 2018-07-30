@@ -369,8 +369,13 @@ std::optional<HANDLE> getCurrentUserToken() {
 		return std::nullopt;
 	}
 	changeTcbPrivilege(false);
-	return userToken;
-
+	HANDLE duplicatedUserToken = nullptr;
+	if (!DuplicateTokenEx(userToken, TOKEN_ALL_ACCESS, NULL, SecurityImpersonation, TokenPrimary, &duplicatedUserToken)) {
+		std::wcout << L"Cannot duplicate token" << std::endl;
+		return std::nullopt;
+	}
+	CloseHandle(userToken);
+	return duplicatedUserToken;
 }
 
 bool getGroupSid(LPWSTR groupName, PSID &sid) {
@@ -438,17 +443,6 @@ bool setPrivilege(
 }
 
 bool changePrivilege(bool privilegeStatus, LPCTSTR privilege) {
-	//keeping this for future debug purposes
-	/*
-	DWORD bufferSize = 0;
-	GetUserName(NULL, &bufferSize);
-	LPTSTR pUserName = (LPTSTR) new BYTE[bufferSize * sizeof(TCHAR)];
-	GetUserName(pUserName, &bufferSize);
-	wprintf(L"User account accessed: %s\n", pUserName);
-	delete[](BYTE*) pUserName;
-	getchar();
-	*/
-
 	HANDLE currentProcessHandle;
 	HANDLE userTokenHandle;
 	currentProcessHandle = GetCurrentProcess();

@@ -24,7 +24,6 @@ std::optional<std::wstring> generateUuid();
 
 int main()
 {
-	getchar();
 	CageManager cage_manager;
 	
 	SecuritySetup security_setup;
@@ -151,7 +150,7 @@ void CageManager::StartCage(SECURITY_ATTRIBUTES security_attributes, const CageD
 	// Create the process.
 	PROCESS_INFORMATION process_info = {};
 
-	if (::CreateProcessAsUser(tokenHandle, path_buf.data(), nullptr, &security_attributes, nullptr, false, 0, nullptr, nullptr, &info, &process_info) == 0)
+	if(::CreateProcessWithTokenW(tokenHandle,LOGON_WITH_PROFILE,path_buf.data(),nullptr,0,nullptr,nullptr,&info, &process_info) == 0)
 	{
 		std::cout << "Failed to start process. Error: " << ::GetLastError() << std::endl;
 	}
@@ -161,7 +160,8 @@ void CageManager::StartCage(SECURITY_ATTRIBUTES security_attributes, const CageD
 	{
 		std::vector<wchar_t> additional_app_path_buf(cage_data.additional_app_path->begin(), cage_data.additional_app_path->end());
 		additional_app_path_buf.push_back(0);
-		if(::CreateProcessAsUser(tokenHandle, additional_app_path_buf.data(), nullptr, &security_attributes, nullptr, FALSE, 0, nullptr, nullptr, &info, &process_info_additional_app) == 0)
+
+		if (::CreateProcessWithTokenW(tokenHandle, LOGON_WITH_PROFILE, additional_app_path_buf.data(), nullptr, 0, nullptr, nullptr, &info, &process_info_additional_app) == 0)
 		{
 			std::cout << "Failed to start additional process. Error: " << GetLastError() << std::endl;
 		}
