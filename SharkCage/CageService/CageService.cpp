@@ -226,8 +226,13 @@ void CageService::HandleMessage(const std::wstring &message, NetworkManager &net
 	DWORD session_id = ::WTSGetActiveConsoleSessionId();
 	cage_manager_process_id = StartCageManager(session_id, created_token);
 
-	// Forward to cage manager
 	std::wstring result_data;
+	if (cage_manager_process_id == 0)
+	{
+		network_manager.Send(sender, CageMessage::RESPONSE_FAILURE, L"Starting CageManager failed.", result_data);
+	}
+
+	// Forward to cage manager
 	auto send_result = network_manager.Send(ContextType::MANAGER, message_type.value(), message_data, result_data);
 
 	if (send_result)
@@ -236,14 +241,7 @@ void CageService::HandleMessage(const std::wstring &message, NetworkManager &net
 	}
 	else
 	{
-		if (cage_manager_process_id == 0)
-		{
-			network_manager.Send(sender, CageMessage::RESPONSE_FAILURE, L"Starting CageManager failed.", result_data);
-		}
-		else
-		{
-			network_manager.Send(sender, CageMessage::RESPONSE_FAILURE, result_data, result_data);
-		}
+		network_manager.Send(sender, CageMessage::RESPONSE_FAILURE, result_data, result_data);
 	}
 
 	// wait for the cageManager to close before receiving the next message

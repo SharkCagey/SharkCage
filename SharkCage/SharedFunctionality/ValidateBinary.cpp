@@ -18,33 +18,31 @@
 
 bool ValidateBinary::ValidateCertificate(const std::wstring &app_path)
 {
-	WINTRUST_FILE_INFO FileData = { 0 };
-	FileData.cbStruct = sizeof(WINTRUST_FILE_INFO);
-	FileData.pcwszFilePath = app_path.c_str();
-	FileData.hFile = nullptr;
-	FileData.pgKnownSubject = nullptr;
+	WINTRUST_FILE_INFO file_data = { 0 };
+	file_data.cbStruct = sizeof(WINTRUST_FILE_INFO);
+	file_data.pcwszFilePath = app_path.c_str();
+	file_data.hFile = nullptr;
+	file_data.pgKnownSubject = nullptr;
 
-	WINTRUST_DATA WinTrustData = { 0 };
-	WinTrustData.cbStruct = sizeof(WinTrustData);
-	WinTrustData.pPolicyCallbackData = nullptr;
-	WinTrustData.pSIPClientData = nullptr;
-	WinTrustData.dwUIChoice = WTD_UI_NONE;
-	WinTrustData.fdwRevocationChecks = WTD_REVOKE_NONE;
-	WinTrustData.dwUnionChoice = WTD_CHOICE_FILE;
-	WinTrustData.dwStateAction = WTD_STATEACTION_VERIFY;
-	WinTrustData.hWVTStateData = nullptr;
-	WinTrustData.pwszURLReference = nullptr;
-	WinTrustData.dwUIContext = 0;
-	WinTrustData.pFile = &FileData;
+	WINTRUST_DATA win_trust_data = { 0 };
+	win_trust_data.cbStruct = sizeof(win_trust_data);
+	win_trust_data.pPolicyCallbackData = nullptr;
+	win_trust_data.pSIPClientData = nullptr;
+	win_trust_data.dwUIChoice = WTD_UI_NONE;
+	win_trust_data.fdwRevocationChecks = WTD_REVOKE_WHOLECHAIN;
+	win_trust_data.dwUnionChoice = WTD_CHOICE_FILE;
+	win_trust_data.dwStateAction = WTD_STATEACTION_IGNORE;
+	win_trust_data.hWVTStateData = nullptr;
+	win_trust_data.pwszURLReference = nullptr;
+	win_trust_data.dwUIContext = 0;
+	win_trust_data.pFile = &file_data;
 
 	GUID WVTPolicyGUID = WINTRUST_ACTION_GENERIC_VERIFY_V2;
 
 	LONG status = ::WinVerifyTrust(
 		nullptr,
 		&WVTPolicyGUID,
-		&WinTrustData);
-
-	WinTrustData.dwStateAction = WTD_STATEACTION_CLOSE;
+		&win_trust_data);
 
 	return status == ERROR_SUCCESS;
 }
@@ -61,20 +59,17 @@ bool ValidateBinary::ValidateHash(const std::wstring &app_path, const std::wstri
 	infile.seekg(0, infile.beg);
 
 	//read file
-	if (length < 1) {
+	if (length < 1)
+	{
 		return false;
 	}
 
 	buffer.resize(length);
 	infile.read(&buffer[0], length);
 
-	BCRYPT_ALG_HANDLE algorithm = nullptr;
-	BCRYPT_HASH_HANDLE hash_handle = nullptr;
 	NTSTATUS status = STATUS_UNSUCCESSFUL;
-	DWORD data = 0, cb_hash = 0, cb_hash_object = 0;
-	PBYTE hash_object = nullptr;
-	PUCHAR hash = nullptr;
 
+	BCRYPT_ALG_HANDLE algorithm = nullptr;
 	//open an algorithm handle
 	if (!NT_SUCCESS(status = ::BCryptOpenAlgorithmProvider(
 		&algorithm,
@@ -82,10 +77,10 @@ bool ValidateBinary::ValidateHash(const std::wstring &app_path, const std::wstri
 		nullptr,
 		0)))
 	{
-		CleanupHash(algorithm, hash_handle, hash_object, hash);
 		return false;
 	}
 
+	DWORD cb_hash_object = 0, data = 0;
 	//calculate the size of the buffer to hold the hash object
 	if (!NT_SUCCESS(status = ::BCryptGetProperty(
 		algorithm,
@@ -95,18 +90,11 @@ bool ValidateBinary::ValidateHash(const std::wstring &app_path, const std::wstri
 		&data,
 		0)))
 	{
-		CleanupHash(algorithm, hash_handle, hash_object, hash);
+		::BCryptCloseAlgorithmProvider(algorithm, 0);
 		return false;
 	}
 
-	//allocate the hash object on the heap
-	hash_object = reinterpret_cast<PBYTE>(::HeapAlloc(::GetProcessHeap(), 0, cb_hash_object));
-	if (!hash_object)
-	{
-		CleanupHash(algorithm, hash_handle, hash_object, hash);
-		return false;
-	}
-
+	DWORD cb_hash = 0;
 	//calculate the length of the hash
 	if (!NT_SUCCESS(status = ::BCryptGetProperty(
 		algorithm,
@@ -116,18 +104,19 @@ bool ValidateBinary::ValidateHash(const std::wstring &app_path, const std::wstri
 		&data,
 		0)))
 	{
-		CleanupHash(algorithm, hash_handle, hash_object, hash);
+		::BCryptCloseAlgorithmProvider(algorithm, 0);
 		return false;
 	}
 
-	//allocate the hash buffer on the heap
-	hash = reinterpret_cast<PBYTE>(::HeapAlloc(::GetProcessHeap(), 0, cb_hash));
-	if (!hash)
+	//allocate the hash object on the heap
+	PUCHAR hash_object = static_cast<PUCHAR>(::HeapAlloc(::GetProcessHeap(), 0, cb_hash_object));
+	if (!hash_object)
 	{
-		CleanupHash(algorithm, hash_handle, hash_object, hash);
+		::BCryptCloseAlgorithmProvider(algorithm, 0);
 		return false;
 	}
 
+	BCRYPT_HASH_HANDLE hash_handle = nullptr;
 	//create a hash
 	if (!NT_SUCCESS(status = ::BCryptCreateHash(
 		algorithm,
@@ -138,7 +127,8 @@ bool ValidateBinary::ValidateHash(const std::wstring &app_path, const std::wstri
 		0,
 		0)))
 	{
-		CleanupHash(algorithm, hash_handle, hash_object, hash);
+		::BCryptCloseAlgorithmProvider(algorithm, 0);
+		::HeapFree(::GetProcessHeap(), 0, hash_object);
 		return false;
 	}
 
@@ -149,7 +139,19 @@ bool ValidateBinary::ValidateHash(const std::wstring &app_path, const std::wstri
 		buffer.size(),
 		0)))
 	{
-		CleanupHash(algorithm, hash_handle, hash_object, hash);
+		::BCryptCloseAlgorithmProvider(algorithm, 0);
+		::HeapFree(::GetProcessHeap(), 0, hash_object);
+		::BCryptDestroyHash(hash_handle);
+		return false;
+	}
+
+	//allocate the hash buffer on the heap
+	PUCHAR hash = reinterpret_cast<PBYTE>(::HeapAlloc(::GetProcessHeap(), 0, cb_hash));
+	if (!hash)
+	{
+		::BCryptCloseAlgorithmProvider(algorithm, 0);
+		::HeapFree(::GetProcessHeap(), 0, hash_object);
+		::BCryptDestroyHash(hash_handle);
 		return false;
 	}
 
@@ -160,24 +162,36 @@ bool ValidateBinary::ValidateHash(const std::wstring &app_path, const std::wstri
 		cb_hash,
 		0)))
 	{
-		CleanupHash(algorithm, hash_handle, hash_object, hash);
+		::BCryptCloseAlgorithmProvider(algorithm, 0);
+		::HeapFree(::GetProcessHeap(), 0, hash_object);
+		::BCryptDestroyHash(hash_handle);
+		::HeapFree(::GetProcessHeap(), 0, hash);
 		return false;
 	}
 
 	std::vector<char> current_hash = BytesToHexString(hash, cb_hash);
+	std::string current_hash_str(current_hash.begin(), current_hash.end());
 
-	CleanupHash(algorithm, hash_handle, hash_object, hash);
+	::BCryptCloseAlgorithmProvider(algorithm, 0);
+	::HeapFree(::GetProcessHeap(), 0, hash_object);
+	::BCryptDestroyHash(hash_handle);
+	::HeapFree(::GetProcessHeap(), 0, hash);
 
-	return CompareHashes(app_hash, current_hash);
+	return CompareHashes(app_hash, current_hash_str);
 }
 
 std::vector<char> ValidateBinary::BytesToHexString(unsigned char const *bytes, std::size_t length)
 {
 	std::vector<char> file_hash;
 
+	if (bytes == nullptr)
+	{
+		return file_hash;
+	}
+
 	static char const lookup[] = "0123456789ABCDEF";
 
-	for (std::size_t i = 0; i != length; ++i)
+	for (std::size_t i = 0; i < length; ++i)
 	{
 		file_hash.push_back(lookup[bytes[i] >> 4]);
 		file_hash.push_back(lookup[bytes[i] & 0xF]);
@@ -186,41 +200,7 @@ std::vector<char> ValidateBinary::BytesToHexString(unsigned char const *bytes, s
 	return file_hash;
 }
 
-bool ValidateBinary::CompareHashes(const std::wstring &hash_1, const std::vector<char> &hash_2)
+bool ValidateBinary::CompareHashes(const std::wstring &hash_1, const std::string &hash_2)
 {
-	std::string str_hash_2(hash_2.begin(), hash_2.end());
-
-	if (hash_1.size() < str_hash_2.size())
-	{
-		return false;
-	}
-
-	return std::equal(str_hash_2.begin(), str_hash_2.end(), hash_1.begin());
-}
-
-void ValidateBinary::CleanupHash(
-	const BCRYPT_ALG_HANDLE &algorithm,
-	const BCRYPT_HASH_HANDLE &hash_handle,
-	const PBYTE &hash_object,
-	const PUCHAR &hash)
-{
-	if (algorithm)
-	{
-		::BCryptCloseAlgorithmProvider(algorithm, 0);
-	}
-
-	if (hash_handle)
-	{
-		::BCryptDestroyHash(hash_handle);
-	}
-
-	if (hash_object)
-	{
-		::HeapFree(GetProcessHeap(), 0, hash_object);
-	}
-
-	if (hash)
-	{
-		::HeapFree(GetProcessHeap(), 0, hash);
-	}
+	return std::equal(hash_2.begin(), hash_2.end(), hash_1.begin(), hash_1.end());
 }

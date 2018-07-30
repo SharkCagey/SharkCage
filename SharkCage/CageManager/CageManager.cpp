@@ -21,7 +21,7 @@
 NetworkManager network_manager(ContextType::MANAGER);
 
 static bool ValidateBinariesToLaunch(const CageData &cage_data);
-static bool ValidateBinary(const std::wstring &app_hash, const std::wstring &app_path);
+static bool ValidateBinary(const std::wstring &app_path, const std::wstring &app_hash);
 
 int main()
 {
@@ -55,7 +55,19 @@ int main()
 		return 1;
 	}
 
-	if (cage_manager.ProcessRunning(cage_data.app_path) || (cage_data.hasAdditionalAppInfo() && cage_manager.ProcessRunning(cage_data.additional_app_path.value())))
+	if (!ValidateBinariesToLaunch(cage_data))
+	{
+		std::cout << "Validity check of binaries to launch failed." << std::endl;
+
+		std::wstring result_data;
+		network_manager.Send(sender, CageMessage::RESPONSE_FAILURE, L"Verification of the integrity for one or more of the process(es) you are"
+			" trying to start on the secure desktop has been failed. Please open the config in the Configurator.", result_data);
+
+		return 1;
+	}
+
+	if (cage_manager.ProcessRunning(cage_data.app_path)
+		|| (cage_data.hasAdditionalAppInfo() && cage_manager.ProcessRunning(cage_data.additional_app_path.value())))
 	{
 		std::wstring result_data;
 		network_manager.Send(sender, CageMessage::RESPONSE_FAILURE, L"One or more of the process(es) you are trying to start on the secure desktop"
@@ -66,12 +78,6 @@ int main()
 
 	std::wstring result_data;
 	network_manager.Send(sender, CageMessage::RESPONSE_SUCCESS, L"", result_data);
-
-	if (!ValidateBinariesToLaunch(cage_data))
-	{
-		std::cout << "Validity check of binaries to launch failed." << std::endl;
-		return 1;
-	}
 
 	const int work_area_width = 300;
 	std::thread desktop_thread(
@@ -88,7 +94,7 @@ int main()
 
 static bool ValidateBinariesToLaunch(const CageData &cage_data)
 {
-	boolean status_main_app = ValidateBinary(cage_data.app_hash, cage_data.app_path);
+	boolean status_main_app = ValidateBinary(cage_data.app_path, cage_data.app_hash);
 
 	if (cage_data.hasAdditionalAppInfo())
 	{
@@ -98,7 +104,7 @@ static bool ValidateBinariesToLaunch(const CageData &cage_data)
 	return status_main_app;
 }
 
-static bool ValidateBinary(const std::wstring &app_hash, const std::wstring &app_path)
+static bool ValidateBinary(const std::wstring &app_path, const std::wstring &app_hash)
 {
 	if (app_hash.empty())
 	{
