@@ -6,12 +6,14 @@
 #include "../SharedFunctionality/SharedFunctions.h"
 #include "../SharedFunctionality/TokenLib/groupManipulation.h"
 
+#include "aclapi.h"
+#include "sddl.h"
+
 const std::wstring CAGE_MANAGER_NAME = L"CageManager.exe";
 
 CageService::CageService() noexcept
 	: cage_manager_process_id(0)
-{
-}
+{}
 
 bool CageService::CageManagerRunning()
 {
@@ -33,7 +35,8 @@ std::optional<HANDLE> CageService::CreateImpersonatingUserToken()
 		return std::nullopt;
 	}
 
-	if (!tokenLib::aquireTokenWithPrivilegesForTokenManipulation(appropriate_token)) {
+	if (!tokenLib::aquireTokenWithPrivilegesForTokenManipulation(appropriate_token))
+	{
 		std::wostringstream os;
 		os << "The token aquisition was unsuccessfull!";
 		::OutputDebugString(os.str().c_str());
@@ -101,7 +104,7 @@ DWORD CageService::StartCageManager(DWORD session_id, const std::wstring &app_na
 
 	// Use new token with privileges for the trusting computing base
 	auto user_session_token_handle = CreateImpersonatingUserToken();
-	
+
 	if (!user_session_token_handle.has_value())
 	{
 		std::wostringstream os;
@@ -195,6 +198,9 @@ void CageService::HandleMessage(const std::wstring &message, NetworkManager &net
 		std::wostringstream os;
 		os << L"received unknown message: " << message << std::endl;
 		::OutputDebugString(os.str().c_str());
+
+		std::wstring result_data;
+		network_manager.Send(sender, CageMessage::RESPONSE_FAILURE, os.str(), result_data);
 		return;
 	}
 
@@ -203,6 +209,20 @@ void CageService::HandleMessage(const std::wstring &message, NetworkManager &net
 		std::wostringstream os;
 		os << L"Another cage instance is already running" << std::endl;
 		::OutputDebugString(os.str().c_str());
+
+		std::wstring result_data;
+		network_manager.Send(sender, CageMessage::RESPONSE_FAILURE, os.str(), result_data);
+		return;
+	}
+
+	if (!CheckConfigAccessRights(message_data.c_str()))
+	{
+		std::wostringstream os;
+		os << L"The config you are trying to load does not have the correct access rights, it might be corrupted or a potential attacker has modified it." << std::endl;
+		::OutputDebugString(os.str().c_str());
+
+		std::wstring result_data;
+		network_manager.Send(sender, CageMessage::RESPONSE_FAILURE, os.str(), result_data);
 		return;
 	}
 
@@ -232,4 +252,67 @@ void CageService::HandleMessage(const std::wstring &message, NetworkManager &net
 	cage_manager_process_id = 0;
 
 	::CloseHandle(created_token);
+}
+
+bool CageService::CheckConfigAccessRights(const std::wstring config_path)
+{
+	DWORD length = 0;
+	::GetFileSecurity(config_path.c_str(), DACL_SECURITY_INFORMATION, NULL, NULL, &length);
+
+	PSECURITY_DESCRIPTOR security_descriptor = static_cast<PSECURITY_DESCRIPTOR>(::LocalAlloc(LPTR, length));
+	if (!::GetFileSecurity(config_path.c_str(), DACL_SECURITY_INFORMATION, security_descriptor, length, &length))
+	{
+		::LocalFree(security_descriptor);
+		return false;
+	}
+
+	BOOL dacl_present;
+	PACL acl;
+	BOOL dacl_defaulted;
+	if (!::GetSecurityDescriptorDacl(security_descriptor, &dacl_present, &acl, &dacl_defaulted))
+	{
+		::LocalFree(security_descriptor);
+		return false;
+	}
+
+	if (!dacl_present)
+	{
+		::LocalFree(security_descriptor);
+		return false;
+	}
+
+	unsigned long ace_count;
+	EXPLICIT_ACCESS *ace_list;
+	if (::GetExplicitEntriesFromAcl(acl, &ace_count, &ace_list) != ERROR_SUCCESS)
+	{
+		::LocalFree(security_descriptor);
+		return false;
+	}
+
+	bool access_rights_okay = false;
+	if (ace_count == 1)
+	{
+		auto access_entry = ace_list[0];
+
+		// create SID for BUILTIN\Administrators group
+		PSID sid_admin;
+		SID_IDENTIFIER_AUTHORITY sid_authnt = SECURITY_NT_AUTHORITY;
+		if (!::AllocateAndInitializeSid(&sid_authnt, 2, SECURITY_BUILTIN_DOMAIN_RID, DOMAIN_ALIAS_RID_ADMINS, 0, 0, 0, 0, 0, 0, &sid_admin))
+		{
+			::LocalFree(ace_list);
+			::LocalFree(security_descriptor);
+			return false;
+		}
+
+		PSID sid_file = static_cast<PSID>(access_entry.Trustee.ptstrName);
+
+		access_rights_okay = ::EqualSid(sid_admin, sid_file);
+
+		::FreeSid(sid_admin);
+	}
+
+	::LocalFree(ace_list);
+	::LocalFree(security_descriptor);
+
+	return access_rights_okay;
 }

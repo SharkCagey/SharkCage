@@ -22,28 +22,5 @@ namespace CageChooser.Properties {
                 return defaultInstance;
             }
         }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string PersistentConfigPath {
-            get {
-                return ((string)(this["PersistentConfigPath"]));
-            }
-            set {
-                this["PersistentConfigPath"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        public global::System.Collections.Specialized.StringCollection PersistentLRUConfigs {
-            get {
-                return ((global::System.Collections.Specialized.StringCollection)(this["PersistentLRUConfigs"]));
-            }
-            set {
-                this["PersistentLRUConfigs"] = value;
-            }
-        }
     }
 }
