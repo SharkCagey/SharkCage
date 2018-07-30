@@ -55,4 +55,6 @@ private:
 	std::wstring GetLastErrorAsString(DWORD error_id);
 
 	std::optional<HANDLE> CageService::CreateImpersonatingUserToken();
+
+	bool CheckConfigAccessRights(const std::wstring config_path);
 };

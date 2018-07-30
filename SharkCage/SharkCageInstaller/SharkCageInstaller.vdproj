@@ -39,6 +39,18 @@
         }
         "Entry"
         {
+        "MsmKey" = "8:_23949B9F3DAD4E14A137ACF256F92A3C"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_4C24B7DB4E4A4A81B84E9B25DF5A8647"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_63AF181CABB14A408EE15B685CD7A728"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -51,6 +63,12 @@
         }
         "Entry"
         {
+        "MsmKey" = "8:_7BFF8A70116547B1A6683FF47B5E3E62"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_8A8ED1AABB68440AB0601DB450CCF386"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -58,6 +76,12 @@
         "Entry"
         {
         "MsmKey" = "8:_9225268146BB459386642FBCC47E116A"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_DF07548511334F1D921BFB7F0926DD86"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -83,6 +107,12 @@
         {
         "MsmKey" = "8:_EF4B6F1AF9FE8033470A716D32B9ACBD"
         "OwnerKey" = "8:_7804B69B4E70477F81F409F2AE60194D"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_F1E810AF35024A60B5693314B1D4542D"
+        "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -364,6 +394,86 @@
             "IsDependency" = "11:TRUE"
             "IsolateTo" = "8:"
             }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_23949B9F3DAD4E14A137ACF256F92A3C"
+            {
+            "SourcePath" = "8:..\\..\\3rd_party_licenses\\nlohman-json.txt"
+            "TargetName" = "8:nlohman-json.txt"
+            "Tag" = "8:"
+            "Folder" = "8:_4A2B9165170246499CA780AF8C49C41C"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_4C24B7DB4E4A4A81B84E9B25DF5A8647"
+            {
+            "SourcePath" = "8:..\\..\\3rd_party_licenses\\cpp_base64.txt"
+            "TargetName" = "8:cpp_base64.txt"
+            "Tag" = "8:"
+            "Folder" = "8:_4A2B9165170246499CA780AF8C49C41C"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_7BFF8A70116547B1A6683FF47B5E3E62"
+            {
+            "SourcePath" = "8:..\\..\\3rd_party_licenses\\asio.txt"
+            "TargetName" = "8:asio.txt"
+            "Tag" = "8:"
+            "Folder" = "8:_4A2B9165170246499CA780AF8C49C41C"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_DF07548511334F1D921BFB7F0926DD86"
+            {
+            "SourcePath" = "8:..\\..\\3rd_party_licenses\\AForge.NET.txt"
+            "TargetName" = "8:AForge.NET.txt"
+            "Tag" = "8:"
+            "Folder" = "8:_4A2B9165170246499CA780AF8C49C41C"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
             "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_EE48644F738FAF6F608738C768C19F32"
             {
             "AssemblyRegister" = "3:1"
@@ -424,6 +534,26 @@
             "Register" = "3:1"
             "Exclude" = "11:FALSE"
             "IsDependency" = "11:TRUE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_F1E810AF35024A60B5693314B1D4542D"
+            {
+            "SourcePath" = "8:..\\..\\3rd_party_licenses\\Newtonsoft JSON.txt"
+            "TargetName" = "8:Newtonsoft JSON.txt"
+            "Tag" = "8:"
+            "Folder" = "8:_4A2B9165170246499CA780AF8C49C41C"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
             "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_FBA8493A64611F9DA84D53481DFA1E95"
@@ -506,35 +636,13 @@
             "Property" = "8:TARGETDIR"
                 "Folders"
                 {
-                    "{9EF0B969-E518-4E46-987F-47570745A589}:_0E15C77A29D74A11A62CFC7A38572A54"
+                    "{9EF0B969-E518-4E46-987F-47570745A589}:_4A2B9165170246499CA780AF8C49C41C"
                     {
-                    "Name" = "8:doc"
+                    "Name" = "8:licenses"
                     "AlwaysCreate" = "11:FALSE"
                     "Condition" = "8:"
                     "Transitive" = "11:FALSE"
-                    "Property" = "8:_BA2E313037DA4A92B65963539646444C"
-                        "Folders"
-                        {
-                        }
-                    }
-                    "{9EF0B969-E518-4E46-987F-47570745A589}:_6B51E23BDEB0436FA9B16C8E38C9464E"
-                    {
-                    "Name" = "8:bin"
-                    "AlwaysCreate" = "11:FALSE"
-                    "Condition" = "8:"
-                    "Transitive" = "11:FALSE"
-                    "Property" = "8:_D3BA9D80C7D64E27BE6F3571F8DBB36B"
-                        "Folders"
-                        {
-                        }
-                    }
-                    "{9EF0B969-E518-4E46-987F-47570745A589}:_E3B9E7FE89FA4B0AA09518A6ACF5693F"
-                    {
-                    "Name" = "8:lib"
-                    "AlwaysCreate" = "11:FALSE"
-                    "Condition" = "8:"
-                    "Transitive" = "11:FALSE"
-                    "Property" = "8:_2A0E0D012356427B9169C703335CDD0D"
+                    "Property" = "8:_8DAA9864DC29403B96574FADFA2632F5"
                         "Folders"
                         {
                         }
@@ -558,7 +666,7 @@
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:SharkCage"
         "ProductCode" = "8:{ABDFC121-DD3E-48A6-93D2-775E2B08A35F}"
-        "PackageCode" = "8:{1CD568D8-56F4-4E5E-8414-3534CEE7A764}"
+        "PackageCode" = "8:{9EE13A14-D7EF-4205-A90C-AAB93ED501A3}"
         "UpgradeCode" = "8:{593757A6-95D5-412D-A2FF-7530C14252A4}"
         "AspNetVersion" = "8:4.0.30319.0"
         "RestartWWWService" = "11:FALSE"
@@ -702,7 +810,7 @@
             }
             "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_EEE359CD22E648CE996AA493B491ACD0"
             {
-            "Name" = "8:Shortcut to Primary output from CageConfigurator (Active)"
+            "Name" = "8:CageConfigurator"
             "Arguments" = "8:"
             "Description" = "8:"
             "ShowCmd" = "3:1"
@@ -716,7 +824,7 @@
             }
             "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_F7B055F467AD4812BE87B7FA74C7F0B4"
             {
-            "Name" = "8:Shortcut to Primary output from CageChooser (Active)"
+            "Name" = "8:CageChooser"
             "Arguments" = "8:"
             "Description" = "8:"
             "ShowCmd" = "3:1"
@@ -1113,7 +1221,7 @@
             }
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_01BBBCE4106E46A891E20AE0FAFF7469"
             {
-            "SourcePath" = "8:..\\CageServiceInstaller\\obj\\Debug\\CageServiceInstaller.dll"
+            "SourcePath" = "8:..\\CageServiceInstaller\\obj\\Release\\CageServiceInstaller.dll"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_AF35AA7C0DA64CECA8201B61E6196592"
@@ -1169,7 +1277,7 @@
             }
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_63AF181CABB14A408EE15B685CD7A728"
             {
-            "SourcePath" = "8:..\\CageManager\\Debug\\CageManager.exe"
+            "SourcePath" = "8:..\\CageManager\\Release\\CageManager.exe"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_AF35AA7C0DA64CECA8201B61E6196592"
@@ -1225,7 +1333,7 @@
             }
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_7804B69B4E70477F81F409F2AE60194D"
             {
-            "SourcePath" = "8:..\\CageConfigurator\\obj\\Debug\\CageConfigurator.exe"
+            "SourcePath" = "8:..\\CageConfigurator\\obj\\Release\\CageConfigurator.exe"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_AF35AA7C0DA64CECA8201B61E6196592"
@@ -1253,7 +1361,7 @@
             }
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_8A8ED1AABB68440AB0601DB450CCF386"
             {
-            "SourcePath" = "8:..\\CageNetwork\\Debug\\CageNetwork.dll"
+            "SourcePath" = "8:..\\SharedFunctionality\\Release\\SharedFunctionality.dll"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_AF35AA7C0DA64CECA8201B61E6196592"
@@ -1281,7 +1389,7 @@
             }
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_9225268146BB459386642FBCC47E116A"
             {
-            "SourcePath" = "8:..\\CageService\\Debug\\CageService.exe"
+            "SourcePath" = "8:..\\CageService\\Release\\CageService.exe"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_AF35AA7C0DA64CECA8201B61E6196592"
@@ -1337,7 +1445,7 @@
             }
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_E943CA2FAF6449929DEB63A8430A741B"
             {
-            "SourcePath" = "8:..\\CageChooser\\obj\\Debug\\CageChooser.exe"
+            "SourcePath" = "8:..\\CageChooser\\obj\\Release\\CageChooser.exe"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_AF35AA7C0DA64CECA8201B61E6196592"
