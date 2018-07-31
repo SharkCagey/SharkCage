@@ -199,6 +199,7 @@ void CageManager::StartCage(SECURITY_ATTRIBUTES security_attributes, const CageD
 						if (*iterator == cage_data.activate_app)
 						{
 							CageManager::ActivateApp(
+								tokenHandle,
 								cage_data.app_path,
 								cage_data.activate_app,
 								desktop_handle,
@@ -210,6 +211,7 @@ void CageManager::StartCage(SECURITY_ATTRIBUTES security_attributes, const CageD
 						else if (cage_data.hasAdditionalAppInfo() && *iterator == cage_data.activate_additional_app.value())
 						{
 							CageManager::ActivateApp(
+								tokenHandle,
 								cage_data.additional_app_path.value(),
 								cage_data.activate_additional_app.value(),
 								desktop_handle,
@@ -419,6 +421,7 @@ bool CageManager::ProcessRunning(const std::wstring &process_path)
 }
 
 void CageManager::ActivateApp(
+	const HANDLE tokenHandle,
 	const std::wstring &path,
 	const HANDLE &event,
 	const HDESK &desktop_handle,
@@ -447,17 +450,7 @@ void CageManager::ActivateApp(
 		::CloseHandle(process_info.hProcess);
 		::CloseHandle(process_info.hThread);
 
-		if (::CreateProcess(
-			path.c_str(),
-			nullptr,
-			&security_attributes,
-			nullptr,
-			FALSE,
-			0,
-			nullptr,
-			nullptr,
-			&info,
-			&process_info) == 0)
+		if(::CreateProcessWithTokenW(tokenHandle, LOGON_WITH_PROFILE, path.c_str(), nullptr, 0, nullptr, nullptr, &info, &process_info))
 		{
 			std::cout << "Failed to start process. Error: " << ::GetLastError() << std::endl;
 		}
