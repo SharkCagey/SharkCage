@@ -269,8 +269,9 @@ namespace CageConfigurator
 
                 return Image.FromStream(ms, true);
             }
-            catch (Exception)
+            catch
             {
+                MessageBox.Show("Image could not be loaded. You have to specify a new one if you want to save the config.", "SharkCage", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return null;
             }
         }
@@ -537,7 +538,8 @@ namespace CageConfigurator
 
         private static string GetSha512Hash(string file_path)
         {
-            using (var bs = new BufferedStream(File.OpenRead(file_path), 1048576))
+            const int buffer_size = 1048576; // ~ 1MB per read
+            using (var bs = new BufferedStream(File.OpenRead(file_path), buffer_size))
             {
                 var sha = new SHA512Managed();
                 byte[] hash = sha.ComputeHash(bs);

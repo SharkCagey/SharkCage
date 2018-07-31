@@ -259,10 +259,10 @@ bool CageService::CheckConfigAccessRights(const std::wstring config_path)
 	DWORD length = 0;
 	::GetFileSecurity(config_path.c_str(), DACL_SECURITY_INFORMATION, NULL, NULL, &length);
 
-	PSECURITY_DESCRIPTOR security_descriptor = static_cast<PSECURITY_DESCRIPTOR>(::LocalAlloc(LPTR, length));
+	PSECURITY_DESCRIPTOR security_descriptor = static_cast<PSECURITY_DESCRIPTOR>(::HeapAlloc(::GetProcessHeap(), 0, length));
 	if (!::GetFileSecurity(config_path.c_str(), DACL_SECURITY_INFORMATION, security_descriptor, length, &length))
 	{
-		::LocalFree(security_descriptor);
+		::HeapFree(::GetProcessHeap(), 0, security_descriptor);
 		return false;
 	}
 
@@ -271,13 +271,13 @@ bool CageService::CheckConfigAccessRights(const std::wstring config_path)
 	BOOL dacl_defaulted;
 	if (!::GetSecurityDescriptorDacl(security_descriptor, &dacl_present, &acl, &dacl_defaulted))
 	{
-		::LocalFree(security_descriptor);
+		::HeapFree(::GetProcessHeap(), 0, security_descriptor);
 		return false;
 	}
 
 	if (!dacl_present)
 	{
-		::LocalFree(security_descriptor);
+		::HeapFree(::GetProcessHeap(), 0, security_descriptor);
 		return false;
 	}
 
@@ -285,11 +285,11 @@ bool CageService::CheckConfigAccessRights(const std::wstring config_path)
 	EXPLICIT_ACCESS *ace_list;
 	if (::GetExplicitEntriesFromAcl(acl, &ace_count, &ace_list) != ERROR_SUCCESS)
 	{
-		::LocalFree(security_descriptor);
+		::HeapFree(::GetProcessHeap(), 0, security_descriptor);
 		return false;
 	}
 
-	bool access_rights_okay = false;
+	bool access_rights_status = false;
 	if (ace_count == 1)
 	{
 		auto access_entry = ace_list[0];
@@ -300,19 +300,19 @@ bool CageService::CheckConfigAccessRights(const std::wstring config_path)
 		if (!::AllocateAndInitializeSid(&sid_authnt, 2, SECURITY_BUILTIN_DOMAIN_RID, DOMAIN_ALIAS_RID_ADMINS, 0, 0, 0, 0, 0, 0, &sid_admin))
 		{
 			::LocalFree(ace_list);
-			::LocalFree(security_descriptor);
+			::HeapFree(::GetProcessHeap(), 0, security_descriptor);
 			return false;
 		}
 
 		PSID sid_file = static_cast<PSID>(access_entry.Trustee.ptstrName);
 
-		access_rights_okay = ::EqualSid(sid_admin, sid_file);
+		access_rights_status = ::EqualSid(sid_admin, sid_file);
 
 		::FreeSid(sid_admin);
 	}
 
 	::LocalFree(ace_list);
-	::LocalFree(security_descriptor);
+	::HeapFree(::GetProcessHeap(), 0, security_descriptor);
 
-	return access_rights_okay;
+	return access_rights_status;
 }
