@@ -67,7 +67,22 @@ DWORD CageService::StartCageManager(DWORD session_id, HANDLE &user_token)
 	if (pos != std::wstring::npos)
 	{
 		filename = filename.substr(0, pos) + L"\\" + CAGE_MANAGER_NAME;
-		return StartCageManager(session_id, filename, user_token);
+
+		#ifdef _DEBUG
+			return StartCageManager(session_id, filename, user_token);
+		#else
+			if (SharedFunctions::ValidateCertificate(filename))
+			{
+				return StartCageManager(session_id, filename, user_token);
+			}
+			else
+			{
+				std::wostringstream os;
+				os << "Failed to validate the integrity of CageManager! Not starting." << std::endl;
+				::OutputDebugString(os.str().c_str());
+				return 0;
+			}
+		#endif
 	}
 
 	return 0;
@@ -231,8 +246,13 @@ void CageService::HandleMessage(const std::wstring &message, NetworkManager &net
 	DWORD session_id = ::WTSGetActiveConsoleSessionId();
 	cage_manager_process_id = StartCageManager(session_id, created_token);
 
-	// Forward to cage manager
 	std::wstring result_data;
+	if (cage_manager_process_id == 0)
+	{
+		network_manager.Send(sender, CageMessage::RESPONSE_FAILURE, L"Starting CageManager failed.", result_data);
+	}
+
+	// Forward to cage manager
 	auto send_result = network_manager.Send(ContextType::MANAGER, message_type.value(), message_data, result_data);
 
 	if (send_result)

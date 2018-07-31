@@ -197,6 +197,7 @@ xcopy /y "$(OutDir)$(TargetName).dll" "$(SolutionDir)CageChooser\bin\$(Configura
     <ClInclude Include="tokenLib\groupManipulation.h" />
     <ClInclude Include="tokenLib\stdafx.h" />
     <ClInclude Include="tokenLib\tokenManipulation.h" />
+    <ClInclude Include="ValidateBinary.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp" />
@@ -209,6 +210,7 @@ xcopy /y "$(OutDir)$(TargetName).dll" "$(SolutionDir)CageChooser\bin\$(Configura
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="tokenLib\tokenLib.cpp" />
+    <ClCompile Include="ValidateBinary.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="cpp.hint" />

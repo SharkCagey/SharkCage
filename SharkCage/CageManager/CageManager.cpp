@@ -20,6 +20,9 @@
 
 NetworkManager network_manager(ContextType::MANAGER);
 
+static bool ValidateBinariesToLaunch(const CageData &cage_data);
+static bool ValidateBinary(const std::wstring &app_path, const std::wstring &app_hash);
+
 int main()
 {
 	// listen for the message
@@ -41,8 +44,24 @@ int main()
 		return 1;
 	}
 
+	if (!ValidateBinariesToLaunch(cage_data))
+	{
+		std::cout << "Validity check of binaries to launch failed." << std::endl;
+
+		std::wstring result_data;
+		network_manager.Send(
+			sender,
+			CageMessage::RESPONSE_FAILURE, L"Verification of the integrity for one or more of the process(es) you are"
+			  " trying to start on the secure desktop has failed. This can happen if an app was updated between creating the configuration"
+			  " and opening it. Please take a look at the configuration in the CageConfigurator and (re)save it if you are sure everything is in order.",
+			result_data);
+
+		return 1;
+	}
+
 	CageManager cage_manager;
-	if (cage_manager.ProcessRunning(cage_data.app_path) || (cage_data.hasAdditionalAppInfo() && cage_manager.ProcessRunning(cage_data.additional_app_path.value())))
+	if (cage_manager.ProcessRunning(cage_data.app_path)
+		|| (cage_data.hasAdditionalAppInfo() && cage_manager.ProcessRunning(cage_data.additional_app_path.value())))
 	{
 		std::wstring result_data;
 		network_manager.Send(sender, CageMessage::RESPONSE_FAILURE, L"One or more of the process(es) you are trying to start on the secure desktop"
@@ -74,6 +93,38 @@ int main()
 	desktop_thread.join();
 
 	return 0;
+}
+
+static bool ValidateBinariesToLaunch(const CageData &cage_data)
+{
+	boolean status_main_app = ValidateBinary(cage_data.app_path, cage_data.app_hash);
+
+	if (cage_data.hasAdditionalAppInfo())
+	{
+		return status_main_app && SharedFunctions::ValidateCertificate(cage_data.additional_app_path.value());
+	}
+
+	return status_main_app;
+}
+
+static bool ValidateBinary(const std::wstring &app_path, const std::wstring &app_hash)
+{
+	if (app_hash.empty())
+	{
+		if (!SharedFunctions::ValidateCertificate(app_path))
+		{
+			return false;
+		}
+	}
+	else
+	{
+		if (!SharedFunctions::ValidateHash(app_path, app_hash))
+		{
+			return false;
+		}
+	}
+
+	return true;
 }
 
 void CageManager::StartCage(SECURITY_ATTRIBUTES security_attributes, const CageData &cage_data)

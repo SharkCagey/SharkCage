@@ -1,5 +1,5 @@
-
 #include "stdafx.h"
+#include "ValidateBinary.h"
 
 #include "SharedFunctions.h"
 #include "json.hpp"
@@ -239,5 +239,16 @@ namespace SharedFunctions
 		}
 
 		return L"UNKNOWN";
+	}
+
+	DLLEXPORT bool ValidateCertificate(const std::wstring &app_path)
+	{
+		return ValidateBinary::ValidateCertificate(app_path);
+	}
+
+
+	DLLEXPORT bool ValidateHash(const std::wstring &app_path, const std::wstring &app_hash)
+	{
+		return ValidateBinary::ValidateHash(app_path, app_hash);
 	}
 }
