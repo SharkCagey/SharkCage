@@ -64,7 +64,6 @@ int main()
 		return 1;
 	}
 
-	CageManager cage_manager;
 	if (cage_manager.ProcessRunning(cage_data.app_path) || (cage_data.hasAdditionalAppInfo() && cage_manager.ProcessRunning(cage_data.additional_app_path.value())))
 	{
 		std::wstring result_data;
@@ -77,14 +76,6 @@ int main()
 	std::wstring result_data;
 	network_manager.Send(sender, CageMessage::RESPONSE_SUCCESS, L"", result_data);
 
-	SecuritySetup security_setup;
-	auto security_attributes = security_setup.GetSecurityAttributes();
-
-	if (!security_attributes.has_value())
-	{
-		std::cout << "Could not get security attributes" << std::endl;
-		return 1;
-	}
 
 	const int work_area_width = 300;
 	std::thread desktop_thread(
@@ -150,7 +141,7 @@ void CageManager::StartCage(SECURITY_ATTRIBUTES security_attributes, const CageD
 	// Create the process.
 	PROCESS_INFORMATION process_info = {};
 
-	if(::CreateProcessWithTokenW(tokenHandle,LOGON_WITH_PROFILE,path_buf.data(),nullptr,0,nullptr,nullptr,&info, &process_info) == 0)
+	if(::CreateProcessWithTokenW(tokenHandle,LOGON_WITH_PROFILE, cage_data.app_path.c_str(),nullptr,0,nullptr,nullptr,&info, &process_info) == 0)
 	{
 		std::cout << "Failed to start process. Error: " << ::GetLastError() << std::endl;
 	}
@@ -158,10 +149,7 @@ void CageManager::StartCage(SECURITY_ATTRIBUTES security_attributes, const CageD
 	PROCESS_INFORMATION process_info_additional_app = { 0 };
 	if (cage_data.hasAdditionalAppInfo())
 	{
-		std::vector<wchar_t> additional_app_path_buf(cage_data.additional_app_path->begin(), cage_data.additional_app_path->end());
-		additional_app_path_buf.push_back(0);
-
-		if (::CreateProcessWithTokenW(tokenHandle, LOGON_WITH_PROFILE, additional_app_path_buf.data(), nullptr, 0, nullptr, nullptr, &info, &process_info_additional_app) == 0)
+		if (::CreateProcessWithTokenW(tokenHandle, LOGON_WITH_PROFILE, cage_data.additional_app_path.value().c_str(), nullptr, 0, nullptr, nullptr, &info, &process_info_additional_app) == 0)
 		{
 			std::cout << "Failed to start additional process. Error: " << GetLastError() << std::endl;
 		}
