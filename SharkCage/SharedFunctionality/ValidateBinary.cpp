@@ -65,24 +65,24 @@ bool ValidateBinary::ValidateHash(const std::wstring &app_path, const std::wstri
 
 	BCRYPT_ALG_HANDLE algorithm = nullptr;
 	//open an algorithm handle
-	if (::BCryptOpenAlgorithmProvider(
+	if (!BCRYPT_SUCCESS(::BCryptOpenAlgorithmProvider(
 		&algorithm,
 		BCRYPT_SHA512_ALGORITHM,
 		nullptr,
-		0) != 0)
+		0)))
 	{
 		return false;
 	}
 
 	DWORD cb_hash_object = 0, data = 0;
 	//calculate the size of the buffer to hold the hash object
-	if (::BCryptGetProperty(
+	if (!BCRYPT_SUCCESS(::BCryptGetProperty(
 		algorithm,
 		BCRYPT_OBJECT_LENGTH,
 		reinterpret_cast<PUCHAR>(&cb_hash_object),
 		sizeof(DWORD),
 		&data,
-		0) != 0)
+		0)))
 	{
 		::BCryptCloseAlgorithmProvider(algorithm, 0);
 		return false;
@@ -90,13 +90,13 @@ bool ValidateBinary::ValidateHash(const std::wstring &app_path, const std::wstri
 
 	DWORD cb_hash = 0;
 	//calculate the length of the hash
-	if (::BCryptGetProperty(
+	if (!BCRYPT_SUCCESS(::BCryptGetProperty(
 		algorithm,
 		BCRYPT_HASH_LENGTH,
 		reinterpret_cast<PUCHAR>(&cb_hash),
 		sizeof(DWORD),
 		&data,
-		0) != 0)
+		0)))
 	{
 		::BCryptCloseAlgorithmProvider(algorithm, 0);
 		return false;
@@ -112,14 +112,14 @@ bool ValidateBinary::ValidateHash(const std::wstring &app_path, const std::wstri
 
 	BCRYPT_HASH_HANDLE hash_handle = nullptr;
 	//create a hash
-	if (::BCryptCreateHash(
+	if (!BCRYPT_SUCCESS(::BCryptCreateHash(
 		algorithm,
 		&hash_handle,
 		hash_object,
 		cb_hash_object,
 		0,
 		0,
-		0) != 0)
+		0)))
 	{
 		::BCryptCloseAlgorithmProvider(algorithm, 0);
 		::HeapFree(::GetProcessHeap(), 0, hash_object);
@@ -127,11 +127,11 @@ bool ValidateBinary::ValidateHash(const std::wstring &app_path, const std::wstri
 	}
 
 	//hash data
-	if (::BCryptHashData(
+	if (!BCRYPT_SUCCESS(::BCryptHashData(
 		hash_handle,
 		reinterpret_cast<PUCHAR>(buffer.data()),
 		buffer.size(),
-		0) != 0)
+		0)))
 	{
 		::BCryptCloseAlgorithmProvider(algorithm, 0);
 		::HeapFree(::GetProcessHeap(), 0, hash_object);
@@ -150,11 +150,11 @@ bool ValidateBinary::ValidateHash(const std::wstring &app_path, const std::wstri
 	}
 
 	//close the hash
-	if (::BCryptFinishHash(
+	if (!BCRYPT_SUCCESS(::BCryptFinishHash(
 		hash_handle,
 		hash,
 		cb_hash,
-		0) != 0)
+		0)))
 	{
 		::BCryptCloseAlgorithmProvider(algorithm, 0);
 		::HeapFree(::GetProcessHeap(), 0, hash_object);
