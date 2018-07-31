@@ -13,7 +13,7 @@ private:
 		const int work_area_width,
 		const std::wstring &labeler_window_class_name);
 	void CageManager::ActivateApp(
-		const HANDLE tokenHandle,
+		const HANDLE token_handle,
 		const std::wstring &path,
 		const HANDLE &event,
 		const HDESK &desktop_handle,
