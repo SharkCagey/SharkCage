@@ -1,8 +1,6 @@
 #pragma once
 
-#include <Windows.h>
 #include <string>
-#include <bcrypt.h>
 #include <vector>
 
 class ValidateBinary

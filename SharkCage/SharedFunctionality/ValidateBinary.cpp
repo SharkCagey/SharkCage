@@ -1,7 +1,6 @@
 #include "stdafx.h"
 #include "ValidateBinary.h"
 
-#include <tchar.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <windows.h>
@@ -12,9 +11,6 @@
 
 #pragma comment(lib, "wintrust")
 #pragma comment(lib, "bcrypt.lib")
-
-#define NT_SUCCESS(Status)          (((NTSTATUS)(Status)) >= 0)
-#define STATUS_UNSUCCESSFUL         ((NTSTATUS)0xC0000001L)
 
 bool ValidateBinary::ValidateCertificate(const std::wstring &app_path)
 {
@@ -67,28 +63,26 @@ bool ValidateBinary::ValidateHash(const std::wstring &app_path, const std::wstri
 	buffer.resize(length);
 	infile.read(&buffer[0], length);
 
-	NTSTATUS status = STATUS_UNSUCCESSFUL;
-
 	BCRYPT_ALG_HANDLE algorithm = nullptr;
 	//open an algorithm handle
-	if (!NT_SUCCESS(status = ::BCryptOpenAlgorithmProvider(
+	if (::BCryptOpenAlgorithmProvider(
 		&algorithm,
 		BCRYPT_SHA512_ALGORITHM,
 		nullptr,
-		0)))
+		0) != 0)
 	{
 		return false;
 	}
 
 	DWORD cb_hash_object = 0, data = 0;
 	//calculate the size of the buffer to hold the hash object
-	if (!NT_SUCCESS(status = ::BCryptGetProperty(
+	if (::BCryptGetProperty(
 		algorithm,
 		BCRYPT_OBJECT_LENGTH,
-		reinterpret_cast<PBYTE>(&cb_hash_object),
+		reinterpret_cast<PUCHAR>(&cb_hash_object),
 		sizeof(DWORD),
 		&data,
-		0)))
+		0) != 0)
 	{
 		::BCryptCloseAlgorithmProvider(algorithm, 0);
 		return false;
@@ -96,13 +90,13 @@ bool ValidateBinary::ValidateHash(const std::wstring &app_path, const std::wstri
 
 	DWORD cb_hash = 0;
 	//calculate the length of the hash
-	if (!NT_SUCCESS(status = ::BCryptGetProperty(
+	if (::BCryptGetProperty(
 		algorithm,
 		BCRYPT_HASH_LENGTH,
-		reinterpret_cast<PBYTE>(&cb_hash),
+		reinterpret_cast<PUCHAR>(&cb_hash),
 		sizeof(DWORD),
 		&data,
-		0)))
+		0) != 0)
 	{
 		::BCryptCloseAlgorithmProvider(algorithm, 0);
 		return false;
@@ -118,14 +112,14 @@ bool ValidateBinary::ValidateHash(const std::wstring &app_path, const std::wstri
 
 	BCRYPT_HASH_HANDLE hash_handle = nullptr;
 	//create a hash
-	if (!NT_SUCCESS(status = ::BCryptCreateHash(
+	if (::BCryptCreateHash(
 		algorithm,
 		&hash_handle,
 		hash_object,
 		cb_hash_object,
 		0,
 		0,
-		0)))
+		0) != 0)
 	{
 		::BCryptCloseAlgorithmProvider(algorithm, 0);
 		::HeapFree(::GetProcessHeap(), 0, hash_object);
@@ -133,11 +127,11 @@ bool ValidateBinary::ValidateHash(const std::wstring &app_path, const std::wstri
 	}
 
 	//hash data
-	if (!NT_SUCCESS(status = ::BCryptHashData(
+	if (::BCryptHashData(
 		hash_handle,
 		reinterpret_cast<PUCHAR>(buffer.data()),
 		buffer.size(),
-		0)))
+		0) != 0)
 	{
 		::BCryptCloseAlgorithmProvider(algorithm, 0);
 		::HeapFree(::GetProcessHeap(), 0, hash_object);
@@ -146,7 +140,7 @@ bool ValidateBinary::ValidateHash(const std::wstring &app_path, const std::wstri
 	}
 
 	//allocate the hash buffer on the heap
-	PUCHAR hash = reinterpret_cast<PBYTE>(::HeapAlloc(::GetProcessHeap(), 0, cb_hash));
+	PUCHAR hash = reinterpret_cast<PUCHAR>(::HeapAlloc(::GetProcessHeap(), 0, cb_hash));
 	if (!hash)
 	{
 		::BCryptCloseAlgorithmProvider(algorithm, 0);
@@ -156,11 +150,11 @@ bool ValidateBinary::ValidateHash(const std::wstring &app_path, const std::wstri
 	}
 
 	//close the hash
-	if (!NT_SUCCESS(status = ::BCryptFinishHash(
+	if (::BCryptFinishHash(
 		hash_handle,
 		hash,
 		cb_hash,
-		0)))
+		0) != 0)
 	{
 		::BCryptCloseAlgorithmProvider(algorithm, 0);
 		::HeapFree(::GetProcessHeap(), 0, hash_object);
@@ -202,5 +196,5 @@ std::vector<char> ValidateBinary::BytesToHexString(unsigned char const *bytes, s
 
 bool ValidateBinary::CompareHashes(const std::wstring &hash_1, const std::string &hash_2)
 {
-	return std::equal(hash_2.begin(), hash_2.end(), hash_1.begin(), hash_1.end());
+	return std::equal(hash_1.begin(), hash_1.end(), hash_2.begin(), hash_2.end());
 }
