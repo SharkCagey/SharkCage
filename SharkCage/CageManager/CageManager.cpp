@@ -150,7 +150,8 @@ void CageManager::StartCage(SECURITY_ATTRIBUTES security_attributes, const CageD
 	}
 	auto uuid_stl = uuid_stl_opt.value();
 	HANDLE token_handle = nullptr;
-	if (!tokenLib::constructUserTokenWithGroup(const_cast<wchar_t*>((group_name.c_str())), token_handle)) {
+	if (!tokenLib::constructUserTokenWithGroup(const_cast<wchar_t*>((group_name.c_str())), token_handle))
+	{
 		std::cout << "Cannot create required token" << std::endl;
 		return;
 	}
