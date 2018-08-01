@@ -22,7 +22,6 @@ private:
 		STARTUPINFO info,
 		std::vector<HANDLE> &handles);
 
-
 	// FIXME: extra class for this? process handling? -> could also do the wait stuff
 	static BOOL CALLBACK GetOpenWindowHandles(_In_ HWND hwnd, _In_ LPARAM l_param);
 	static BOOL CALLBACK GetOpenProcesses(_In_ HWND hwnd, _In_ LPARAM l_param);

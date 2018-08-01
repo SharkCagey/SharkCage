@@ -25,23 +25,6 @@ std::optional<std::wstring> generateUuid();
 int main()
 {
 	CageManager cage_manager;
-	
-	SecuritySetup security_setup;
-	//randomize the group name
-	auto uuid_stl_opt = generateUuid();
-	if (!uuid_stl_opt.has_value()) {
-		return 1;
-	}
-	auto uuid_stl = uuid_stl_opt.value();;
-
-	std::wstring group_name = std::wstring(L"shark_cage_group_").append(uuid_stl);
-	auto security_attributes = security_setup.GetSecurityAttributes(group_name);
-
-	if (!security_attributes.has_value())
-	{
-		std::cout << "Could not get security attributes" << std::endl;
-		return 1;
-	}
 
 	// listen for the message
 	std::wstring message = network_manager.Listen(10);
@@ -51,7 +34,6 @@ int main()
 
 	if (parse_result != CageMessage::START_PROCESS)
 	{
-		tokenLib::deleteLocalGroup(const_cast<wchar_t*>((group_name.c_str())));
 		std::cout << "Could not process incoming message" << std::endl;
 		return 1;
 	}
@@ -59,7 +41,6 @@ int main()
 	CageData cage_data = { message_data };
 	if (!SharedFunctions::ParseStartProcessMessage(cage_data))
 	{
-		tokenLib::deleteLocalGroup(const_cast<wchar_t*>((group_name.c_str())));
 		std::cout << "Could not process start process message" << std::endl;
 		return 1;
 	}
@@ -76,6 +57,24 @@ int main()
 	std::wstring result_data;
 	network_manager.Send(sender, CageMessage::RESPONSE_SUCCESS, L"", result_data);
 
+	SecuritySetup security_setup;
+	//randomize the group name
+	auto uuid_stl_opt = generateUuid();
+	if (!uuid_stl_opt.has_value())
+	{
+		return 1;
+	}
+	auto uuid_stl = uuid_stl_opt.value();;
+
+	std::wstring group_name = std::wstring(L"shark_cage_group_").append(uuid_stl);
+	auto security_attributes = security_setup.GetSecurityAttributes(group_name);
+
+	if (!security_attributes.has_value())
+	{
+		tokenLib::deleteLocalGroup(const_cast<wchar_t*>((group_name.c_str())));
+		std::cout << "Could not get security attributes" << std::endl;
+		return 1;
+	}
 
 	const int work_area_width = 300;
 	std::thread desktop_thread(
@@ -95,12 +94,12 @@ void CageManager::StartCage(SECURITY_ATTRIBUTES security_attributes, const CageD
 {
 	// name should be unique every time -> create UUID
 	auto uuid_stl_opt = generateUuid();
-	if (!uuid_stl_opt.has_value()) {
+	if (!uuid_stl_opt.has_value()) 
+	{
 		return;
 	}
 	auto uuid_stl = uuid_stl_opt.value();
 	HANDLE token_handle = nullptr;
-	//TODO: close this handle
 	if (!tokenLib::constructUserTokenWithGroup(const_cast<wchar_t*>((group_name.c_str())), token_handle)) {
 		std::cout << "Cannot create required token" << std::endl;
 		return;
@@ -116,6 +115,7 @@ void CageManager::StartCage(SECURITY_ATTRIBUTES security_attributes, const CageD
 	HDESK desktop_handle;
 	if (!cage_desktop.Init(desktop_handle))
 	{
+		::CloseHandle(token_handle);
 		std::cout << "Failed to create/launch the cage desktop" << std::endl;
 		return;
 	}
@@ -141,7 +141,7 @@ void CageManager::StartCage(SECURITY_ATTRIBUTES security_attributes, const CageD
 	// Create the process.
 	PROCESS_INFORMATION process_info = {};
 
-	if(::CreateProcessWithTokenW(token_handle,LOGON_WITH_PROFILE, cage_data.app_path.c_str(),nullptr,0,nullptr,nullptr,&info, &process_info) == 0)
+	if(::CreateProcessWithTokenW(token_handle, LOGON_WITH_PROFILE, cage_data.app_path.c_str(), nullptr, 0, nullptr, nullptr, &info, &process_info) == 0)
 	{
 		std::cout << "Failed to start process. Error: " << ::GetLastError() << std::endl;
 	}
@@ -303,6 +303,7 @@ void CageManager::StartCage(SECURITY_ATTRIBUTES security_attributes, const CageD
 	::CloseHandle(process_info.hProcess);
 	::CloseHandle(process_info.hThread);
 	::CloseHandle(cage_data.activate_app);
+	::CloseHandle(token_handle);
 
 	if (cage_data.hasAdditionalAppInfo())
 	{
@@ -450,7 +451,7 @@ void CageManager::ActivateApp(
 		::CloseHandle(process_info.hProcess);
 		::CloseHandle(process_info.hThread);
 
-		if(::CreateProcessWithTokenW(token_handle, LOGON_WITH_PROFILE, path.c_str(), nullptr, 0, nullptr, nullptr, &info, &process_info))
+		if(::CreateProcessWithTokenW(token_handle, LOGON_WITH_PROFILE, path.c_str(), nullptr, 0, nullptr, nullptr, &info, &process_info) == 0)
 		{
 			std::cout << "Failed to start process. Error: " << ::GetLastError() << std::endl;
 		}
