@@ -54,6 +54,9 @@
     <ClInclude Include="tokenLib\stdafx.h">
       <Filter>Header Files\TokenLib</Filter>
     </ClInclude>
+    <ClInclude Include="ValidateBinary.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -70,6 +73,9 @@
     </ClCompile>
     <ClCompile Include="tokenLib\tokenLib.cpp">
       <Filter>Source Files\TokenLib</Filter>
+    </ClCompile>
+    <ClCompile Include="ValidateBinary.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

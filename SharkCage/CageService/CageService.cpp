@@ -67,7 +67,22 @@ DWORD CageService::StartCageManager(DWORD session_id, HANDLE &user_token)
 	if (pos != std::wstring::npos)
 	{
 		filename = filename.substr(0, pos) + L"\\" + CAGE_MANAGER_NAME;
-		return StartCageManager(session_id, filename, user_token);
+
+		#ifdef _DEBUG
+			return StartCageManager(session_id, filename, user_token);
+		#else
+			if (SharedFunctions::ValidateCertificate(filename))
+			{
+				return StartCageManager(session_id, filename, user_token);
+			}
+			else
+			{
+				std::wostringstream os;
+				os << "Failed to validate the integrity of CageManager! Not starting." << std::endl;
+				::OutputDebugString(os.str().c_str());
+				return 0;
+			}
+		#endif
 	}
 
 	return 0;
@@ -231,8 +246,13 @@ void CageService::HandleMessage(const std::wstring &message, NetworkManager &net
 	DWORD session_id = ::WTSGetActiveConsoleSessionId();
 	cage_manager_process_id = StartCageManager(session_id, created_token);
 
-	// Forward to cage manager
 	std::wstring result_data;
+	if (cage_manager_process_id == 0)
+	{
+		network_manager.Send(sender, CageMessage::RESPONSE_FAILURE, L"Starting CageManager failed.", result_data);
+	}
+
+	// Forward to cage manager
 	auto send_result = network_manager.Send(ContextType::MANAGER, message_type.value(), message_data, result_data);
 
 	if (send_result)
@@ -259,10 +279,10 @@ bool CageService::CheckConfigAccessRights(const std::wstring config_path)
 	DWORD length = 0;
 	::GetFileSecurity(config_path.c_str(), DACL_SECURITY_INFORMATION, NULL, NULL, &length);
 
-	PSECURITY_DESCRIPTOR security_descriptor = static_cast<PSECURITY_DESCRIPTOR>(::LocalAlloc(LPTR, length));
+	PSECURITY_DESCRIPTOR security_descriptor = static_cast<PSECURITY_DESCRIPTOR>(::HeapAlloc(::GetProcessHeap(), 0, length));
 	if (!::GetFileSecurity(config_path.c_str(), DACL_SECURITY_INFORMATION, security_descriptor, length, &length))
 	{
-		::LocalFree(security_descriptor);
+		::HeapFree(::GetProcessHeap(), 0, security_descriptor);
 		return false;
 	}
 
@@ -271,13 +291,13 @@ bool CageService::CheckConfigAccessRights(const std::wstring config_path)
 	BOOL dacl_defaulted;
 	if (!::GetSecurityDescriptorDacl(security_descriptor, &dacl_present, &acl, &dacl_defaulted))
 	{
-		::LocalFree(security_descriptor);
+		::HeapFree(::GetProcessHeap(), 0, security_descriptor);
 		return false;
 	}
 
 	if (!dacl_present)
 	{
-		::LocalFree(security_descriptor);
+		::HeapFree(::GetProcessHeap(), 0, security_descriptor);
 		return false;
 	}
 
@@ -285,11 +305,11 @@ bool CageService::CheckConfigAccessRights(const std::wstring config_path)
 	EXPLICIT_ACCESS *ace_list;
 	if (::GetExplicitEntriesFromAcl(acl, &ace_count, &ace_list) != ERROR_SUCCESS)
 	{
-		::LocalFree(security_descriptor);
+		::HeapFree(::GetProcessHeap(), 0, security_descriptor);
 		return false;
 	}
 
-	bool access_rights_okay = false;
+	bool access_rights_status = false;
 	if (ace_count == 1)
 	{
 		auto access_entry = ace_list[0];
@@ -300,19 +320,19 @@ bool CageService::CheckConfigAccessRights(const std::wstring config_path)
 		if (!::AllocateAndInitializeSid(&sid_authnt, 2, SECURITY_BUILTIN_DOMAIN_RID, DOMAIN_ALIAS_RID_ADMINS, 0, 0, 0, 0, 0, 0, &sid_admin))
 		{
 			::LocalFree(ace_list);
-			::LocalFree(security_descriptor);
+			::HeapFree(::GetProcessHeap(), 0, security_descriptor);
 			return false;
 		}
 
 		PSID sid_file = static_cast<PSID>(access_entry.Trustee.ptstrName);
 
-		access_rights_okay = ::EqualSid(sid_admin, sid_file);
+		access_rights_status = ::EqualSid(sid_admin, sid_file);
 
 		::FreeSid(sid_admin);
 	}
 
 	::LocalFree(ace_list);
-	::LocalFree(security_descriptor);
+	::HeapFree(::GetProcessHeap(), 0, security_descriptor);
 
-	return access_rights_okay;
+	return access_rights_status;
 }
