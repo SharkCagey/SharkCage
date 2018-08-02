@@ -23,11 +23,13 @@
 !*.config
 !*.settings
 !*.ps1
+!*.manifest
 
 # c++ / c#
 !*.h
 !*.cpp
 !*.hpp
+!*.ipp
 !*.rc
 !*.cs
 !*.resx
