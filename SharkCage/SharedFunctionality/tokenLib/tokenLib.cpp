@@ -65,8 +65,12 @@ private:
 
 public:
 	tokenTemplate(HANDLE &userToken);
-
 	~tokenTemplate();
+
+	// these need to be customized if needed so memory of member pointers also gets copied
+	// (otherwise there could be use-after-frees in the destructor)
+	tokenTemplate(const tokenTemplate &) = delete;
+	tokenTemplate operator=(const tokenTemplate &) = delete;
 
 	bool addGroup(PSID sid);
 
@@ -438,8 +442,9 @@ bool changeTokenCreationPrivilege(bool privilegeStatus) {
 		wprintf(L"Error getting token for privilege escalation\n");
 		return false;
 	}
-	return setPrivilege(userTokenHandle, SE_CREATE_TOKEN_NAME, privilegeStatus);
+	auto set_privilege_status = setPrivilege(userTokenHandle, SE_CREATE_TOKEN_NAME, privilegeStatus);
 	CloseHandle(userTokenHandle);
+	return set_privilege_status;
 }
 
 tokenTemplate::tokenTemplate(HANDLE &userToken) {
@@ -554,7 +559,7 @@ tokenTemplate::tokenTemplate(HANDLE &userToken) {
 }
 
 tokenTemplate::~tokenTemplate() {
-	delete objectAttributes->SecurityQualityOfService;
+	delete static_cast<PSECURITY_QUALITY_OF_SERVICE>(objectAttributes->SecurityQualityOfService);
 	delete objectAttributes;
 	delete authenticationId;
 	delete expirationTime;
