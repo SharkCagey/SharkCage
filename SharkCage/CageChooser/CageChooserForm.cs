@@ -85,6 +85,11 @@ namespace CageChooser
             return bHandled;
         }
 
+        private void registeredConfigs_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            openButton.Enabled = registeredConfigs.SelectedItem != null;
+        }
+
         #endregion
 
         #region Cage Service
@@ -125,37 +130,5 @@ namespace CageChooser
         }
 
         #endregion
-
-        #region CageConfigurator
-
-        private void openCageConfiguratorButton_Click(object sender, EventArgs e)
-        {
-            var install_dir = Registry.GetValue(REGISTRY_KEY, "InstallDir", "") as string ?? String.Empty;
-
-            if (install_dir == String.Empty)
-            {
-                MessageBox.Show("Could not read installation directory from registry, opening CageConfigurator not possible", "Shark Cage", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                return;
-            }
-
-            var p = new System.Diagnostics.Process();
-            p.StartInfo.FileName = $@"{install_dir}\CageConfigurator.exe";
-
-            var selected_item = registeredConfigs.SelectedItem?.ToString() ?? String.Empty;
-            var config_path = String.Empty;
-            config_name_value_mapping.TryGetValue(selected_item, out config_path);
-            if (config_path != String.Empty)
-            {
-                p.StartInfo.Arguments = $@"""{config_path}""";
-            }
-            p.Start();
-        }
-
-        #endregion
-
-        private void registeredConfigs_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            openButton.Enabled = registeredConfigs.SelectedItem != null;
-        }
     }
 }

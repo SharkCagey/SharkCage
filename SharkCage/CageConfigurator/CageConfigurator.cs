@@ -8,11 +8,6 @@ namespace CageConfigurator
     {
         internal class NativeMethods
         {
-            [DllImport("CageNetwork.dll", CallingConvention = CallingConvention.Cdecl)]
-            public static extern void SendConfig(
-                [MarshalAs(UnmanagedType.LPWStr)] string config_path
-            );
-
             [DllImport("user32.dll")]
             public static extern IntPtr GetThreadDesktop(int dwThreadId);
 
@@ -150,9 +145,17 @@ namespace CageConfigurator
         [STAThread]
         static void Main(string[] parameter)
         {
-            if (!StartedInCage() && false)
+            bool isReleaseMode = true;
+
+#if DEBUG
+            isReleaseMode = false;
+#endif
+
+            if (isReleaseMode && !StartedInCage())
             {
-                //NativeMethods.SendConfig(@"C:\sharkcage\CageConfigurator.sconfig");
+
+                MessageBox.Show("CageConfigurator can only be run on a secure desktop. Please start the Configurator manually with the corresponding entry in the CageChooser.",
+                    "SharkCage", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             else
             {
@@ -162,8 +165,7 @@ namespace CageConfigurator
             }
         }
 
-        // FIXME this could be cleaned up substantially, but for now it works
-        // FIXME might be easier to ask the service for this info? :/
+        // FIXME might be easier to ask the service for this info in the future? :/
         static bool StartedInCage()
         {
             try
@@ -205,8 +207,11 @@ namespace CageConfigurator
                     NativeMethods.EXPLICIT_ACCESS ea_admin = (NativeMethods.EXPLICIT_ACCESS)Marshal.PtrToStructure(admin_entry, typeof(NativeMethods.EXPLICIT_ACCESS));
 
                     const uint GENERIC_ALL = 0x10000000;
-                    const int SET_ACCESS = 2;
-                    const int DENY_ACCESS = 3;
+                    const uint STANDARD_RIGHTS_REQUIRED = 0x000F0000;
+                    const uint SYNCHRONIZE = 0x00100000;
+                    const uint PROCESS_ALL_ACCESS = STANDARD_RIGHTS_REQUIRED | SYNCHRONIZE | 0xFFFF;
+
+                    const int GRANT_ACCESS = 1;
                     const int NO_INHERITANCE = 0;
 
                     if (ea_admin.Trustee.TrusteeForm == NativeMethods.TRUSTEE_FORM.TRUSTEE_IS_SID)
@@ -219,11 +224,10 @@ namespace CageConfigurator
 
                         IntPtr admin_sid = IntPtr.Zero;
                         NativeMethods.AllocateAndInitializeSid(ref nt_authority, 2, built_in_domain_rid, domain_alias_rid_admins, 0, 0, 0, 0, 0, 0, out admin_sid);
-
                         if (NativeMethods.EqualSid(ea_admin.Trustee.ptstrName, admin_sid))
                         {
-                            if ((ea_admin.grfAccessPermissions & GENERIC_ALL) != 0
-                                && ea_admin.grfAccessMode == DENY_ACCESS
+                            if ((ea_admin.grfAccessPermissions & (~PROCESS_ALL_ACCESS)) == 0
+                                && ea_admin.grfAccessMode == GRANT_ACCESS
                                 && ea_admin.grfInheritance == NO_INHERITANCE)
                             {
                                 admin_sid_all_denied = true;
@@ -238,8 +242,8 @@ namespace CageConfigurator
 
                     if (ea_shark.Trustee.TrusteeForm == NativeMethods.TRUSTEE_FORM.TRUSTEE_IS_SID)
                     {
-                        if ((ea_shark.grfAccessPermissions & GENERIC_ALL) != 0
-                                && ea_shark.grfAccessMode == SET_ACCESS
+                        if ((ea_shark.grfAccessPermissions & GENERIC_ALL) == 0
+                                && ea_shark.grfAccessMode == GRANT_ACCESS
                                 && ea_shark.grfInheritance == NO_INHERITANCE)
                         {
                             shark_sid_all_granted = true;

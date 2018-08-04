@@ -130,8 +130,7 @@ namespace CageConfigurator
 
             var file_dialog = new OpenFileDialog();
             file_dialog.CheckFileExists = true;
-            const string registry_key = @"HKEY_LOCAL_MACHINE\SOFTWARE\SharkCage";
-            var install_dir = Registry.GetValue(registry_key, "InstallDir", "") as string;
+            var install_dir = Registry.GetValue(REGISTRY_KEY, "InstallDir", "") as string;
             file_dialog.InitialDirectory = install_dir;
             file_dialog.Filter = $"Application|{file_type}";
             var result = file_dialog.ShowDialog();
@@ -200,9 +199,8 @@ namespace CageConfigurator
 
             var file_dialog = new OpenFileDialog();
             file_dialog.CheckFileExists = true;
-            const string registry_key = @"HKEY_LOCAL_MACHINE\SOFTWARE\SharkCage";
-            var install_dir = Registry.GetValue(registry_key, "InstallDir", "") as string;
-            file_dialog.InitialDirectory = install_dir;
+            var folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonDocuments), "SharkCage");
+            file_dialog.InitialDirectory = folder;
             file_dialog.Filter = $"SharkCage configuration|*{file_type}";
             var result = file_dialog.ShowDialog();
             if (result == DialogResult.OK)
@@ -330,8 +328,7 @@ namespace CageConfigurator
             var file_dialog = new OpenFileDialog();
             file_dialog.CheckFileExists = true;
             file_dialog.Filter = $"Picture|{String.Join(";", file_types)}";
-            const string registry_key = @"HKEY_LOCAL_MACHINE\SOFTWARE\SharkCage";
-            var install_dir = Registry.GetValue(registry_key, "InstallDir", "") as string;
+            var install_dir = Registry.GetValue(REGISTRY_KEY, "InstallDir", "") as string;
             file_dialog.InitialDirectory = install_dir;
             var result = file_dialog.ShowDialog();
             if (result == DialogResult.OK)
@@ -401,25 +398,6 @@ namespace CageConfigurator
         private void configName_TextChanged(object sender, EventArgs e)
         {
             SetUnsavedData(true);
-        }
-
-        #endregion
-
-        #region CageChooser
-
-        private void openCageChooserButton_Click(object sender, EventArgs e)
-        {
-            var install_dir = (Registry.GetValue(REGISTRY_KEY, "InstallDir", "") as string) ?? String.Empty;
-
-            if (install_dir.Length == 0)
-            {
-                MessageBox.Show("Could not read installation directory from registry, opening CageChooser not possible", "Shark Cage", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                return;
-            }
-
-            var p = new Process();
-            p.StartInfo.FileName = $@"{install_dir}\CageChooser.exe";
-            p.Start();
         }
 
         #endregion

@@ -30,7 +30,6 @@
         {
             this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(CageConfiguratorForm));
-            this.openCageChooserButton = new System.Windows.Forms.Button();
             this.applicationLabel = new System.Windows.Forms.Label();
             this.saveButton = new System.Windows.Forms.Button();
             this.menuStrip = new System.Windows.Forms.MenuStrip();
@@ -54,16 +53,6 @@
             ((System.ComponentModel.ISupportInitialize)(this.tokenBox)).BeginInit();
             this.SuspendLayout();
             // 
-            // openCageChooserButton
-            // 
-            this.openCageChooserButton.Location = new System.Drawing.Point(12, 485);
-            this.openCageChooserButton.Name = "openCageChooserButton";
-            this.openCageChooserButton.Size = new System.Drawing.Size(221, 24);
-            this.openCageChooserButton.TabIndex = 10;
-            this.openCageChooserButton.Text = "Open Cage Chooser";
-            this.openCageChooserButton.UseVisualStyleBackColor = true;
-            this.openCageChooserButton.Click += new System.EventHandler(this.openCageChooserButton_Click);
-            // 
             // applicationLabel
             // 
             this.applicationLabel.AutoSize = true;
@@ -75,9 +64,9 @@
             // 
             // saveButton
             // 
-            this.saveButton.Location = new System.Drawing.Point(251, 485);
+            this.saveButton.Location = new System.Drawing.Point(12, 485);
             this.saveButton.Name = "saveButton";
-            this.saveButton.Size = new System.Drawing.Size(221, 24);
+            this.saveButton.Size = new System.Drawing.Size(460, 24);
             this.saveButton.TabIndex = 11;
             this.saveButton.Text = "Save configuration";
             this.saveButton.UseVisualStyleBackColor = true;
@@ -239,7 +228,7 @@
             // 
             this.saveLabel.AutoSize = true;
             this.saveLabel.ForeColor = System.Drawing.Color.LimeGreen;
-            this.saveLabel.Location = new System.Drawing.Point(326, 470);
+            this.saveLabel.Location = new System.Drawing.Point(206, 469);
             this.saveLabel.Name = "saveLabel";
             this.saveLabel.Size = new System.Drawing.Size(72, 13);
             this.saveLabel.TabIndex = 14;
@@ -266,7 +255,6 @@
             this.Controls.Add(this.applicationBrowseButton);
             this.Controls.Add(this.saveButton);
             this.Controls.Add(this.applicationLabel);
-            this.Controls.Add(this.openCageChooserButton);
             this.Controls.Add(this.menuStrip);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.MainMenuStrip = this.menuStrip;
@@ -284,8 +272,6 @@
         }
 
         #endregion
-
-        private System.Windows.Forms.Button openCageChooserButton;
         private System.Windows.Forms.Label applicationLabel;
         private System.Windows.Forms.Button saveButton;
         private System.Windows.Forms.MenuStrip menuStrip;
