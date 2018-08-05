@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using Microsoft.Win32;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections;
 using System.ComponentModel;
@@ -50,6 +51,8 @@ namespace CageServiceInstaller
             var path_to_config_exe = dir_path + "CageConfigurator.exe";
 
             var config_path = Environment.ExpandEnvironmentVariables("%SystemDrive%\\Users\\Public\\Documents\\SharkCage\\CageConfigurator.sconfig");
+
+            Registry.SetValue(@"HKEY_LOCAL_MACHINE\SOFTWARE\SharkCage\Configs", "CageConfigurator", config_path);
 
             var json = JObject.Parse(File.ReadAllText(config_path));
             var application_path = json.GetValue(APPLICATION_PATH_PROPERTY).ToString();
