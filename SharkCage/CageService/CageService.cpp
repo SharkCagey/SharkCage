@@ -276,10 +276,13 @@ void CageService::HandleMessage(const std::wstring &message, NetworkManager &net
 	HANDLE cage_manager_handle = ::OpenProcess(SYNCHRONIZE, TRUE, cage_manager_process_id);
 	::WaitForSingleObject(cage_manager_handle, INFINITE);
 
-	cage_manager_process_id = 0;
-
+	if (cage_manager_process_id != 0)
+	{
+		::CloseHandle(created_token);
+	}
 	::CloseHandle(cage_manager_handle);
-	::CloseHandle(created_token);
+
+	cage_manager_process_id = 0;
 }
 
 bool CageService::CheckConfigAccessRights(const std::wstring config_path)

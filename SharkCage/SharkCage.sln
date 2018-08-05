@@ -23,7 +23,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CageConfigurator", "CageCon
 EndProject
 Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "SharkCageInstaller", "SharkCageInstaller\SharkCageInstaller.vdproj", "{39AF95AC-8344-450B-9642-D171775E0410}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CageServiceInstaller", "CageServiceInstaller\CageServiceInstaller.csproj", "{E4EBEF34-9BA7-4808-90D5-6B68C5722F72}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SharkCageInstallerHelper", "CageServiceInstaller\SharkCageInstallerHelper.csproj", "{E4EBEF34-9BA7-4808-90D5-6B68C5722F72}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

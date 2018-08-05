@@ -17,7 +17,7 @@ namespace CageChooser
         {
             [DllImport("SharedFunctionality.dll", CallingConvention = CallingConvention.Cdecl)]
             [return: MarshalAs(UnmanagedType.I1)]
-            public static extern bool SendConfigAndExternalProgram(
+            public static extern bool SendConfig(
                 [MarshalAs(UnmanagedType.LPWStr)] string config_path,
                 [MarshalAs(UnmanagedType.LPWStr)] StringBuilder result,
                 int max_result_length
@@ -53,7 +53,6 @@ namespace CageChooser
                     config_name_value_mapping.Add(value_name, value);
                     registeredConfigs.Items.Insert(registeredConfigs.Items.Count, value_name);
                 }
-
                 if (registeredConfigs.Items.Count > 0)
                 {
                     registeredConfigs.SelectedIndex = 0;
@@ -85,6 +84,11 @@ namespace CageChooser
             return bHandled;
         }
 
+        private void registeredConfigs_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            openButton.Enabled = registeredConfigs.SelectedItem != null;
+        }
+
         #endregion
 
         #region Cage Service
@@ -102,7 +106,7 @@ namespace CageChooser
                     int capacity = 1000;
                     StringBuilder sb = new StringBuilder(capacity);
 
-                    bool result = NativeMethods.SendConfigAndExternalProgram(config_path, sb, capacity);
+                    bool result = NativeMethods.SendConfig(config_path, sb, capacity);
 
                     if (!result)
                     {
@@ -125,37 +129,5 @@ namespace CageChooser
         }
 
         #endregion
-
-        #region CageConfigurator
-
-        private void openCageConfiguratorButton_Click(object sender, EventArgs e)
-        {
-            var install_dir = Registry.GetValue(REGISTRY_KEY, "InstallDir", "") as string ?? String.Empty;
-
-            if (install_dir == String.Empty)
-            {
-                MessageBox.Show("Could not read installation directory from registry, opening CageConfigurator not possible", "Shark Cage", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                return;
-            }
-
-            var p = new System.Diagnostics.Process();
-            p.StartInfo.FileName = $@"{install_dir}\CageConfigurator.exe";
-
-            var selected_item = registeredConfigs.SelectedItem?.ToString() ?? String.Empty;
-            var config_path = String.Empty;
-            config_name_value_mapping.TryGetValue(selected_item, out config_path);
-            if (config_path != String.Empty)
-            {
-                p.StartInfo.Arguments = $@"""{config_path}""";
-            }
-            p.Start();
-        }
-
-        #endregion
-
-        private void registeredConfigs_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            openButton.Enabled = registeredConfigs.SelectedItem != null;
-        }
     }
 }

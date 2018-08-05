@@ -30,7 +30,6 @@
         {
             this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(CageConfiguratorForm));
-            this.openCageChooserButton = new System.Windows.Forms.Button();
             this.applicationLabel = new System.Windows.Forms.Label();
             this.saveButton = new System.Windows.Forms.Button();
             this.menuStrip = new System.Windows.Forms.MenuStrip();
@@ -45,7 +44,7 @@
             this.tokenWebcamButton = new System.Windows.Forms.Button();
             this.tokenBox = new System.Windows.Forms.PictureBox();
             this.videoSources = new System.Windows.Forms.ComboBox();
-            this.restrictExitButton = new System.Windows.Forms.CheckBox();
+            this.restrictExitCheckbox = new System.Windows.Forms.CheckBox();
             this.restrictExitTooltip = new System.Windows.Forms.ToolTip(this.components);
             this.configNameLabel = new System.Windows.Forms.Label();
             this.configName = new System.Windows.Forms.TextBox();
@@ -53,16 +52,6 @@
             this.menuStrip.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.tokenBox)).BeginInit();
             this.SuspendLayout();
-            // 
-            // openCageChooserButton
-            // 
-            this.openCageChooserButton.Location = new System.Drawing.Point(12, 485);
-            this.openCageChooserButton.Name = "openCageChooserButton";
-            this.openCageChooserButton.Size = new System.Drawing.Size(221, 24);
-            this.openCageChooserButton.TabIndex = 10;
-            this.openCageChooserButton.Text = "Open Cage Chooser";
-            this.openCageChooserButton.UseVisualStyleBackColor = true;
-            this.openCageChooserButton.Click += new System.EventHandler(this.openCageChooserButton_Click);
             // 
             // applicationLabel
             // 
@@ -75,9 +64,9 @@
             // 
             // saveButton
             // 
-            this.saveButton.Location = new System.Drawing.Point(251, 485);
+            this.saveButton.Location = new System.Drawing.Point(12, 485);
             this.saveButton.Name = "saveButton";
-            this.saveButton.Size = new System.Drawing.Size(221, 24);
+            this.saveButton.Size = new System.Drawing.Size(460, 24);
             this.saveButton.TabIndex = 11;
             this.saveButton.Text = "Save configuration";
             this.saveButton.UseVisualStyleBackColor = true;
@@ -200,16 +189,16 @@
             this.videoSources.TabStop = false;
             this.videoSources.Visible = false;
             // 
-            // restrictExitButton
+            // restrictExitCheckbox
             // 
-            this.restrictExitButton.Location = new System.Drawing.Point(12, 82);
-            this.restrictExitButton.Name = "restrictExitButton";
-            this.restrictExitButton.Size = new System.Drawing.Size(173, 17);
-            this.restrictExitButton.TabIndex = 0;
-            this.restrictExitButton.Text = "Restrict exiting to Cage Labeler";
-            this.restrictExitTooltip.SetToolTip(this.restrictExitButton, resources.GetString("restrictExitButton.ToolTip"));
-            this.restrictExitButton.UseVisualStyleBackColor = true;
-            this.restrictExitButton.CheckedChanged += new System.EventHandler(this.restrictExitButton_CheckedChanged);
+            this.restrictExitCheckbox.Location = new System.Drawing.Point(12, 82);
+            this.restrictExitCheckbox.Name = "restrictExitCheckbox";
+            this.restrictExitCheckbox.Size = new System.Drawing.Size(173, 17);
+            this.restrictExitCheckbox.TabIndex = 0;
+            this.restrictExitCheckbox.Text = "Restrict exiting to Cage Labeler";
+            this.restrictExitTooltip.SetToolTip(this.restrictExitCheckbox, resources.GetString("restrictExitCheckbox.ToolTip"));
+            this.restrictExitCheckbox.UseVisualStyleBackColor = true;
+            this.restrictExitCheckbox.CheckedChanged += new System.EventHandler(this.restrictExitButton_CheckedChanged);
             // 
             // restrictExitTooltip
             // 
@@ -239,7 +228,7 @@
             // 
             this.saveLabel.AutoSize = true;
             this.saveLabel.ForeColor = System.Drawing.Color.LimeGreen;
-            this.saveLabel.Location = new System.Drawing.Point(326, 470);
+            this.saveLabel.Location = new System.Drawing.Point(206, 469);
             this.saveLabel.Name = "saveLabel";
             this.saveLabel.Size = new System.Drawing.Size(72, 13);
             this.saveLabel.TabIndex = 14;
@@ -254,7 +243,7 @@
             this.Controls.Add(this.saveLabel);
             this.Controls.Add(this.configName);
             this.Controls.Add(this.configNameLabel);
-            this.Controls.Add(this.restrictExitButton);
+            this.Controls.Add(this.restrictExitCheckbox);
             this.Controls.Add(this.videoSources);
             this.Controls.Add(this.tokenBox);
             this.Controls.Add(this.tokenWebcamButton);
@@ -266,7 +255,6 @@
             this.Controls.Add(this.applicationBrowseButton);
             this.Controls.Add(this.saveButton);
             this.Controls.Add(this.applicationLabel);
-            this.Controls.Add(this.openCageChooserButton);
             this.Controls.Add(this.menuStrip);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.MainMenuStrip = this.menuStrip;
@@ -284,8 +272,6 @@
         }
 
         #endregion
-
-        private System.Windows.Forms.Button openCageChooserButton;
         private System.Windows.Forms.Label applicationLabel;
         private System.Windows.Forms.Button saveButton;
         private System.Windows.Forms.MenuStrip menuStrip;
@@ -300,7 +286,7 @@
         private System.Windows.Forms.Button tokenWebcamButton;
         private System.Windows.Forms.PictureBox tokenBox;
         private System.Windows.Forms.ComboBox videoSources;
-        private System.Windows.Forms.CheckBox restrictExitButton;
+        private System.Windows.Forms.CheckBox restrictExitCheckbox;
         private System.Windows.Forms.ToolTip restrictExitTooltip;
         private System.Windows.Forms.Label configNameLabel;
         private System.Windows.Forms.TextBox configName;

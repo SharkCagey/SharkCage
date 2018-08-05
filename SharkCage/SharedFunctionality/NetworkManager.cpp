@@ -177,7 +177,7 @@ std::vector<char> NetworkManager::StringToVec(const std::wstring &string) const
 	return message;
 }
 
-extern "C" DLLEXPORT bool SendConfigAndExternalProgram(const wchar_t *config_path, wchar_t *result, int result_capacity)
+extern "C" DLLEXPORT bool SendConfig(const wchar_t *config_path, wchar_t *result, int result_capacity)
 {
 	if (config_path)
 	{
