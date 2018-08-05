@@ -27,7 +27,7 @@ namespace SharkCageInstallerHelper
 
             string target_dir = Context.Parameters["DP_TargetDir"].ToString();
 
-            AssimilateConfigToCurrentSystem(target_dir);
+            CustomizeConfigToCurrentSystem(target_dir);
 
             InstallAndStartService(target_dir);
         }
@@ -44,7 +44,7 @@ namespace SharkCageInstallerHelper
             UninstallService();
         }
 
-        private void AssimilateConfigToCurrentSystem(string dir_path)
+        private void CustomizeConfigToCurrentSystem(string dir_path)
         {
             var config_path = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.CommonDocuments),
