@@ -243,12 +243,6 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_3C925011CD3F7A18E7C91E8C89EDC65C"
-        "OwnerKey" = "8:_63AF181CABB14A408EE15B685CD7A728"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
         "MsmKey" = "8:_3CFED900173BECEED806865EB74E4812"
         "OwnerKey" = "8:_01BBBCE4106E46A891E20AE0FAFF7469"
         "MsmSig" = "8:_UNDEFINED"
@@ -459,12 +453,6 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_7E6086BEF17877E802D69EF59547AB90"
-        "OwnerKey" = "8:_63AF181CABB14A408EE15B685CD7A728"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
         "MsmKey" = "8:_8367362E667E948AFD8AE6203AA507EB"
         "OwnerKey" = "8:_01BBBCE4106E46A891E20AE0FAFF7469"
         "MsmSig" = "8:_UNDEFINED"
@@ -497,12 +485,6 @@
         {
         "MsmKey" = "8:_8C1E06B67A046E1183C6428409CB6057"
         "OwnerKey" = "8:_01BBBCE4106E46A891E20AE0FAFF7469"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_8C5442F1C142C4B47D4DC84A72BEA129"
-        "OwnerKey" = "8:_63AF181CABB14A408EE15B685CD7A728"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -621,12 +603,6 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_A62535A58545AB110BF0AED9ADCA4562"
-        "OwnerKey" = "8:_63AF181CABB14A408EE15B685CD7A728"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
         "MsmKey" = "8:_A9BF1F96E92374873E687211E9C4DC83"
         "OwnerKey" = "8:_01BBBCE4106E46A891E20AE0FAFF7469"
         "MsmSig" = "8:_UNDEFINED"
@@ -687,12 +663,6 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_B60E9FE7870E3C84880B2437C5BD152D"
-        "OwnerKey" = "8:_63AF181CABB14A408EE15B685CD7A728"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
         "MsmKey" = "8:_B73685C8ABA69CA445108E043DD47C9F"
         "OwnerKey" = "8:_40C4E63BE603F64D57323B523CD3CCAD"
         "MsmSig" = "8:_UNDEFINED"
@@ -713,12 +683,6 @@
         {
         "MsmKey" = "8:_BC71DDD269E0D10612A8E69DE4A1020B"
         "OwnerKey" = "8:_01BBBCE4106E46A891E20AE0FAFF7469"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_BDF9499DE863E742DA3F3B6C12B0FF21"
-        "OwnerKey" = "8:_63AF181CABB14A408EE15B685CD7A728"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -1245,6 +1209,12 @@
         }
         "Entry"
         {
+        "MsmKey" = "8:_C3C5E1F5C500495982ECAFEF6106BDE7"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_C4761DB3A6CE86BF69C267529A8B08C9"
         "OwnerKey" = "8:_01BBBCE4106E46A891E20AE0FAFF7469"
         "MsmSig" = "8:_UNDEFINED"
@@ -1337,12 +1307,6 @@
         {
         "MsmKey" = "8:_CD5AE2556CE9808C7C09922ABC883801"
         "OwnerKey" = "8:_40C4E63BE603F64D57323B523CD3CCAD"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_CDF3FA1DF0EB4D86940A3E55AB5E8871"
-        "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -3253,26 +3217,6 @@
             "IsDependency" = "11:TRUE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_3C925011CD3F7A18E7C91E8C89EDC65C"
-            {
-            "SourcePath" = "8:NETAPI32.dll"
-            "TargetName" = "8:NETAPI32.dll"
-            "Tag" = "8:"
-            "Folder" = "8:_AF35AA7C0DA64CECA8201B61E6196592"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:TRUE"
-            "IsolateTo" = "8:"
-            }
             "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_3CFED900173BECEED806865EB74E4812"
             {
             "AssemblyRegister" = "3:1"
@@ -4243,26 +4187,6 @@
             "IsDependency" = "11:TRUE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_7E6086BEF17877E802D69EF59547AB90"
-            {
-            "SourcePath" = "8:VCRUNTIME140D.dll"
-            "TargetName" = "8:VCRUNTIME140D.dll"
-            "Tag" = "8:"
-            "Folder" = "8:_AF35AA7C0DA64CECA8201B61E6196592"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:TRUE"
-            "IsolateTo" = "8:"
-            }
             "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_8367362E667E948AFD8AE6203AA507EB"
             {
             "AssemblyRegister" = "3:1"
@@ -4402,26 +4326,6 @@
                 }
             "SourcePath" = "8:System.Collections.NonGeneric.dll"
             "TargetName" = "8:"
-            "Tag" = "8:"
-            "Folder" = "8:_AF35AA7C0DA64CECA8201B61E6196592"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:TRUE"
-            "IsolateTo" = "8:"
-            }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_8C5442F1C142C4B47D4DC84A72BEA129"
-            {
-            "SourcePath" = "8:gdiplus.dll"
-            "TargetName" = "8:gdiplus.dll"
             "Tag" = "8:"
             "Folder" = "8:_AF35AA7C0DA64CECA8201B61E6196592"
             "Condition" = "8:"
@@ -4996,26 +4900,6 @@
             "IsDependency" = "11:TRUE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_A62535A58545AB110BF0AED9ADCA4562"
-            {
-            "SourcePath" = "8:MSVCP140D.dll"
-            "TargetName" = "8:MSVCP140D.dll"
-            "Tag" = "8:"
-            "Folder" = "8:_AF35AA7C0DA64CECA8201B61E6196592"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:TRUE"
-            "IsolateTo" = "8:"
-            }
             "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_A9BF1F96E92374873E687211E9C4DC83"
             {
             "AssemblyRegister" = "3:1"
@@ -5326,26 +5210,6 @@
             "IsDependency" = "11:TRUE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_B60E9FE7870E3C84880B2437C5BD152D"
-            {
-            "SourcePath" = "8:RPCRT4.dll"
-            "TargetName" = "8:RPCRT4.dll"
-            "Tag" = "8:"
-            "Folder" = "8:_AF35AA7C0DA64CECA8201B61E6196592"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:TRUE"
-            "IsolateTo" = "8:"
-            }
             "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_B73685C8ABA69CA445108E043DD47C9F"
             {
             "AssemblyRegister" = "3:1"
@@ -5423,26 +5287,6 @@
                 }
             "SourcePath" = "8:System.ServiceModel.Security.dll"
             "TargetName" = "8:"
-            "Tag" = "8:"
-            "Folder" = "8:_AF35AA7C0DA64CECA8201B61E6196592"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:TRUE"
-            "IsolateTo" = "8:"
-            }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_BDF9499DE863E742DA3F3B6C12B0FF21"
-            {
-            "SourcePath" = "8:ucrtbased.dll"
-            "TargetName" = "8:ucrtbased.dll"
             "Tag" = "8:"
             "Folder" = "8:_AF35AA7C0DA64CECA8201B61E6196592"
             "Condition" = "8:"
@@ -5674,6 +5518,26 @@
             "Register" = "3:1"
             "Exclude" = "11:FALSE"
             "IsDependency" = "11:TRUE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_C3C5E1F5C500495982ECAFEF6106BDE7"
+            {
+            "SourcePath" = "8:..\\special_configs\\CageConfigurator.sconfig"
+            "TargetName" = "8:CageConfigurator.sconfig"
+            "Tag" = "8:"
+            "Folder" = "8:_AF35AA7C0DA64CECA8201B61E6196592"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
             "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_C4761DB3A6CE86BF69C267529A8B08C9"
@@ -6108,26 +5972,6 @@
             "Register" = "3:1"
             "Exclude" = "11:FALSE"
             "IsDependency" = "11:TRUE"
-            "IsolateTo" = "8:"
-            }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_CDF3FA1DF0EB4D86940A3E55AB5E8871"
-            {
-            "SourcePath" = "8:..\\special_configs\\CageConfigurator.sconfig"
-            "TargetName" = "8:CageConfigurator.sconfig"
-            "Tag" = "8:"
-            "Folder" = "8:_CAE5CEE96E7744C9AE7E53D74A96D9D5"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
             "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_CE9921615B010F306E9BCF36EC662AFF"
@@ -7317,18 +7161,6 @@
                     }
                 }
             }
-            "{994432C3-9487-495D-8656-3E829A8DBDDE}:_CAE5CEE96E7744C9AE7E53D74A96D9D5"
-            {
-            "DefaultLocation" = "8:[WindowsVolume]Users\\Public\\Documents\\SharkCage"
-            "Name" = "8:CageConfigsFolder"
-            "AlwaysCreate" = "11:FALSE"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Property" = "8:NEWPROPERTY1"
-                "Folders"
-                {
-                }
-            }
         }
         "LaunchCondition"
         {
@@ -7346,7 +7178,7 @@
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:SharkCage"
         "ProductCode" = "8:{ABDFC121-DD3E-48A6-93D2-775E2B08A35F}"
-        "PackageCode" = "8:{6D1714ED-E152-46B6-81F1-C56FE4AC0F9F}"
+        "PackageCode" = "8:{3908E1A0-A824-4BF4-A6FB-D1970D1CCBC1}"
         "UpgradeCode" = "8:{593757A6-95D5-412D-A2FF-7530C14252A4}"
         "AspNetVersion" = "8:4.0.30319.0"
         "RestartWWWService" = "11:FALSE"

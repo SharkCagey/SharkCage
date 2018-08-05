@@ -46,13 +46,34 @@ namespace CageServiceInstaller
 
         private void AssimilateConfigToCurrentSystem(string dir_path)
         {
-            const string APPLICATION_PATH_PROPERTY = "application_path";
-            const string APPLICATION_HASH_PROPERTY = "binary_hash";
-            var path_to_config_exe = dir_path + "CageConfigurator.exe";
-
-            var config_path = Environment.ExpandEnvironmentVariables("%SystemDrive%\\Users\\Public\\Documents\\SharkCage\\CageConfigurator.sconfig");
+            var config_path = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.CommonDocuments),
+                "SharkCage\\CageConfigurator.sconfig");
 
             Registry.SetValue(@"HKEY_LOCAL_MACHINE\SOFTWARE\SharkCage\Configs", "CageConfigurator", config_path);
+
+            MoveConfigFileToConfigPath(config_path, dir_path);
+
+            UpdateContentOfConfigFile(config_path, dir_path);
+
+            UpdateSecurityAclsOfConfigFile(config_path);
+        }
+
+        private void MoveConfigFileToConfigPath(string config_path, string dir_path)
+        {
+            if (File.Exists(config_path))
+            {
+                File.Delete(config_path);
+            }
+
+            File.Move(Path.Combine(dir_path, "CageConfigurator.sconfig"), config_path);
+        }
+
+        private void UpdateContentOfConfigFile(string config_path, string dir_path)
+        {
+            const string APPLICATION_PATH_PROPERTY = "application_path";
+            const string APPLICATION_HASH_PROPERTY = "binary_hash";
+            var path_to_config_exe = Path.Combine(dir_path, "CageConfigurator.exe");
 
             var json = JObject.Parse(File.ReadAllText(config_path));
             var application_path = json.GetValue(APPLICATION_PATH_PROPERTY).ToString();
@@ -61,7 +82,10 @@ namespace CageServiceInstaller
             var output = Newtonsoft.Json.JsonConvert.SerializeObject(json, Newtonsoft.Json.Formatting.Indented);
 
             File.WriteAllText(config_path, output);
+        }
 
+        private void UpdateSecurityAclsOfConfigFile(string config_path)
+        {
             // generate acl for config (only admin group has access)
             IdentityReference built_in_administrators = new SecurityIdentifier(WellKnownSidType.BuiltinAdministratorsSid, null);
             var file_security = new FileSecurity();
