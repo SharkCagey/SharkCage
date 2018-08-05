@@ -165,7 +165,6 @@ namespace CageConfigurator
             }
         }
 
-        // FIXME might be easier to ask the service for this info in the future? :/
         static bool StartedInCage()
         {
             try

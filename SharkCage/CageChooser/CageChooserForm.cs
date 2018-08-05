@@ -49,7 +49,6 @@ namespace CageChooser
             {
                 foreach (var value_name in key.GetValueNames())
                 {
-
                     var value = (key.GetValue(value_name) as string) ?? String.Empty;
                     config_name_value_mapping.Add(value_name, value);
                     registeredConfigs.Items.Insert(registeredConfigs.Items.Count, value_name);

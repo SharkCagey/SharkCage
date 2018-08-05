@@ -94,7 +94,6 @@ namespace CageConfigurator
                 return path.EndsWith(type);
             });
 
-            // fixme: check if path contains cage configurator and disallow it?
             if (matching_type && File.Exists(path))
             {
                 onSuccess?.Invoke(path);
