@@ -7,8 +7,8 @@
     <ProjectGuid>{E4EBEF34-9BA7-4808-90D5-6B68C5722F72}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>CageServiceInstaller</RootNamespace>
-    <AssemblyName>CageServiceInstaller</AssemblyName>
+    <RootNamespace>SharkCageInstallerHelper</RootNamespace>
+    <AssemblyName>SharkCageInstallerHelper</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -30,6 +30,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>..\packages\Newtonsoft.Json.11.0.2\lib\netstandard2.0\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Configuration.Install" />
     <Reference Include="System.Core" />
@@ -42,7 +45,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CageServiceInstaller.cs">
+    <Compile Include="SharkCageInstallerHelper.cs">
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="ServiceInstaller.cs" />

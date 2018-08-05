@@ -66,7 +66,10 @@ namespace CageConfigurator
             {
                 videoSources.Items.Add(device.Name);
             }
-            videoSources.SelectedIndex = 0;
+            if (videoSources.Items.Count > 0)
+            {
+                videoSources.SelectedIndex = 0;
+            }
         }
 
         private void CheckPath(string path, string file_type, Action<string> onSuccess)
@@ -126,6 +129,8 @@ namespace CageConfigurator
 
             var file_dialog = new OpenFileDialog();
             file_dialog.CheckFileExists = true;
+            var install_dir = Registry.GetValue(REGISTRY_KEY, "InstallDir", "") as string;
+            file_dialog.InitialDirectory = install_dir;
             file_dialog.Filter = $"Application|{file_type}";
             var result = file_dialog.ShowDialog();
             if (result == DialogResult.OK)
@@ -193,6 +198,8 @@ namespace CageConfigurator
 
             var file_dialog = new OpenFileDialog();
             file_dialog.CheckFileExists = true;
+            var folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonDocuments), "SharkCage");
+            file_dialog.InitialDirectory = folder;
             file_dialog.Filter = $"SharkCage configuration|*{file_type}";
             var result = file_dialog.ShowDialog();
             if (result == DialogResult.OK)
@@ -231,7 +238,7 @@ namespace CageConfigurator
                 var restrict_exit = json.GetValue(CLOSING_POLICY_PROPERTY)?.ToString().ToLower().Equals("true");
 
                 applicationPath.Text = application_path;
-                restrictExitButton.Checked = restrict_exit.GetValueOrDefault(false);
+                restrictExitCheckbox.Checked = restrict_exit.GetValueOrDefault(false);
                 tokenBox.Image = GetImageFromBase64(token);
                 LoadAdditionalApp(additional_app, additional_app_path);
                 current_config_name = Path.GetFileNameWithoutExtension(config_path);
@@ -320,6 +327,8 @@ namespace CageConfigurator
             var file_dialog = new OpenFileDialog();
             file_dialog.CheckFileExists = true;
             file_dialog.Filter = $"Picture|{String.Join(";", file_types)}";
+            var install_dir = Registry.GetValue(REGISTRY_KEY, "InstallDir", "") as string;
+            file_dialog.InitialDirectory = install_dir;
             var result = file_dialog.ShowDialog();
             if (result == DialogResult.OK)
             {
@@ -352,16 +361,23 @@ namespace CageConfigurator
 
         private void InitializeWebcam()
         {
-            video_device = new VideoCaptureDevice(video_device_list[videoSources.SelectedIndex].MonikerString);
-            video_device.NewFrame += (s, args) =>
+            if (video_device_list.Count > 0)
             {
-                var frame = args.Frame.Clone() as Bitmap;
-                tokenBox.Image = frame;
-            };
-            video_device.Start();
+                video_device = new VideoCaptureDevice(video_device_list[videoSources.SelectedIndex].MonikerString);
+                video_device.NewFrame += (s, args) =>
+                {
+                    var frame = args.Frame.Clone() as Bitmap;
+                    tokenBox.Image = frame;
+                };
+                video_device.Start();
 
-            videoSources.Visible = true;
-            tokenWebcamButton.Text = "Capture Frame";
+                videoSources.Visible = true;
+                tokenWebcamButton.Text = "Capture Frame";
+            }
+            else
+            {
+                MessageBox.Show("No webcam found", "Shark Cage", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
         }
 
         private void StopWebcam()
@@ -381,25 +397,6 @@ namespace CageConfigurator
         private void configName_TextChanged(object sender, EventArgs e)
         {
             SetUnsavedData(true);
-        }
-
-        #endregion
-
-        #region CageChooser
-
-        private void openCageChooserButton_Click(object sender, EventArgs e)
-        {
-            var install_dir = (Registry.GetValue(REGISTRY_KEY, "InstallDir", "") as string) ?? String.Empty;
-
-            if (install_dir.Length == 0)
-            {
-                MessageBox.Show("Could not read installation directory from registry, opening CageChooser not possible", "Shark Cage", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                return;
-            }
-
-            var p = new Process();
-            p.StartInfo.FileName = $@"{install_dir}\CageChooser.exe";
-            p.Start();
         }
 
         #endregion
@@ -456,7 +453,7 @@ namespace CageConfigurator
                 writer.WritePropertyName(ADDITIONAL_APP_PATH_PROPERTY);
                 writer.WriteValue(secondary_path);
                 writer.WritePropertyName(CLOSING_POLICY_PROPERTY);
-                writer.WriteValue(bool.Parse(restrictExitButton.Checked.ToString()));
+                writer.WriteValue(bool.Parse(restrictExitCheckbox.Checked.ToString()));
                 writer.WritePropertyName("creation_date");
                 writer.WriteValue((Int32)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds);
                 writer.WritePropertyName("config_version");
