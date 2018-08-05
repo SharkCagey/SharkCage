@@ -1,4 +1,4 @@
-﻿namespace CageServiceInstaller
+﻿namespace SharkCageInstallerHelper
 {
 
     using System;

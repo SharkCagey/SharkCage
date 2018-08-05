@@ -9,10 +9,10 @@ using System.Security.AccessControl;
 using System.Security.Cryptography;
 using System.Security.Principal;
 
-namespace CageServiceInstaller
+namespace SharkCageInstallerHelper
 {
     [RunInstaller(true)]
-    public partial class CageServiceInstaller : Installer
+    public partial class SharkCageInstallerHelper : Installer
     {
         const string service_name = "shark-cage-service";
 
@@ -117,7 +117,7 @@ namespace CageServiceInstaller
             try
             {
                 UninstallService();
-                ServiceInstaller.InstallAndStart(service_name, service_name, dir_path + "CageService.exe");
+                ServiceInstaller.InstallAndStart(service_name, service_name, Path.Combine(dir_path, "CageService.exe"));
             }
             catch (Exception ex)
             {
