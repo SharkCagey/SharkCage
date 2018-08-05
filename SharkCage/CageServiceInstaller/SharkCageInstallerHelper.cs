@@ -48,7 +48,7 @@ namespace SharkCageInstallerHelper
         {
             var config_path = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.CommonDocuments),
-                "SharkCage\\CageConfigurator.sconfig");
+                @"SharkCage\CageConfigurator.sconfig");
 
             Registry.SetValue(@"HKEY_LOCAL_MACHINE\SOFTWARE\SharkCage\Configs", "CageConfigurator", config_path);
 
