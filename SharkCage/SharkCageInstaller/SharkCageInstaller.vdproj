@@ -45,6 +45,18 @@
         }
         "Entry"
         {
+        "MsmKey" = "8:_09FC33C69A21B22C9FF3A748E0F64B86"
+        "OwnerKey" = "8:_7804B69B4E70477F81F409F2AE60194D"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_09FC33C69A21B22C9FF3A748E0F64B86"
+        "OwnerKey" = "8:_A576449AE6CF488B853FF4C88D545437"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_0A4C51B30CD211F2A51A6292AA627D1F"
         "OwnerKey" = "8:_40C4E63BE603F64D57323B523CD3CCAD"
         "MsmSig" = "8:_UNDEFINED"
@@ -262,18 +274,6 @@
         "Entry"
         {
         "MsmKey" = "8:_46596CABB18D09DB06301B7B2602B7F1"
-        "OwnerKey" = "8:_A576449AE6CF488B853FF4C88D545437"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_46A8C415D566C4ABBCC5323A883B4183"
-        "OwnerKey" = "8:_7804B69B4E70477F81F409F2AE60194D"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_46A8C415D566C4ABBCC5323A883B4183"
         "OwnerKey" = "8:_A576449AE6CF488B853FF4C88D545437"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -688,7 +688,7 @@
         "Entry"
         {
         "MsmKey" = "8:_BF3B974444DE732260E6F4DCC2B13182"
-        "OwnerKey" = "8:_46A8C415D566C4ABBCC5323A883B4183"
+        "OwnerKey" = "8:_AE0CA5D7FDCCBB78382954AA3E3F9645"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -1173,12 +1173,6 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_BF3B974444DE732260E6F4DCC2B13182"
-        "OwnerKey" = "8:_AE0CA5D7FDCCBB78382954AA3E3F9645"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
         "MsmKey" = "8:_BF625D5E67D4BFB82A1A330F6BECE214"
         "OwnerKey" = "8:_A576449AE6CF488B853FF4C88D545437"
         "MsmSig" = "8:_UNDEFINED"
@@ -1565,6 +1559,12 @@
         {
         "MsmKey" = "8:_UNDEFINED"
         "OwnerKey" = "8:_E943CA2FAF6449929DEB63A8430A741B"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_UNDEFINED"
+        "OwnerKey" = "8:_F22A10F401C1C45B7727F26E419DBBD4"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -1990,7 +1990,19 @@
         "Entry"
         {
         "MsmKey" = "8:_UNDEFINED"
+        "OwnerKey" = "8:_BF3B974444DE732260E6F4DCC2B13182"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_UNDEFINED"
         "OwnerKey" = "8:_7804B69B4E70477F81F409F2AE60194D"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_UNDEFINED"
+        "OwnerKey" = "8:_09FC33C69A21B22C9FF3A748E0F64B86"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -2009,18 +2021,6 @@
         {
         "MsmKey" = "8:_UNDEFINED"
         "OwnerKey" = "8:_EE48644F738FAF6F608738C768C19F32"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_F22A10F401C1C45B7727F26E419DBBD4"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_BF3B974444DE732260E6F4DCC2B13182"
         "MsmSig" = "8:_UNDEFINED"
         }
     }
@@ -2312,6 +2312,37 @@
                     }
                 }
             "SourcePath" = "8:System.Reflection.Extensions.dll"
+            "TargetName" = "8:"
+            "Tag" = "8:"
+            "Folder" = "8:_AF35AA7C0DA64CECA8201B61E6196592"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:TRUE"
+            "IsolateTo" = "8:"
+            }
+            "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_09FC33C69A21B22C9FF3A748E0F64B86"
+            {
+            "AssemblyRegister" = "3:1"
+            "AssemblyIsInGAC" = "11:FALSE"
+            "AssemblyAsmDisplayName" = "8:Newtonsoft.Json, Version=11.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL"
+                "ScatterAssemblies"
+                {
+                    "_09FC33C69A21B22C9FF3A748E0F64B86"
+                    {
+                    "Name" = "8:Newtonsoft.Json.dll"
+                    "Attributes" = "3:512"
+                    }
+                }
+            "SourcePath" = "8:Newtonsoft.Json.dll"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_AF35AA7C0DA64CECA8201B61E6196592"
@@ -3386,37 +3417,6 @@
                     }
                 }
             "SourcePath" = "8:System.Text.Encoding.Extensions.dll"
-            "TargetName" = "8:"
-            "Tag" = "8:"
-            "Folder" = "8:_AF35AA7C0DA64CECA8201B61E6196592"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:TRUE"
-            "IsolateTo" = "8:"
-            }
-            "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_46A8C415D566C4ABBCC5323A883B4183"
-            {
-            "AssemblyRegister" = "3:1"
-            "AssemblyIsInGAC" = "11:FALSE"
-            "AssemblyAsmDisplayName" = "8:Newtonsoft.Json, Version=11.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL"
-                "ScatterAssemblies"
-                {
-                    "_46A8C415D566C4ABBCC5323A883B4183"
-                    {
-                    "Name" = "8:Newtonsoft.Json.dll"
-                    "Attributes" = "3:512"
-                    }
-                }
-            "SourcePath" = "8:Newtonsoft.Json.dll"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_AF35AA7C0DA64CECA8201B61E6196592"
@@ -7178,7 +7178,7 @@
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:SharkCage"
         "ProductCode" = "8:{ABDFC121-DD3E-48A6-93D2-775E2B08A35F}"
-        "PackageCode" = "8:{3908E1A0-A824-4BF4-A6FB-D1970D1CCBC1}"
+        "PackageCode" = "8:{C67B5892-CB0B-481B-A1CE-E9277452E3A9}"
         "UpgradeCode" = "8:{593757A6-95D5-412D-A2FF-7530C14252A4}"
         "AspNetVersion" = "8:4.0.30319.0"
         "RestartWWWService" = "11:FALSE"
@@ -7302,34 +7302,6 @@
             "Transitive" = "11:FALSE"
             "Target" = "8:_E943CA2FAF6449929DEB63A8430A741B"
             "Folder" = "8:_93FBBDAD683F4E2A9AD56CCD9F7AB720"
-            "WorkingFolder" = "8:_AF35AA7C0DA64CECA8201B61E6196592"
-            "Icon" = "8:"
-            "Feature" = "8:"
-            }
-            "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_5BA03DEE36A84544898482B63C3DD924"
-            {
-            "Name" = "8:CageConfigurator"
-            "Arguments" = "8:"
-            "Description" = "8:"
-            "ShowCmd" = "3:1"
-            "IconIndex" = "3:0"
-            "Transitive" = "11:FALSE"
-            "Target" = "8:_7804B69B4E70477F81F409F2AE60194D"
-            "Folder" = "8:_93FBBDAD683F4E2A9AD56CCD9F7AB720"
-            "WorkingFolder" = "8:_AF35AA7C0DA64CECA8201B61E6196592"
-            "Icon" = "8:"
-            "Feature" = "8:"
-            }
-            "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_EEE359CD22E648CE996AA493B491ACD0"
-            {
-            "Name" = "8:CageConfigurator"
-            "Arguments" = "8:"
-            "Description" = "8:"
-            "ShowCmd" = "3:1"
-            "IconIndex" = "3:0"
-            "Transitive" = "11:FALSE"
-            "Target" = "8:_7804B69B4E70477F81F409F2AE60194D"
-            "Folder" = "8:_2310A0E6B1A042DEA48BC039656FC9B6"
             "WorkingFolder" = "8:_AF35AA7C0DA64CECA8201B61E6196592"
             "Icon" = "8:"
             "Feature" = "8:"
