@@ -3,7 +3,7 @@
 class CageManager
 {
 public:
-	void CageManager::StartCage(SECURITY_ATTRIBUTES security_attributes, const CageData &cage_data);
+	void CageManager::StartCage(SECURITY_ATTRIBUTES security_attributes, const CageData &cage_data, const std::wstring &group_name);
 	bool CageManager::ProcessRunning(const std::wstring &process_path);
 
 private:
@@ -13,6 +13,7 @@ private:
 		const int work_area_width,
 		const std::wstring &labeler_window_class_name);
 	void CageManager::ActivateApp(
+		const HANDLE token_handle,
 		const std::wstring &path,
 		const HANDLE &event,
 		const HDESK &desktop_handle,

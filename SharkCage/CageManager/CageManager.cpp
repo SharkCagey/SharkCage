@@ -3,6 +3,7 @@
 #include "../SharedFunctionality/NetworkManager.h"
 #include "../SharedFunctionality/SharedFunctions.h"
 #include "../SharedFunctionality/CageData.h"
+#include "../SharedFunctionality/tokenLib/groupManipulation.h"
 
 #include "Aclapi.h"
 #include "tlhelp32.h"
@@ -19,6 +20,7 @@
 #pragma comment(lib, "Rpcrt4.lib")
 
 NetworkManager network_manager(ContextType::MANAGER);
+std::optional<std::wstring> generateUuid();
 
 static bool ValidateBinariesToLaunch(const CageData &cage_data);
 static bool ValidateBinary(const std::wstring &app_path, const std::wstring &app_hash);
@@ -74,10 +76,20 @@ int main()
 	network_manager.Send(sender, CageMessage::RESPONSE_SUCCESS, L"", result_data);
 
 	SecuritySetup security_setup;
-	auto security_attributes = security_setup.GetSecurityAttributes();
+	//randomize the group name
+	auto uuid_stl_opt = generateUuid();
+	if (!uuid_stl_opt.has_value())
+	{
+		return 1;
+	}
+	auto uuid_stl = uuid_stl_opt.value();;
+
+	std::wstring group_name = std::wstring(L"shark_cage_group_").append(uuid_stl);
+	auto security_attributes = security_setup.GetSecurityAttributes(group_name);
 
 	if (!security_attributes.has_value())
 	{
+		tokenLib::deleteLocalGroup(const_cast<wchar_t*>((group_name.c_str())));
 		std::cout << "Could not get security attributes" << std::endl;
 		return 1;
 	}
@@ -87,11 +99,12 @@ int main()
 		&CageManager::StartCage,
 		cage_manager,
 		security_attributes.value(),
-		cage_data
+		cage_data,
+		group_name
 	);
 
 	desktop_thread.join();
-
+	tokenLib::deleteLocalGroup(const_cast<wchar_t*>((group_name.c_str())));
 	return 0;
 }
 
@@ -127,32 +140,21 @@ static bool ValidateBinary(const std::wstring &app_path, const std::wstring &app
 	return true;
 }
 
-void CageManager::StartCage(SECURITY_ATTRIBUTES security_attributes, const CageData &cage_data)
+void CageManager::StartCage(SECURITY_ATTRIBUTES security_attributes, const CageData &cage_data, const std::wstring &group_name)
 {
 	// name should be unique every time -> create UUID
-	UUID uuid;
-	if (::UuidCreate(&uuid) != RPC_S_OK)
+	auto uuid_stl_opt = generateUuid();
+	if (!uuid_stl_opt.has_value())
 	{
-		std::cout << "Failed to create UUID" << std::endl;
 		return;
 	}
-
-	RPC_WSTR uuid_str;
-	if (::UuidToString(&uuid, &uuid_str) != RPC_S_OK)
+	auto uuid_stl = uuid_stl_opt.value();
+	HANDLE token_handle = nullptr;
+	if (!tokenLib::constructUserTokenWithGroup(const_cast<wchar_t*>((group_name.c_str())), token_handle))
 	{
-		std::cout << "Failed to convert UUID to rpc string" << std::endl;
+		std::cout << "Cannot create required token" << std::endl;
 		return;
 	}
-
-	std::wstring uuid_stl(reinterpret_cast<wchar_t*>(uuid_str));
-	if (uuid_stl.empty())
-	{
-		::RpcStringFree(&uuid_str);
-		std::cout << "Failed to convert UUID rpc string to stl string" << std::endl;
-		return;
-	}
-
-	::RpcStringFree(&uuid_str);
 
 	const std::wstring DESKTOP_NAME = std::wstring(L"shark_cage_desktop_").append(uuid_stl);
 	const int work_area_width = 300;
@@ -164,6 +166,7 @@ void CageManager::StartCage(SECURITY_ATTRIBUTES security_attributes, const CageD
 	HDESK desktop_handle;
 	if (!cage_desktop.Init(desktop_handle))
 	{
+		::CloseHandle(token_handle);
 		std::cout << "Failed to create/launch the cage desktop" << std::endl;
 		return;
 	}
@@ -178,8 +181,6 @@ void CageManager::StartCage(SECURITY_ATTRIBUTES security_attributes, const CageD
 		LABELER_WINDOW_CLASS_NAME
 	);
 
-	//PETER´S ACCESS TOKEN THINGS
-
 	// We need in order to create the process.
 	STARTUPINFO info = {};
 	info.dwFlags = STARTF_USESHOWWINDOW;
@@ -191,17 +192,7 @@ void CageManager::StartCage(SECURITY_ATTRIBUTES security_attributes, const CageD
 	// Create the process.
 	PROCESS_INFORMATION process_info = {};
 
-	if (::CreateProcess(
-		cage_data.app_path.c_str(),
-		nullptr,
-		&security_attributes,
-		nullptr,
-		FALSE,
-		0,
-		nullptr,
-		nullptr,
-		&info,
-		&process_info) == 0)
+	if(::CreateProcessWithTokenW(token_handle, LOGON_WITH_PROFILE, cage_data.app_path.c_str(), nullptr, 0, nullptr, nullptr, &info, &process_info) == 0)
 	{
 		std::cout << "Failed to start process. Error: " << ::GetLastError() << std::endl;
 	}
@@ -209,17 +200,7 @@ void CageManager::StartCage(SECURITY_ATTRIBUTES security_attributes, const CageD
 	PROCESS_INFORMATION process_info_additional_app = { 0 };
 	if (cage_data.hasAdditionalAppInfo())
 	{
-		if (::CreateProcess(
-			cage_data.additional_app_path.value().c_str(),
-			nullptr,
-			&security_attributes,
-			nullptr,
-			FALSE,
-			0,
-			nullptr,
-			nullptr,
-			&info,
-			&process_info_additional_app) == 0)
+		if (::CreateProcessWithTokenW(token_handle, LOGON_WITH_PROFILE, cage_data.additional_app_path.value().c_str(), nullptr, 0, nullptr, nullptr, &info, &process_info_additional_app) == 0)
 		{
 			std::cout << "Failed to start additional process. Error: " << GetLastError() << std::endl;
 		}
@@ -269,6 +250,7 @@ void CageManager::StartCage(SECURITY_ATTRIBUTES security_attributes, const CageD
 						if (*iterator == cage_data.activate_app)
 						{
 							CageManager::ActivateApp(
+								token_handle,
 								cage_data.app_path,
 								cage_data.activate_app,
 								desktop_handle,
@@ -280,6 +262,7 @@ void CageManager::StartCage(SECURITY_ATTRIBUTES security_attributes, const CageD
 						else if (cage_data.hasAdditionalAppInfo() && *iterator == cage_data.activate_additional_app.value())
 						{
 							CageManager::ActivateApp(
+								token_handle,
 								cage_data.additional_app_path.value(),
 								cage_data.activate_additional_app.value(),
 								desktop_handle,
@@ -320,7 +303,7 @@ void CageManager::StartCage(SECURITY_ATTRIBUTES security_attributes, const CageD
 	}
 
 	// we can't rely on the process handles to keep track of open processes on
-	// the secure desktop as programs (e.g. Internet Explorer) spawn multiple processes and 
+	// the secure desktop as programs (e.g. Internet Explorer) spawn multiple processes and
 	// maybe even close the initial process we spawned ourselves
 	// Solution: enumerate all top level windows on the desktop not belonging to our
 	// process and message these handles
@@ -371,6 +354,7 @@ void CageManager::StartCage(SECURITY_ATTRIBUTES security_attributes, const CageD
 	::CloseHandle(process_info.hProcess);
 	::CloseHandle(process_info.hThread);
 	::CloseHandle(cage_data.activate_app);
+	::CloseHandle(token_handle);
 
 	if (cage_data.hasAdditionalAppInfo())
 	{
@@ -489,6 +473,7 @@ bool CageManager::ProcessRunning(const std::wstring &process_path)
 }
 
 void CageManager::ActivateApp(
+	const HANDLE token_handle,
 	const std::wstring &path,
 	const HANDLE &event,
 	const HDESK &desktop_handle,
@@ -517,17 +502,7 @@ void CageManager::ActivateApp(
 		::CloseHandle(process_info.hProcess);
 		::CloseHandle(process_info.hThread);
 
-		if (::CreateProcess(
-			path.c_str(),
-			nullptr,
-			&security_attributes,
-			nullptr,
-			FALSE,
-			0,
-			nullptr,
-			nullptr,
-			&info,
-			&process_info) == 0)
+		if(::CreateProcessWithTokenW(token_handle, LOGON_WITH_PROFILE, path.c_str(), nullptr, 0, nullptr, nullptr, &info, &process_info) == 0)
 		{
 			std::cout << "Failed to start process. Error: " << ::GetLastError() << std::endl;
 		}
@@ -536,4 +511,31 @@ void CageManager::ActivateApp(
 			handles.push_back(process_info.hProcess);
 		}
 	}
+}
+
+std::optional<std::wstring> generateUuid() {
+	UUID uuid;
+	if (::UuidCreate(&uuid) != RPC_S_OK)
+	{
+		std::cout << "Failed to create UUID" << std::endl;
+		return std::nullopt;
+	}
+
+	RPC_WSTR uuid_str;
+	if (::UuidToString(&uuid, &uuid_str) != RPC_S_OK)
+	{
+		std::cout << "Failed to convert UUID to rpc string" << std::endl;
+		return std::nullopt;
+	}
+
+	std::wstring uuid_stl(reinterpret_cast<wchar_t*>(uuid_str));
+	if (uuid_stl.empty())
+	{
+		::RpcStringFree(&uuid_str);
+		std::cout << "Failed to convert UUID rpc string to stl string" << std::endl;
+		return std::nullopt;
+	}
+
+	::RpcStringFree(&uuid_str);
+	return uuid_stl;
 }
