@@ -32,7 +32,6 @@
             this.registeredConfigs = new System.Windows.Forms.ListBox();
             this.registeredConfigsLabel = new System.Windows.Forms.Label();
             this.openButton = new System.Windows.Forms.Button();
-            this.openCageConfiguratorButton = new System.Windows.Forms.Button();
             this.refreshTooltip = new System.Windows.Forms.ToolTip(this.components);
             this.SuspendLayout();
             // 
@@ -57,23 +56,13 @@
             // 
             // openButton
             // 
-            this.openButton.Location = new System.Drawing.Point(249, 238);
+            this.openButton.Location = new System.Drawing.Point(16, 238);
             this.openButton.Name = "openButton";
-            this.openButton.Size = new System.Drawing.Size(213, 23);
+            this.openButton.Size = new System.Drawing.Size(446, 23);
             this.openButton.TabIndex = 6;
             this.openButton.Text = "Start";
             this.openButton.UseVisualStyleBackColor = true;
             this.openButton.Click += new System.EventHandler(this.openButton_Click);
-            // 
-            // openCageConfiguratorButton
-            // 
-            this.openCageConfiguratorButton.Location = new System.Drawing.Point(16, 238);
-            this.openCageConfiguratorButton.Name = "openCageConfiguratorButton";
-            this.openCageConfiguratorButton.Size = new System.Drawing.Size(213, 23);
-            this.openCageConfiguratorButton.TabIndex = 5;
-            this.openCageConfiguratorButton.Text = "Open Cage Configurator";
-            this.openCageConfiguratorButton.UseVisualStyleBackColor = true;
-            this.openCageConfiguratorButton.Click += new System.EventHandler(this.openCageConfiguratorButton_Click);
             // 
             // refreshTooltip
             // 
@@ -86,7 +75,6 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(478, 276);
-            this.Controls.Add(this.openCageConfiguratorButton);
             this.Controls.Add(this.openButton);
             this.Controls.Add(this.registeredConfigsLabel);
             this.Controls.Add(this.registeredConfigs);
@@ -105,7 +93,6 @@
         private System.Windows.Forms.ListBox registeredConfigs;
         private System.Windows.Forms.Label registeredConfigsLabel;
         private System.Windows.Forms.Button openButton;
-        private System.Windows.Forms.Button openCageConfiguratorButton;
         private System.Windows.Forms.ToolTip refreshTooltip;
     }
 }

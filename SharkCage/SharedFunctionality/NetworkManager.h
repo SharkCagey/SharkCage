@@ -80,6 +80,5 @@ private:
 	ContextType receive_type;
 };
 
-// make a pinvoke callable interface which is just able to send
-// a .config file + path to external program (like keepass)
-extern "C" DLLEXPORT bool SendConfigAndExternalProgram(const wchar_t *config_path, wchar_t *result, int result_capacity);
+// make a pinvoke callable interface which is just able to send a .config file
+extern "C" DLLEXPORT bool SendConfig(const wchar_t *config_path, wchar_t *result, int result_capacity);

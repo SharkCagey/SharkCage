@@ -13,8 +13,9 @@
 #pragma comment(lib, "netapi32.lib")
 #pragma comment(lib, "Wtsapi32.lib")
 
-ULONG getCurrentSessionID();
+std::optional<HANDLE> getCurrentUserToken();
 bool changeTokenCreationPrivilege(bool privilegeStatus);
+bool changeTcbPrivilege(bool privilegeStatus);
 bool getGroupSid(LPWSTR groupName, PSID &sid);
 bool hasSeCreateTokenPrivilege(const HANDLE processHandle);
 bool hasSeTcbPrivilege(const HANDLE processHandle);
@@ -65,8 +66,12 @@ private:
 
 public:
 	tokenTemplate(HANDLE &userToken);
-
 	~tokenTemplate();
+
+	// these need to be customized if needed so memory of member pointers also gets copied
+	// (otherwise there could be use-after-frees in the destructor)
+	tokenTemplate(const tokenTemplate &) = delete;
+	tokenTemplate operator=(const tokenTemplate &) = delete;
 
 	bool addGroup(PSID sid);
 
@@ -120,14 +125,14 @@ namespace tokenLib {
 	}
 
 	DLLEXPORT bool constructUserTokenWithGroup(PSID sid, HANDLE &token) {
-		HANDLE userToken = nullptr;
 
 		//get handle to token of current process
-		HANDLE currentProcessHandle = GetCurrentProcess();
-		if (!OpenProcessToken(currentProcessHandle, TOKEN_DUPLICATE | TOKEN_ALL_ACCESS, &userToken)) {
-			wprintf(L"  Cannot aquire template token\n");
+		auto userTokenHandleOpt = getCurrentUserToken();
+		if (!userTokenHandleOpt.has_value()) {
+			std::wcout << L"Cannot aquire template token" << std::endl;
 			return false;
 		}
+		HANDLE userToken = userTokenHandleOpt.value();
 
 		//sample the token into individual structures
 		std::unique_ptr<tokenTemplate> tokenDeconstructed{};
@@ -227,9 +232,17 @@ std::optional<std::vector<DWORD>> getProcessesWithBothPrivileges(const std::vect
 	{
 		HANDLE processHandle;
 		if ((processHandle = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, processPid)) == NULL) continue;
-		if (hasSeCreateTokenPrivilege(processHandle) && hasSeTcbPrivilege(processHandle))
+		try
 		{
-			processes.push_back(processPid);
+			if (hasSeCreateTokenPrivilege(processHandle) && hasSeTcbPrivilege(processHandle))
+			{
+				processes.push_back(processPid);
+			}
+		}
+		catch (const std::exception&)
+		{
+			CloseHandle(processHandle);
+			throw;
 		}
 		CloseHandle(processHandle);
 	}
@@ -331,9 +344,17 @@ std::optional<HANDLE> getProcessUnderLocalSystem(std::vector<DWORD> processes){
 	{
 		HANDLE processHandle;
 		if ((processHandle = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, processPid)) == NULL) continue;
-		if (processIsLocalSystem(processHandle))
+		try
 		{
-			return processHandle;
+			if (processIsLocalSystem(processHandle))
+			{
+				return processHandle;
+			}
+		}
+		catch (const std::exception&)
+		{
+			CloseHandle(processHandle);
+			throw;
 		}
 		CloseHandle(processHandle);
 	}
@@ -353,6 +374,28 @@ ULONG getCurrentSessionID() {
 
 	}
 	return 0;
+}
+
+std::optional<HANDLE> getCurrentUserToken() {
+	HANDLE userToken = 0;
+	ULONG sessionId = ::WTSGetActiveConsoleSessionId();
+	if (!changeTcbPrivilege(true)) {
+		std::wcout << L"Cannot aquire SE_TCB_NAME privilege needed" << std::endl;
+		return std::nullopt;
+	}
+	if (!WTSQueryUserToken(sessionId, &userToken)) {
+		std::wcout << L"Cannot query user token";
+		changeTcbPrivilege(false);
+		return std::nullopt;
+	}
+	changeTcbPrivilege(false);
+	HANDLE duplicatedUserToken = nullptr;
+	if (!DuplicateTokenEx(userToken, TOKEN_ALL_ACCESS, NULL, SecurityImpersonation, TokenPrimary, &duplicatedUserToken)) {
+		std::wcout << L"Cannot duplicate token" << std::endl;
+		return std::nullopt;
+	}
+	CloseHandle(userToken);
+	return duplicatedUserToken;
 }
 
 bool getGroupSid(LPWSTR groupName, PSID &sid) {
@@ -419,18 +462,7 @@ bool setPrivilege(
 	return TRUE;
 }
 
-bool changeTokenCreationPrivilege(bool privilegeStatus) {
-	//keeping this for future debug purposes
-	//will be important if ever implementing token capture for a token having SE_CREATE_TOKEN_NAME included
-	/*
-	DWORD bufferSize = 0;
-	GetUserName(NULL, &bufferSize);
-	LPTSTR pUserName = (LPTSTR) new BYTE[bufferSize * sizeof(TCHAR)];
-	GetUserName(pUserName, &bufferSize);
-	wprintf(L"User account accessed: %s\n", pUserName);
-	delete[](BYTE*) pUserName;
-	*/
-
+bool changePrivilege(bool privilegeStatus, LPCTSTR privilege) {
 	HANDLE currentProcessHandle;
 	HANDLE userTokenHandle;
 	currentProcessHandle = GetCurrentProcess();
@@ -438,8 +470,19 @@ bool changeTokenCreationPrivilege(bool privilegeStatus) {
 		wprintf(L"Error getting token for privilege escalation\n");
 		return false;
 	}
-	return setPrivilege(userTokenHandle, SE_CREATE_TOKEN_NAME, privilegeStatus);
+
+	auto set_privilege_status = setPrivilege(userTokenHandle, privilege, privilegeStatus);
+
 	CloseHandle(userTokenHandle);
+	return set_privilege_status;
+}
+
+bool changeTokenCreationPrivilege(bool privilegeStatus) {
+	return changePrivilege(privilegeStatus, SE_CREATE_TOKEN_NAME);
+}
+
+bool changeTcbPrivilege(bool privilegeStatus){
+	return changePrivilege(privilegeStatus, SE_TCB_NAME);
 }
 
 tokenTemplate::tokenTemplate(HANDLE &userToken) {
@@ -554,7 +597,7 @@ tokenTemplate::tokenTemplate(HANDLE &userToken) {
 }
 
 tokenTemplate::~tokenTemplate() {
-	delete objectAttributes->SecurityQualityOfService;
+	delete static_cast<PSECURITY_QUALITY_OF_SERVICE>(objectAttributes->SecurityQualityOfService);
 	delete objectAttributes;
 	delete authenticationId;
 	delete expirationTime;

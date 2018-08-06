@@ -9,7 +9,7 @@ public:
 	~FullWorkArea();
 	bool Init();
 private:
-	RECT rect;
+	RECT rect = { 0 };
 	bool GetBottomFromMonitor(int &monitor_bottom);
 	int cage_width;
 };

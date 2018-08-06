@@ -66,7 +66,10 @@ namespace CageConfigurator
             {
                 videoSources.Items.Add(device.Name);
             }
-            videoSources.SelectedIndex = 0;
+            if (videoSources.Items.Count > 0)
+            {
+                videoSources.SelectedIndex = 0;
+            }
         }
 
         private void CheckPath(string path, string file_type, Action<string> onSuccess)
@@ -124,24 +127,28 @@ namespace CageConfigurator
         {
             const string file_type = "*.exe";
 
-            var file_dialog = new OpenFileDialog();
-            file_dialog.CheckFileExists = true;
-            file_dialog.Filter = $"Application|{file_type}";
-            var result = file_dialog.ShowDialog();
-            if (result == DialogResult.OK)
+            using (var file_dialog = new OpenFileDialog())
             {
-                var chosen_file = file_dialog.FileName;
-                CheckPath(chosen_file, file_type, (string path) =>
+                file_dialog.CheckFileExists = true;
+                file_dialog.Filter = $"Application|{file_type}";
+                var install_dir = Registry.GetValue(REGISTRY_KEY, "InstallDir", "") as string;
+                file_dialog.InitialDirectory = install_dir;
+                var result = file_dialog.ShowDialog();
+                if (result == DialogResult.OK)
                 {
-                    if (applicationPath.Text != path)
+                    var chosen_file = file_dialog.FileName;
+                    CheckPath(chosen_file, file_type, (string path) =>
                     {
-                        applicationPath.Text = path;
-                        SetUnsavedData(true);
-                    }
+                        if (applicationPath.Text != path)
+                        {
+                            applicationPath.Text = path;
+                            SetUnsavedData(true);
+                        }
 
-                    applicationPath.SelectionStart = applicationPath.Text.Length;
-                    applicationPath.ScrollToCaret();
-                });
+                        applicationPath.SelectionStart = applicationPath.Text.Length;
+                        applicationPath.ScrollToCaret();
+                    });
+                }
             }
         }
 
@@ -191,14 +198,18 @@ namespace CageConfigurator
 
             const string file_type = ".sconfig";
 
-            var file_dialog = new OpenFileDialog();
-            file_dialog.CheckFileExists = true;
-            file_dialog.Filter = $"SharkCage configuration|*{file_type}";
-            var result = file_dialog.ShowDialog();
-            if (result == DialogResult.OK)
+            using (var file_dialog = new OpenFileDialog())
             {
-                var chosen_file = file_dialog.FileName;
-                CheckPath(chosen_file, file_type, LoadConfig);
+                file_dialog.CheckFileExists = true;
+                file_dialog.Filter = $"SharkCage configuration|*{file_type}";
+                var folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonDocuments), "SharkCage");
+                file_dialog.InitialDirectory = folder;
+                var result = file_dialog.ShowDialog();
+                if (result == DialogResult.OK)
+                {
+                    var chosen_file = file_dialog.FileName;
+                    CheckPath(chosen_file, file_type, LoadConfig);
+                }
             }
         }
 
@@ -231,7 +242,7 @@ namespace CageConfigurator
                 var restrict_exit = json.GetValue(CLOSING_POLICY_PROPERTY)?.ToString().ToLower().Equals("true");
 
                 applicationPath.Text = application_path;
-                restrictExitButton.Checked = restrict_exit.GetValueOrDefault(false);
+                restrictExitCheckbox.Checked = restrict_exit.GetValueOrDefault(false);
                 tokenBox.Image = GetImageFromBase64(token);
                 LoadAdditionalApp(additional_app, additional_app_path);
                 current_config_name = Path.GetFileNameWithoutExtension(config_path);
@@ -250,7 +261,7 @@ namespace CageConfigurator
             switch (additional_app)
             {
                 case "Keepass":
-                    Settings.Default.PeristentKeepassPath = additional_app_path;
+                    Settings.Default.PersistentKeepassPath = additional_app_path;
                     secureSecondaryPrograms.SelectedIndex = 1;
                     break;
                 default:
@@ -288,16 +299,18 @@ namespace CageConfigurator
                 switch (secureSecondaryPrograms.SelectedItem.ToString())
                 {
                     case "Keepass":
-                        if (Settings.Default.PeristentKeepassPath.Length == 0)
+                        if (Settings.Default.PersistentKeepassPath == String.Empty)
                         {
                             MessageBox.Show("There is no path saved for this program, please select it now.", "Shark Cage", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                            var keepass_file_dialog = new OpenFileDialog();
-                            keepass_file_dialog.CheckFileExists = true;
-                            keepass_file_dialog.Filter = "Keepass|Keepass.exe";
-                            var result = keepass_file_dialog.ShowDialog();
-                            if (result == DialogResult.OK)
+                            using (var keepass_file_dialog = new OpenFileDialog())
                             {
-                                Settings.Default.PeristentKeepassPath = keepass_file_dialog.FileName;
+                                keepass_file_dialog.CheckFileExists = true;
+                                keepass_file_dialog.Filter = "Keepass|Keepass.exe";
+                                var result = keepass_file_dialog.ShowDialog();
+                                if (result == DialogResult.OK)
+                                {
+                                    Settings.Default.PersistentKeepassPath = keepass_file_dialog.FileName;
+                                }
                             }
                         }
                         break;
@@ -317,22 +330,27 @@ namespace CageConfigurator
         {
             string[] file_types = { "*.bmp", "*.png", "*.jpeg", "*.jpg" };
 
-            var file_dialog = new OpenFileDialog();
-            file_dialog.CheckFileExists = true;
-            file_dialog.Filter = $"Picture|{String.Join(";", file_types)}";
-            var result = file_dialog.ShowDialog();
-            if (result == DialogResult.OK)
+            using (var file_dialog = new OpenFileDialog())
             {
-                var chosen_file = file_dialog.FileName;
-                CheckPath(chosen_file, file_types, (string path) =>
+                file_dialog.CheckFileExists = true;
+                file_dialog.Filter = $"Picture|{String.Join(";", file_types)}";
+                file_dialog.Filter = $"Picture|{String.Join(";", file_types)}";
+                var install_dir = Registry.GetValue(REGISTRY_KEY, "InstallDir", "") as string;
+                file_dialog.InitialDirectory = install_dir;
+                var result = file_dialog.ShowDialog();
+                if (result == DialogResult.OK)
                 {
-                    if (tokenBox.ImageLocation != path)
+                    var chosen_file = file_dialog.FileName;
+                    CheckPath(chosen_file, file_types, (string path) =>
                     {
-                        tokenBox.ImageLocation = path;
-                        tokenBox.Load();
-                        SetUnsavedData(true);
-                    }
-                });
+                        if (tokenBox.ImageLocation != path)
+                        {
+                            tokenBox.ImageLocation = path;
+                            tokenBox.Load();
+                            SetUnsavedData(true);
+                        }
+                    });
+                }
             }
         }
 
@@ -352,16 +370,23 @@ namespace CageConfigurator
 
         private void InitializeWebcam()
         {
-            video_device = new VideoCaptureDevice(video_device_list[videoSources.SelectedIndex].MonikerString);
-            video_device.NewFrame += (s, args) =>
+            if (video_device_list.Count > 0)
             {
-                var frame = args.Frame.Clone() as Bitmap;
-                tokenBox.Image = frame;
-            };
-            video_device.Start();
+                video_device = new VideoCaptureDevice(video_device_list[videoSources.SelectedIndex].MonikerString);
+                video_device.NewFrame += (s, args) =>
+                {
+                    var frame = args.Frame.Clone() as Bitmap;
+                    tokenBox.Image = frame;
+                };
+                video_device.Start();
 
-            videoSources.Visible = true;
-            tokenWebcamButton.Text = "Capture Frame";
+                videoSources.Visible = true;
+                tokenWebcamButton.Text = "Capture Frame";
+            }
+            else
+            {
+                MessageBox.Show("No webcam found", "Shark Cage", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
         }
 
         private void StopWebcam()
@@ -385,25 +410,6 @@ namespace CageConfigurator
 
         #endregion
 
-        #region CageChooser
-
-        private void openCageChooserButton_Click(object sender, EventArgs e)
-        {
-            var install_dir = (Registry.GetValue(REGISTRY_KEY, "InstallDir", "") as string) ?? String.Empty;
-
-            if (install_dir.Length == 0)
-            {
-                MessageBox.Show("Could not read installation directory from registry, opening CageChooser not possible", "Shark Cage", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                return;
-            }
-
-            var p = new Process();
-            p.StartInfo.FileName = $@"{install_dir}\CageChooser.exe";
-            p.Start();
-        }
-
-        #endregion
-
         #region Serialization
 
         private void saveButton_Click(object sender, EventArgs e)
@@ -422,7 +428,7 @@ namespace CageConfigurator
             }
 
             var secondary_path = GetSecondaryApplicationPath(secureSecondaryPrograms.Text);
-            if (secondary_path.Length == 0 && secureSecondaryPrograms.SelectedIndex != 0)
+            if (String.IsNullOrEmpty(secondary_path) && secureSecondaryPrograms.SelectedIndex != 0)
             {
                 MessageBox.Show("You specified a secondary program but did not provide a corresponding location. Please reselect the application, provide the location and try again.",
                     "SharkCage", MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -456,7 +462,7 @@ namespace CageConfigurator
                 writer.WritePropertyName(ADDITIONAL_APP_PATH_PROPERTY);
                 writer.WriteValue(secondary_path);
                 writer.WritePropertyName(CLOSING_POLICY_PROPERTY);
-                writer.WriteValue(bool.Parse(restrictExitButton.Checked.ToString()));
+                writer.WriteValue(bool.Parse(restrictExitCheckbox.Checked.ToString()));
                 writer.WritePropertyName("creation_date");
                 writer.WriteValue((Int32)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds);
                 writer.WritePropertyName("config_version");
@@ -552,7 +558,7 @@ namespace CageConfigurator
             switch (name)
             {
                 case "Keepass":
-                    return Settings.Default.PeristentKeepassPath;
+                    return Settings.Default.PersistentKeepassPath;
                 default:
                     return String.Empty;
             }

@@ -1,4 +1,4 @@
-﻿namespace CageServiceInstaller
+﻿namespace SharkCageInstallerHelper
 {
 
     using System;
@@ -7,7 +7,6 @@
 
     public static class ServiceInstaller
     {
-        private const int STANDARD_RIGHTS_REQUIRED = 0xF0000;
         private const int SERVICE_WIN32_OWN_PROCESS = 0x00000010;
 
         [StructLayout(LayoutKind.Sequential)]
