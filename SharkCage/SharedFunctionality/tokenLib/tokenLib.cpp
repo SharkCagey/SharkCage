@@ -232,9 +232,17 @@ std::optional<std::vector<DWORD>> getProcessesWithBothPrivileges(const std::vect
 	{
 		HANDLE processHandle;
 		if ((processHandle = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, processPid)) == NULL) continue;
-		if (hasSeCreateTokenPrivilege(processHandle) && hasSeTcbPrivilege(processHandle))
+		try
 		{
-			processes.push_back(processPid);
+			if (hasSeCreateTokenPrivilege(processHandle) && hasSeTcbPrivilege(processHandle))
+			{
+				processes.push_back(processPid);
+			}
+		}
+		catch (const std::exception&)
+		{
+			CloseHandle(processHandle);
+			throw;
 		}
 		CloseHandle(processHandle);
 	}
@@ -336,9 +344,17 @@ std::optional<HANDLE> getProcessUnderLocalSystem(std::vector<DWORD> processes){
 	{
 		HANDLE processHandle;
 		if ((processHandle = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, processPid)) == NULL) continue;
-		if (processIsLocalSystem(processHandle))
+		try
 		{
-			return processHandle;
+			if (processIsLocalSystem(processHandle))
+			{
+				return processHandle;
+			}
+		}
+		catch (const std::exception&)
+		{
+			CloseHandle(processHandle);
+			throw;
 		}
 		CloseHandle(processHandle);
 	}
