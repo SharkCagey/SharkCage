@@ -173,6 +173,8 @@ void CageService::StopCageManager()
 		std::wostringstream os;
 		os << "Terminated CageManager: 55" << std::endl;
 		::OutputDebugString(os.str().c_str());
+
+		::CloseHandle(cage_manager_handle);
 	}
 	else
 	{
@@ -187,7 +189,7 @@ std::wstring CageService::GetLastErrorAsString(DWORD error_id)
 {
 	// Get the error message, if any.
 	LPWSTR message_buffer = nullptr;
-	size_t size = FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+	size_t size = ::FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
 		NULL,
 		error_id,
 		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
@@ -195,12 +197,17 @@ std::wstring CageService::GetLastErrorAsString(DWORD error_id)
 		0,
 		NULL);
 
-	std::wstring message(message_buffer, size);
+	if (message_buffer && size > 0)
+	{
+		std::wstring message(message_buffer, size);
 
-	// Free the buffer.
-	::LocalFree(message_buffer);
+		// Free the buffer.
+		::LocalFree(message_buffer);
 
-	return message;
+		return message;
+	}
+
+	return L"";
 }
 
 void CageService::HandleMessage(const std::wstring &message, NetworkManager &network_manager)
@@ -273,6 +280,8 @@ void CageService::HandleMessage(const std::wstring &message, NetworkManager &net
 	{
 		::CloseHandle(created_token);
 	}
+	::CloseHandle(cage_manager_handle);
+
 	cage_manager_process_id = 0;
 }
 

@@ -66,8 +66,12 @@ private:
 
 public:
 	tokenTemplate(HANDLE &userToken);
-
 	~tokenTemplate();
+
+	// these need to be customized if needed so memory of member pointers also gets copied
+	// (otherwise there could be use-after-frees in the destructor)
+	tokenTemplate(const tokenTemplate &) = delete;
+	tokenTemplate operator=(const tokenTemplate &) = delete;
 
 	bool addGroup(PSID sid);
 
@@ -228,9 +232,17 @@ std::optional<std::vector<DWORD>> getProcessesWithBothPrivileges(const std::vect
 	{
 		HANDLE processHandle;
 		if ((processHandle = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, processPid)) == NULL) continue;
-		if (hasSeCreateTokenPrivilege(processHandle) && hasSeTcbPrivilege(processHandle))
+		try
 		{
-			processes.push_back(processPid);
+			if (hasSeCreateTokenPrivilege(processHandle) && hasSeTcbPrivilege(processHandle))
+			{
+				processes.push_back(processPid);
+			}
+		}
+		catch (const std::exception&)
+		{
+			CloseHandle(processHandle);
+			throw;
 		}
 		CloseHandle(processHandle);
 	}
@@ -332,9 +344,17 @@ std::optional<HANDLE> getProcessUnderLocalSystem(std::vector<DWORD> processes){
 	{
 		HANDLE processHandle;
 		if ((processHandle = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, processPid)) == NULL) continue;
-		if (processIsLocalSystem(processHandle))
+		try
 		{
-			return processHandle;
+			if (processIsLocalSystem(processHandle))
+			{
+				return processHandle;
+			}
+		}
+		catch (const std::exception&)
+		{
+			CloseHandle(processHandle);
+			throw;
 		}
 		CloseHandle(processHandle);
 	}
@@ -450,8 +470,11 @@ bool changePrivilege(bool privilegeStatus, LPCTSTR privilege) {
 		wprintf(L"Error getting token for privilege escalation\n");
 		return false;
 	}
-	return setPrivilege(userTokenHandle, privilege, privilegeStatus);
+
+	auto set_privilege_status = setPrivilege(userTokenHandle, privilege, privilegeStatus);
+
 	CloseHandle(userTokenHandle);
+	return set_privilege_status;
 }
 
 bool changeTokenCreationPrivilege(bool privilegeStatus) {
@@ -574,7 +597,7 @@ tokenTemplate::tokenTemplate(HANDLE &userToken) {
 }
 
 tokenTemplate::~tokenTemplate() {
-	delete objectAttributes->SecurityQualityOfService;
+	delete static_cast<PSECURITY_QUALITY_OF_SERVICE>(objectAttributes->SecurityQualityOfService);
 	delete objectAttributes;
 	delete authenticationId;
 	delete expirationTime;

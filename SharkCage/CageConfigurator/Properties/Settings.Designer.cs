@@ -26,12 +26,12 @@ namespace CageConfigurator.Properties {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string PeristentKeepassPath {
+        public string PersistentKeepassPath {
             get {
-                return ((string)(this["PeristentKeepassPath"]));
+                return ((string)(this["PersistentKeepassPath"]));
             }
             set {
-                this["PeristentKeepassPath"] = value;
+                this["PersistentKeepassPath"] = value;
             }
         }
     }
