@@ -41,7 +41,7 @@ The `CageChooser` is a user interface which displays in a list all available con
 
 <details><summary markdown="span"><code>Fold out to see sample</code></summary>
 
-<img width="500" alt="Screenshot CageChooser" src="https://user-images.githubusercontent.com/1786772/43678610-c00edf04-9816-11e8-9555-bba613373004.png">
+<img width="500" alt="Screenshot CageChooser" src="https://user-images.githubusercontent.com/1786772/43733677-c50f6b72-99b5-11e8-9831-69556fd33246.png">
 
 </details>
 
@@ -53,7 +53,7 @@ The `CageConfigurator` is a user interface to create a config file including an 
 
 <details><summary markdown="span"><code>Fold out to see sample</code></summary>
 
-<img width="500" alt="Screenshot CageConfigurator" src="https://user-images.githubusercontent.com/1786772/43678561-c68e8970-9815-11e8-9061-03fac46c7f25.png">
+<img width="1680" alt="Screenshot CageConfigurator" src="https://user-images.githubusercontent.com/1786772/43733731-e88c2e50-99b5-11e8-84a5-860351997f55.png">
 
 </details>
 
