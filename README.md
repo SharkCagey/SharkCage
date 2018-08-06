@@ -4,7 +4,7 @@
 
 This software is provided "as is", without warranty of any kind. This software is also still under development. Use entirely at your own risk. Contriubtions through PRs are highly appreciated.
 
-This project contains Windows programs to isolate a user specific program in an own desktop to prevent malware (without OS privileges) to capture user input or sreenshots.
+This project contains Windows programs to isolate a user specific program in an own desktop to prevent malware (without OS privileges) to capture user input or screenshots.
 After the installation of Shark Cage, create a config using the `CageConfigurator` containing the program (e.g. Firefox for online banking) which should run in a secure environment, optionally an additional programm (e.g. Keepass to retrieve the password for the online banking) and an icon which is later used to identify, that the program was started in the secure environment.
 
 All programs running in the Shark Cage will be started on a further, isolated desktop which a malware without administrator privilieges can not access.
@@ -16,10 +16,10 @@ This project consists of five sub-programs:
 * `CageService`
 * `CageManager`
 * `CageChooser`
-* `CageConfiguratior`
+* `CageConfigurator`
 * `SharkCageInstaller`
 
- The three parts (Service, Manager and Configuratior) communicate over a TCP connection to interchange messages.
+ The three parts (Service, Manager and Configurator) communicate over a TCP connection to interchange messages.
 
 ### CageService
 
@@ -63,7 +63,7 @@ The `SharkCageInstaller` is used to install all project applications, starts the
 
 ## Installation
 
-1. The `SharkCageInstaller` is used, to install all programs for this project (`CageService`, `CageManager`, `CageChooser` and `CageConfiguratior`) and is hosted on Github. Follow this link and download the latest version: [Github-Releases](https://github.com/SharkCagey/HTWG_shark_cage/releases).
+1. The `SharkCageInstaller` is used, to install all programs for this project (`CageService`, `CageManager`, `CageChooser` and `CageConfigurator`) and is hosted on Github. Follow this link and download the latest version: [Github-Releases](https://github.com/SharkCagey/HTWG_shark_cage/releases).
 1. Out of security perspective before installing, please make sure that the `SharkCageInstaller` is signed using the certificate issued to the HTWG Konstanz with the following fingerprint: `ADBE74BD39789DD111815DE59C60D715143E4620`.
 1. Execute the installer and follow the instructions. For installing the service, the `SharkCageInstaller` needs to run with admininistration privileges. Please make sure that the "User Account Control"-dialog shows the HTWG Konstanz as the verified publisher.
    <details><summary markdown="span"><code>Fold out to see sample</code></summary>
