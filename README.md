@@ -2,7 +2,7 @@
 
 [![Build status](https://ci.appveyor.com/api/projects/status/jxhrl395fvtjhwc6?svg=true)](https://ci.appveyor.com/project/SharkCagey/htwg-shark-cage)
 
-This software is provided "as is", without warranty of any kind. This software is also still under development. Use entirely at your own risk. Contriubtions through PRs are highly appreciated.
+This software is provided "as is", without warranty of any kind. This software is also still under development. Use entirely at your own risk. Contributions through PRs are highly appreciated.
 
 This project contains Windows programs to isolate a user specific program in an own desktop to prevent malware (without OS privileges) to capture user input or screenshots.
 After the installation of Shark Cage, create a config using the `CageConfigurator` containing the program (e.g. Firefox for online banking) which should run in a secure environment, optionally an additional programm (e.g. Keepass to retrieve the password for the online banking) and an icon which is later used to identify, that the program was started in the secure environment.
