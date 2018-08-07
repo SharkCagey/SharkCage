@@ -47,7 +47,7 @@ The `CageChooser` is a user interface which displays in a list all available con
 
 ### CageConfigurator
 
-The `CageConfigurator` provides a graphical user interface to create a config file including a token image to be displayed on the secure desktop, the program which should be started and optionally an additional application. The additional program can be choosen out of a list of "trustworthy" applications.
+The `CageConfigurator` provides a graphical user interface to create a config file including a token image to be displayed on the secure desktop, the program which should be started and optionally an additional application. The additional program can be chosen out of a list of "trustworthy" applications.
  As soon as the config file has been saved, a link to the config which is stored at `C:\Users\Public\Documents\SharkCage\` will be saved in the Registry under the following path: `Computer\HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\SharkCage\Configs`.
 The config contains json data and its access rights restrict anyone except the administrator group from accessing the file in any way.
 
