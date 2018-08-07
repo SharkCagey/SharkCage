@@ -76,4 +76,5 @@ The `SharkCageInstaller` is used to install all project applications, starting t
 
 1. Clone or download this repository
 1. Build the project
-1. Start the installer and follow the instructions.
+1. If using **debug build** you can just start the `CageChooser` and a powershell script with on-screen instructions will correctly configure your system.   
+If you want to use the **release build** the easiest solution is to run the included (built) installer and follow the instructions.
