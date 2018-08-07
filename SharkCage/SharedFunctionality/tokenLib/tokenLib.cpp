@@ -64,6 +64,7 @@ private:
 	PTOKEN_SOURCE       tokenSource;
 	PTOKEN_GROUPS		modifiedGroups;
 
+	void cleanup();
 public:
 	tokenTemplate(HANDLE &userToken);
 	~tokenTemplate();
@@ -485,7 +486,25 @@ bool changeTcbPrivilege(bool privilegeStatus){
 	return changePrivilege(privilegeStatus, SE_TCB_NAME);
 }
 
-tokenTemplate::tokenTemplate(HANDLE &userToken) {
+void tokenTemplate::cleanup()
+{
+	if (objectAttributes != nullptr) delete static_cast<PSECURITY_QUALITY_OF_SERVICE>(objectAttributes->SecurityQualityOfService);
+	delete objectAttributes;
+	delete authenticationId;
+	delete expirationTime;
+	delete[](BYTE*) tokenUser;
+	delete[](BYTE*) tokenGroups;
+	delete[](BYTE*) modifiedGroups;
+	delete[](BYTE*) tokenPrivileges;
+	delete[](BYTE*) tokenOwner;
+	delete[](BYTE*) tokenPrimaryGroup;
+	delete[](BYTE*) tokenDefaultDacl;
+	delete[](BYTE*) tokenSource;
+}
+
+tokenTemplate::tokenTemplate(HANDLE &userToken) : objectAttributes{ nullptr }, authenticationId{ nullptr }, expirationTime{ nullptr },
+													tokenUser{ nullptr }, tokenGroups{ nullptr }, tokenPrivileges{ nullptr }, tokenOwner{ nullptr },
+													tokenPrimaryGroup{ nullptr }, tokenDefaultDacl{ nullptr }, tokenSource{ nullptr } {
 
 	//load internal NtCreateToken function
 	HMODULE hModule = LoadLibrary(L"ntdll.dll");
@@ -498,6 +517,7 @@ tokenTemplate::tokenTemplate(HANDLE &userToken) {
 	GetTokenInformation(userToken, TokenType, (LPVOID)&tokenType, bufferSize, &bufferSize);
 	if (GetLastError() != 0)
 	{
+		this->cleanup();
 		throw TokenParsingException();
 	}
 
@@ -508,6 +528,7 @@ tokenTemplate::tokenTemplate(HANDLE &userToken) {
 	GetTokenInformation(userToken, TokenUser, (LPVOID)tokenUser, bufferSize, &bufferSize);
 	if (GetLastError() != 0)
 	{
+		this->cleanup();
 		throw TokenParsingException();
 	}
 
@@ -518,6 +539,7 @@ tokenTemplate::tokenTemplate(HANDLE &userToken) {
 	GetTokenInformation(userToken, TokenGroups, (LPVOID)tokenGroups, bufferSize, &bufferSize);
 	if (GetLastError() != 0)
 	{
+		this->cleanup();
 		throw TokenParsingException();
 	}
 
@@ -528,6 +550,7 @@ tokenTemplate::tokenTemplate(HANDLE &userToken) {
 	GetTokenInformation(userToken, TokenPrivileges, (LPVOID)tokenPrivileges, bufferSize, &bufferSize);
 	if (GetLastError() != 0)
 	{
+		this->cleanup();
 		throw TokenParsingException();
 	}
 
@@ -538,6 +561,7 @@ tokenTemplate::tokenTemplate(HANDLE &userToken) {
 	GetTokenInformation(userToken, TokenOwner, (LPVOID)tokenOwner, bufferSize, &bufferSize);
 	if (GetLastError() != 0)
 	{
+		this->cleanup();
 		throw TokenParsingException();
 	}
 
@@ -548,6 +572,7 @@ tokenTemplate::tokenTemplate(HANDLE &userToken) {
 	GetTokenInformation(userToken, TokenPrimaryGroup, (LPVOID)tokenPrimaryGroup, bufferSize, &bufferSize);
 	if (GetLastError() != 0)
 	{
+		this->cleanup();
 		throw TokenParsingException();
 	}
 
@@ -558,6 +583,7 @@ tokenTemplate::tokenTemplate(HANDLE &userToken) {
 	GetTokenInformation(userToken, TokenDefaultDacl, (LPVOID)tokenDefaultDacl, bufferSize, &bufferSize);
 	if (GetLastError() != 0)
 	{
+		this->cleanup();
 		throw TokenParsingException();
 	}
 
@@ -568,6 +594,7 @@ tokenTemplate::tokenTemplate(HANDLE &userToken) {
 	GetTokenInformation(userToken, TokenSource, (LPVOID)tokenSource, bufferSize, &bufferSize);
 	if (GetLastError() != 0)
 	{
+		this->cleanup();
 		throw TokenParsingException();
 	}
 
@@ -578,6 +605,7 @@ tokenTemplate::tokenTemplate(HANDLE &userToken) {
 	GetTokenInformation(userToken, TokenStatistics, (LPVOID)stats, bufferSize, &bufferSize);
 	if (GetLastError() != 0)
 	{
+		this->cleanup();
 		throw TokenParsingException();
 	}
 
@@ -597,18 +625,7 @@ tokenTemplate::tokenTemplate(HANDLE &userToken) {
 }
 
 tokenTemplate::~tokenTemplate() {
-	delete static_cast<PSECURITY_QUALITY_OF_SERVICE>(objectAttributes->SecurityQualityOfService);
-	delete objectAttributes;
-	delete authenticationId;
-	delete expirationTime;
-	delete[](BYTE*) tokenUser;
-	delete[](BYTE*) tokenGroups;
-	delete[](BYTE*) modifiedGroups;
-	delete[](BYTE*) tokenPrivileges;
-	delete[](BYTE*) tokenOwner;
-	delete[](BYTE*) tokenPrimaryGroup;
-	delete[](BYTE*) tokenDefaultDacl;
-	delete[](BYTE*) tokenSource;
+	this->cleanup();
 }
 
 inline bool tokenTemplate::addGroup(PSID sid) {
