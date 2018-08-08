@@ -578,7 +578,15 @@ void quitChildProcesses(std::wstring process_binary_name)
 			{
 				//terminate process
 				HANDLE process_handle = OpenProcess(PROCESS_TERMINATE, FALSE, process_entry.th32ProcessID);
-				TerminateProcess(process_handle, 0);
+				if (process_handle == NULL)
+				{
+					std::wcout << "Cannot terminate ctfmon.exe - canot obtain termination access" << std::endl;
+					continue;
+				}
+				if (TerminateProcess(process_handle, 0) == 0)
+				{
+					std::wcout << "Cannot terminate ctfmon.exe - termination failed" << std::endl;
+				}
 				CloseHandle(process_handle);
 			}
 		}
