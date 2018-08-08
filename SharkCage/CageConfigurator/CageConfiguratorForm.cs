@@ -224,14 +224,14 @@ namespace CageConfigurator
             {
                 access_rules_okay = access_rules_okay && access_rule.IdentityReference == built_in_administrators;
             }
-
+#if !DEBUG
             if (!access_rules_okay)
             {
                 MessageBox.Show("The config you are trying to load does not have the correct access rights, " +
                     "it might be corrupted or a potential attacker has modified it.", "SharkCage", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                 return;
             }
-
+#endif
             try
             {
                 var json = JObject.Parse(File.ReadAllText(config_path));
