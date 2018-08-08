@@ -25,8 +25,7 @@ else
         $copyPath = $defaultCopyPath;
     }
     if ($copyPath[-1] -ne '\') { $copyPath += '\'; }
-    
-    
+
     Write-Host "Chosen path: $copyPath" -ForegroundColor DarkGreen;
     
     ($CageService = Get-Process CageService -ErrorAction SilentlyContinue) | out-null;
