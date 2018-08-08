@@ -236,7 +236,7 @@ void CageService::HandleMessage(const std::wstring &message, NetworkManager &net
 		network_manager.Send(sender, CageMessage::RESPONSE_FAILURE, os.str(), result_data);
 		return;
 	}
-
+#ifndef _DEBUG
 	if (!CheckConfigAccessRights(message_data.c_str()))
 	{
 		std::wostringstream os;
@@ -247,7 +247,7 @@ void CageService::HandleMessage(const std::wstring &message, NetworkManager &net
 		network_manager.Send(sender, CageMessage::RESPONSE_FAILURE, os.str(), result_data);
 		return;
 	}
-
+#endif
 	// get session id from logged on user
 	HANDLE created_token;
 	DWORD session_id = ::WTSGetActiveConsoleSessionId();

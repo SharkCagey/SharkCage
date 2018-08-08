@@ -215,6 +215,7 @@ namespace CageConfigurator
 
         private void LoadConfig(string config_path)
         {
+#if !DEBUG
             IdentityReference built_in_administrators = new SecurityIdentifier(WellKnownSidType.BuiltinAdministratorsSid, null);
             var file_security = new FileSecurity(config_path, AccessControlSections.Access);
 
@@ -224,7 +225,7 @@ namespace CageConfigurator
             {
                 access_rules_okay = access_rules_okay && access_rule.IdentityReference == built_in_administrators;
             }
-#if !DEBUG
+
             if (!access_rules_okay)
             {
                 MessageBox.Show("The config you are trying to load does not have the correct access rights, " +
