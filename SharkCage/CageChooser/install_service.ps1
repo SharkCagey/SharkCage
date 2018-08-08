@@ -52,7 +52,7 @@ else
         Copy-Item -Path "$sourceDir\post_build_output\*" -Destination $copyPath -Force;
 
         $public_doc_folder = Join-Path -Path ([Environment]::GetEnvironmentVariable("Public")) -ChildPath "Documents\SharkCage";
-        Copy-Item -Path "$sourceDir\special_configs\*" -Destination $public_doc_folder -Force;
+        xcopy "$sourceDir\special_configs\*" $public_doc_folder /K /O /X /Y | out-null;
 
         New-Service  -Name $serviceName -BinaryPathName (Join-Path $copyPath "CageService.exe") | out-null;
         Start-Service -Name $serviceName | out-null;
