@@ -46,7 +46,11 @@ int main()
 		return 1;
 	}
 
-#ifndef _DEBUG
+#ifdef _DEBUG
+#pragma message("==============================================================")
+#pragma message("WARNING - SECURITY CHECKS DISABLED (DEBUG)")
+#pragma message("==============================================================")
+#else
 	if (!ValidateBinariesToLaunch(cage_data))
 	{
 		std::cout << "Validity check of binaries to launch failed." << std::endl;

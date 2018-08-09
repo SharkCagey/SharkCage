@@ -69,6 +69,9 @@ DWORD CageService::StartCageManager(DWORD session_id, HANDLE &user_token)
 		filename = filename.substr(0, pos) + L"\\" + CAGE_MANAGER_NAME;
 
 		#ifdef _DEBUG
+#pragma message("==============================================================")
+#pragma message("WARNING - SECURITY CHECKS DISABLED (DEBUG)")
+#pragma message("==============================================================")
 			return StartCageManager(session_id, filename, user_token);
 		#else
 			if (SharedFunctions::ValidateCertificate(filename))
@@ -236,7 +239,11 @@ void CageService::HandleMessage(const std::wstring &message, NetworkManager &net
 		network_manager.Send(sender, CageMessage::RESPONSE_FAILURE, os.str(), result_data);
 		return;
 	}
-#ifndef _DEBUG
+#ifdef _DEBUG
+#pragma message("==============================================================")
+#pragma message("WARNING - SECURITY CHECKS DISABLED (DEBUG)")
+#pragma message("==============================================================")
+#else
 	if (!CheckConfigAccessRights(message_data.c_str()))
 	{
 		std::wostringstream os;
