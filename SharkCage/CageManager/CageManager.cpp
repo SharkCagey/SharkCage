@@ -10,6 +10,7 @@
 
 #include <unordered_set>
 #include <thread>
+#include <Psapi.h>
 #include "tlhelp32.h"
 
 #include "CageManager.h"
@@ -21,6 +22,8 @@
 
 NetworkManager network_manager(ContextType::MANAGER);
 std::optional<std::wstring> generateUuid();
+//terminates all instances of process running from such binary if it is a child of running process
+void quitChildProcesses(const std::wstring &process_binary_name);
 
 static bool ValidateBinariesToLaunch(const CageData &cage_data);
 static bool ValidateBinary(const std::wstring &app_path, const std::wstring &app_hash);
@@ -355,6 +358,11 @@ void CageManager::StartCage(SECURITY_ATTRIBUTES security_attributes, const CageD
 		}
 	}
 
+	//ctfmon.exe process is spawned each time when new desktop is created
+	//it should be closed by the system automatically but it isn´t (bug?)
+	//must be closed manually to prevent them from acumulating in the system
+	quitChildProcesses(std::wstring(L"ctfmon.exe"));
+
 	// close our handles
 	::CloseHandle(process_info.hProcess);
 	::CloseHandle(process_info.hThread);
@@ -543,4 +551,52 @@ std::optional<std::wstring> generateUuid() {
 
 	::RpcStringFree(&uuid_str);
 	return uuid_stl;
+}
+
+void quitChildProcesses(const std::wstring &process_binary_name) 
+{
+	DWORD my_pid = ::GetCurrentProcessId();
+	HANDLE snapshot_handle = ::CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS,0);
+	PROCESSENTRY32 process_entry;
+	process_entry.dwSize = sizeof(PROCESSENTRY32);
+
+	if (snapshot_handle == INVALID_HANDLE_VALUE)
+	{
+		std::wcout << L"Cannot terminate ctfmon.exe - cannot enumerate processes" << std::endl;
+		return;
+	}
+
+	if (!::Process32First(snapshot_handle, &process_entry))
+	{
+		std::wcout << "Cannot terminate ctfmon.exe - canot read snapshot" << std::endl;
+		::CloseHandle(snapshot_handle);
+		return;
+	}
+
+	do
+	{
+		//is child of CageManager?
+		if (process_entry.th32ParentProcessID == my_pid)
+		{
+			//is proper name?
+			if (wcscmp(process_entry.szExeFile, process_binary_name.c_str()) == 0)
+			{
+				//terminate process
+				HANDLE process_handle = ::OpenProcess(PROCESS_TERMINATE, FALSE, process_entry.th32ProcessID);
+				if (process_handle == nullptr)
+				{
+					std::wcout << "Cannot terminate ctfmon.exe - cannot obtain termination access" << std::endl;
+					continue;
+				}
+				if (::TerminateProcess(process_handle, 0) == 0)
+				{
+					std::wcout << "Cannot terminate ctfmon.exe - termination failed" << std::endl;
+				}
+				::CloseHandle(process_handle);
+			}
+		}
+	} while (::Process32Next(snapshot_handle, &process_entry));
+
+	::CloseHandle(snapshot_handle);
+	return;
 }
