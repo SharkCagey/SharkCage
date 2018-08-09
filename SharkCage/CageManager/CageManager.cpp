@@ -46,6 +46,11 @@ int main()
 		return 1;
 	}
 
+#ifdef _DEBUG
+#pragma message("==============================================================")
+#pragma message("WARNING - SECURITY CHECKS DISABLED (DEBUG)")
+#pragma message("==============================================================")
+#else
 	if (!ValidateBinariesToLaunch(cage_data))
 	{
 		std::cout << "Validity check of binaries to launch failed." << std::endl;
@@ -54,12 +59,12 @@ int main()
 		network_manager.Send(
 			sender,
 			CageMessage::RESPONSE_FAILURE, L"Verification of the integrity for one or more of the process(es) you are"
-			  " trying to start on the secure desktop has failed. This can happen if an app was updated between creating the configuration"
-			  " and opening it. Please take a look at the configuration in the CageConfigurator and (re)save it if you are sure everything is in order.",
+				" trying to start on the secure desktop has failed. This can happen if an app was updated between creating the configuration"
+				" and opening it. Please take a look at the configuration in the CageConfigurator and (re)save it if you are sure everything is in order.",
 			result_data);
-
 		return 1;
 	}
+#endif
 
 	CageManager cage_manager;
 	if (cage_manager.ProcessRunning(cage_data.app_path)

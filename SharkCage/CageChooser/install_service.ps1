@@ -25,8 +25,7 @@ else
         $copyPath = $defaultCopyPath;
     }
     if ($copyPath[-1] -ne '\') { $copyPath += '\'; }
-    
-    
+
     Write-Host "Chosen path: $copyPath" -ForegroundColor DarkGreen;
     
     ($CageService = Get-Process CageService -ErrorAction SilentlyContinue) | out-null;
@@ -50,10 +49,14 @@ else
     Try
     {
         Copy-Item -Path "$sourceDir\post_build_output\*" -Destination $copyPath -Force;
-    
+
+        $public_doc_folder = Join-Path -Path ([Environment]::GetEnvironmentVariable("Public")) -ChildPath "Documents\SharkCage";
+        xcopy "$sourceDir\special_configs\*" $public_doc_folder /K /O /X /Y | out-null;
+
         New-Service  -Name $serviceName -BinaryPathName (Join-Path $copyPath "CageService.exe") | out-null;
         Start-Service -Name $serviceName | out-null;
-    
+
+        # install dir
         $registry_path = "HKLM:\SOFTWARE\";
         $registry_key = "SharkCage";
         if (-not (Test-Path (Join-Path -Path $registry_path -ChildPath $registry_key)))
@@ -69,6 +72,30 @@ else
         {
             New-ItemProperty -Path (Join-Path -Path $registry_path -ChildPath $registry_key) -Name "InstallDir" -Value $copyPath -PropertyType "String" | out-null;
         }
+
+        # SharkConfigurator location dir
+        $registry_subkey = "Configs";
+        $registry_key_combined = (Join-Path -Path $registry_path -ChildPath $registry_key);
+        if (-not (Test-Path (Join-Path -Path $registry_key_combined -ChildPath $registry_subkey)))
+        {
+            New-Item -Path $registry_key_combined -Name $registry_subkey;
+        }
+
+        $config_path = Join-Path -Path $public_doc_folder -ChildPath "CageConfigurator.sconfig";
+
+        $regex = '(?:\w*"application_path":.*)';
+        $new_text = '"application_path": "' + (Join-Path -Path $copyPath -ChildPath "CageConfigurator.exe") + '",';
+        $new_text = $new_text.Replace('\', '\\');
+        (Get-Content $config_path) -replace $regex, $new_text | Set-Content $config_path;
+
+        if (Get-ItemProperty -Path (Join-Path -Path $registry_key_combined -ChildPath $registry_subkey) -Name "CageConfigurator")
+        {
+            Set-ItemProperty -Path (Join-Path -Path $registry_key_combined -ChildPath $registry_subkey) -Name "CageConfigurator" -Value $config_path;
+        }
+        else
+        {
+            New-ItemProperty -Path (Join-Path -Path $registry_key_combined -ChildPath $registry_subkey) -Name "CageConfigurator" -Value $config_path -PropertyType "String" | out-null;
+        }
     
         Write-Host "Service successfully created!" -ForegroundColor darkgreen;
     }
@@ -79,6 +106,6 @@ else
         Read-Host -Prompt "Press any key to exit...";
         exit;
     }
-    
+
     exit;
 }

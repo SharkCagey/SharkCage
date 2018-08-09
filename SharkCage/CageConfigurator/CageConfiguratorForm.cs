@@ -215,6 +215,7 @@ namespace CageConfigurator
 
         private void LoadConfig(string config_path)
         {
+#if !DEBUG
             IdentityReference built_in_administrators = new SecurityIdentifier(WellKnownSidType.BuiltinAdministratorsSid, null);
             var file_security = new FileSecurity(config_path, AccessControlSections.Access);
 
@@ -231,7 +232,7 @@ namespace CageConfigurator
                     "it might be corrupted or a potential attacker has modified it.", "SharkCage", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                 return;
             }
-
+#endif
             try
             {
                 var json = JObject.Parse(File.ReadAllText(config_path));

@@ -26,14 +26,9 @@ static HWND background_window;
 static HWND labeler_background_window;
 
 static HWND gotodesk_button;
-static HWND app_title;
-static HWND app_name_title;
 static HWND app_activate_button;
-static HWND additional_app_app_title;
 static HWND additional_app_activate_button;
-static HWND app_hash_text_title;
-static HWND app_hash_text;
-static HWND closing_restricted_text;
+static HWND debug_warning;
 
 static COLORREF transparent_color = RGB(1, 1, 1);
 
@@ -186,8 +181,17 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM w_param, LPARAM l_param)
 	}
 	case WM_CTLCOLORSTATIC:
 	{
+		HWND current_hwnd = reinterpret_cast<HWND>(l_param);
+
 		HDC hdc_static = (HDC)w_param;
-		::SetTextColor(hdc_static, RGB(0, 0, 0));
+		if (current_hwnd == debug_warning)
+		{
+			::SetTextColor(hdc_static, RGB(179, 58, 58));
+		}
+		else
+		{
+			::SetTextColor(hdc_static, RGB(0, 0, 0));
+		}
 		::SetBkMode(hdc_static, TRANSPARENT);
 
 		return (LRESULT)::GetStockObject(NULL_BRUSH);
@@ -514,7 +518,22 @@ static bool ShowExitButton(HWND &hwnd)
 
 static bool ShowConfigMetadata(HWND &hwnd)
 {
-	app_title = ::CreateWindow(
+#ifdef _DEBUG
+	debug_warning = ::CreateWindow(
+		L"STATIC",
+		L"!!! DEBUG VERSION - NOT SECURE !!!",
+		SS_LEFT | WS_VISIBLE | WS_CHILD,
+		10,
+		labeler_width,
+		300,
+		34,
+		hwnd,
+		nullptr,
+		nullptr,
+		nullptr);
+#endif
+
+	auto app_title = ::CreateWindow(
 		L"STATIC",
 		L"Programs:",
 		SS_LEFT | WS_VISIBLE | WS_CHILD,
@@ -527,7 +546,7 @@ static bool ShowConfigMetadata(HWND &hwnd)
 		nullptr,
 		nullptr);
 
-	app_name_title = ::CreateWindow(
+	auto app_name_title = ::CreateWindow(
 		L"STATIC",
 		app_name.c_str(),
 		SS_LEFT | WS_VISIBLE | WS_CHILD,
@@ -553,6 +572,7 @@ static bool ShowConfigMetadata(HWND &hwnd)
 		nullptr,
 		nullptr);
 
+	HWND additional_app_app_title = nullptr;
 	if (additional_app_name.has_value())
 	{
 		additional_app_app_title = ::CreateWindow(
@@ -582,7 +602,7 @@ static bool ShowConfigMetadata(HWND &hwnd)
 			nullptr);
 	}
 
-	app_hash_text_title = ::CreateWindow(
+	auto app_hash_text_title = ::CreateWindow(
 		L"STATIC",
 		L"Binary hashes (SHA-512, truncated):",
 		SS_LEFT | WS_VISIBLE | WS_CHILD,
@@ -596,7 +616,7 @@ static bool ShowConfigMetadata(HWND &hwnd)
 		nullptr);
 
 	std::wstring app_hash_string = L"App - " + app_hash;
-	app_hash_text = ::CreateWindow(
+	auto app_hash_text = ::CreateWindow(
 		L"STATIC",
 		app_hash_string.c_str(),
 		SS_LEFT | WS_VISIBLE | WS_CHILD,
@@ -609,6 +629,7 @@ static bool ShowConfigMetadata(HWND &hwnd)
 		nullptr,
 		nullptr);
 
+	HWND closing_restricted_text = nullptr;
 	if (restrict_closing)
 	{
 		int bottom;
@@ -667,6 +688,9 @@ static bool ShowConfigMetadata(HWND &hwnd)
 			DEFAULT_PITCH | FF_SWISS,
 			L"Segoi");
 
+#ifdef _DEBUG
+		::SendMessage(debug_warning, WM_SETFONT, (WPARAM)bold_font, TRUE);
+#endif
 		::SendMessage(app_title, WM_SETFONT, (WPARAM)bold_font, TRUE);
 		::SendMessage(app_name_title, WM_SETFONT, (WPARAM)default_font, TRUE);
 		::SendMessage(app_activate_button, BM_SETIMAGE, NULL, NULL);
@@ -686,7 +710,7 @@ static bool ShowConfigMetadata(HWND &hwnd)
 	}
 	else
 	{
-		std::wcout << L"Failed to create logout button Err " << ::GetLastError() << std::endl;
+		std::wcout << L"Failed to create logout button. Error: " << ::GetLastError() << std::endl;
 		return false;
 	}
 
