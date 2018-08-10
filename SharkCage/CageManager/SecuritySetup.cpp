@@ -116,12 +116,25 @@ std::optional<PACL> SecuritySetup::CreateACL(std::unique_ptr<PSID, decltype(loca
 		return std::nullopt;
 	}
 
+	// create SID for NT AUTHORITY\SYSTEM group
+	DWORD sid_size = SECURITY_MAX_SID_SIZE;
+	//PSID sid_system = (PSID) new BYTE[sid_size];
+	std::unique_ptr<PSID, decltype(local_free_deleter<PSID>)> sid_system((PSID*)::LocalAlloc(LPTR, sid_size), local_free_deleter<PSID>);
+	if (!CreateWellKnownSid(WinLocalSystemSid, NULL, sid_system.get(), &sid_size)) {
+		FreeSid(sid_admin);
+		std::wcout << L"Cannot create system SID" << std::endl;
+		return std::nullopt;
+	}
+
 	// create EXPLICIT_ACCESS structure for an ACE
 	EXPLICIT_ACCESS explicit_access_group = { 0 };
 	EXPLICIT_ACCESS explicit_access_admin = { 0 };
+	EXPLICIT_ACCESS explicit_access_system = { 0 };
 
-	// EXPLICIT_ACCESS for created group (this allows the new group everything (GENERIC_ALL + SET_ACCESS))
-	explicit_access_group.grfAccessPermissions = GENERIC_ALL;
+	// EXPLICIT_ACCESS for created group
+	explicit_access_group.grfAccessPermissions = DESKTOP_READOBJECTS | DESKTOP_CREATEWINDOW | DESKTOP_CREATEMENU |
+													DESKTOP_HOOKCONTROL | DESKTOP_JOURNALRECORD | DESKTOP_JOURNALPLAYBACK | 
+													DESKTOP_ENUMERATE | DESKTOP_WRITEOBJECTS;
 	explicit_access_group.grfAccessMode = SET_ACCESS;
 	explicit_access_group.grfInheritance = NO_INHERITANCE;
 	explicit_access_group.Trustee.TrusteeForm = TRUSTEE_IS_SID;
@@ -131,7 +144,8 @@ std::optional<PACL> SecuritySetup::CreateACL(std::unique_ptr<PSID, decltype(loca
 	explicit_access_group.Trustee.ptstrName = static_cast<LPWSTR>(group_sid_raw);
 
 	// EXPLICIT_ACCESS with second ACE for admin group
-	explicit_access_admin.grfAccessPermissions = PROCESS_ALL_ACCESS;
+	explicit_access_admin.grfAccessPermissions = DELETE | DESKTOP_ENUMERATE | READ_CONTROL | WRITE_DAC |
+													WRITE_OWNER;
 	explicit_access_admin.grfAccessMode = SET_ACCESS;
 	explicit_access_admin.grfInheritance = NO_INHERITANCE;
 	explicit_access_admin.Trustee.TrusteeForm = TRUSTEE_IS_SID;
@@ -139,16 +153,31 @@ std::optional<PACL> SecuritySetup::CreateACL(std::unique_ptr<PSID, decltype(loca
 	// if TrusteeForm is TRUSTEE_IS_SID, the ptstrName must point to the binary representation of the SID (do NOT convert to string!)
 	explicit_access_admin.Trustee.ptstrName = static_cast<LPWSTR>(sid_admin);
 
+	// EXPLICIT_ACCESS with third ACE for local system account
+	explicit_access_system.grfAccessPermissions = DELETE | DESKTOP_READOBJECTS | DESKTOP_CREATEWINDOW | DESKTOP_CREATEMENU |
+													DESKTOP_HOOKCONTROL | DESKTOP_JOURNALRECORD | DESKTOP_JOURNALPLAYBACK |
+													DESKTOP_ENUMERATE | DESKTOP_WRITEOBJECTS | DESKTOP_SWITCHDESKTOP | READ_CONTROL |
+													WRITE_DAC | WRITE_OWNER;
+	explicit_access_system.grfAccessMode = SET_ACCESS;
+	explicit_access_system.grfInheritance = NO_INHERITANCE;
+	explicit_access_system.Trustee.TrusteeForm = TRUSTEE_IS_SID;
+	explicit_access_system.Trustee.TrusteeType = TRUSTEE_IS_USER;
+	// if TrusteeForm is TRUSTEE_IS_SID, the ptstrName must point to the binary representation of the SID (do NOT convert to string!)
+	PSID system_sid_raw = sid_system.get();
+	explicit_access_system.Trustee.ptstrName = static_cast<LPWSTR>(system_sid_raw);
+
 	// Create a new ACL that contains the new ACEs.
 	PACL acl = nullptr;
-	EXPLICIT_ACCESS ea[2] = { explicit_access_group, explicit_access_admin };
-	auto result = ::SetEntriesInAcl(2, ea, NULL, &acl);
+	EXPLICIT_ACCESS ea[3] = { explicit_access_group, explicit_access_admin, explicit_access_system };
+	auto result = ::SetEntriesInAcl(3, ea, NULL, &acl);
 	if (result != ERROR_SUCCESS)
 	{
+		FreeSid(sid_admin);
 		std::cout << "SetEntriesInAcl error: " << ::GetLastError() << std::endl;
 		return std::nullopt;
 	}
 
+	FreeSid(sid_admin);
 	return acl;
 }
 
