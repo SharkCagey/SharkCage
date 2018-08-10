@@ -5,7 +5,10 @@
 #include <string>
 
 template<typename T>
-auto local_free_deleter = [&](T resource) { ::LocalFree(resource); };
+auto local_free_deleter = [&](T *resource) { ::LocalFree(resource); };
+
+typedef void Sid;
+typedef std::unique_ptr<Sid, decltype(local_free_deleter<Sid>)> SidPointer;
 
 class SecuritySetup
 {
@@ -29,8 +32,8 @@ public:
 	std::optional<SECURITY_ATTRIBUTES> GetSecurityAttributes(const std::wstring &group_name);
 
 private:
-	std::unique_ptr<PSID, decltype(local_free_deleter<PSID>)> CreateSID(const std::wstring &group_name);
-	std::optional<PACL> CreateACL(std::unique_ptr<PSID, decltype(local_free_deleter<PSID>)> group_sid);
+	SidPointer CreateSID(const std::wstring &group_name);
+	std::optional<PACL> CreateACL(SidPointer group_sid);
 
 	PSECURITY_DESCRIPTOR security_descriptor;
 };

@@ -58,7 +58,7 @@ std::optional<SECURITY_ATTRIBUTES> SecuritySetup::GetSecurityAttributes(const st
 	return security_attributes;
 }
 
-std::unique_ptr<PSID, decltype(local_free_deleter<PSID>)> SecuritySetup::CreateSID(const std::wstring &group_name)
+SidPointer SecuritySetup::CreateSID(const std::wstring &group_name)
 {
 	LOCALGROUP_INFO_0 localgroup_info;
 	DWORD buffer_size = 0;
@@ -90,7 +90,7 @@ std::unique_ptr<PSID, decltype(local_free_deleter<PSID>)> SecuritySetup::CreateS
 	);
 
 	// Second call of the function in order to get the SID
-	std::unique_ptr<PSID, decltype(local_free_deleter<PSID>)> sid((PSID*)::LocalAlloc(LPTR, cb_sid), local_free_deleter<PSID>);
+	SidPointer sid((Sid*)::LocalAlloc(LPTR, cb_sid), local_free_deleter<Sid>);
 
 	::LookupAccountName(
 		NULL,
@@ -105,10 +105,11 @@ std::unique_ptr<PSID, decltype(local_free_deleter<PSID>)> SecuritySetup::CreateS
 	return sid;
 }
 
-std::optional<PACL> SecuritySetup::CreateACL(std::unique_ptr<PSID, decltype(local_free_deleter<PSID>)> group_sid)
+std::optional<PACL> SecuritySetup::CreateACL(SidPointer group_sid)
 {
 	// create SID for BUILTIN\Administrators group
 	PSID sid_admin;
+
 	SID_IDENTIFIER_AUTHORITY sid_authnt = SECURITY_NT_AUTHORITY;
 	if (!::AllocateAndInitializeSid(&sid_authnt, 2, SECURITY_BUILTIN_DOMAIN_RID, DOMAIN_ALIAS_RID_ADMINS, 0, 0, 0, 0, 0, 0, &sid_admin))
 	{
@@ -129,6 +130,7 @@ std::optional<PACL> SecuritySetup::CreateACL(std::unique_ptr<PSID, decltype(loca
 	// if TrusteeForm is TRUSTEE_IS_SID, the ptstrName must point to the binary representation of the SID (do NOT convert to string!)
 	PSID group_sid_raw = group_sid.get();
 	explicit_access_group.Trustee.ptstrName = static_cast<LPWSTR>(group_sid_raw);
+
 
 	// EXPLICIT_ACCESS with second ACE for admin group
 	explicit_access_admin.grfAccessPermissions = PROCESS_ALL_ACCESS;
