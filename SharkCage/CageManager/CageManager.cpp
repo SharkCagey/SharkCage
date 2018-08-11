@@ -62,8 +62,8 @@ int main()
 		network_manager.Send(
 			sender,
 			CageMessage::RESPONSE_FAILURE, L"Verification of the integrity for one or more of the process(es) you are"
-				" trying to start on the secure desktop has failed. This can happen if an app was updated between creating the configuration"
-				" and opening it. Please take a look at the configuration in the CageConfigurator and (re)save it if you are sure everything is in order.",
+			" trying to start on the secure desktop has failed. This can happen if an app was updated between creating the configuration"
+			" and opening it. Please take a look at the configuration in the CageConfigurator and (re)save it if you are sure everything is in order.",
 			result_data);
 		return 1;
 	}
@@ -200,9 +200,28 @@ void CageManager::StartCage(SECURITY_ATTRIBUTES security_attributes, const CageD
 	// Create the process.
 	PROCESS_INFORMATION process_info = {};
 
-	if(::CreateProcessWithTokenW(token_handle, LOGON_WITH_PROFILE, cage_data.app_path.c_str(), nullptr, 0, nullptr, nullptr, &info, &process_info) == 0)
+	if (::CreateProcessWithTokenW(token_handle, LOGON_WITH_PROFILE, cage_data.app_path.c_str(), nullptr, 0, nullptr, nullptr, &info, &process_info) == 0)
 	{
 		std::cout << "Failed to start process. Error: " << ::GetLastError() << std::endl;
+
+		if (::GetLastError() == ERROR_ELEVATION_REQUIRED
+			&& MessageBox(NULL, L"The process needs to run elevated, do you want to continue?", L"Shark Cage", MB_YESNO) == IDYES)
+		{
+			if (::CreateProcess(
+				cage_data.app_path.c_str(),
+				nullptr,
+				&security_attributes,
+				nullptr,
+				FALSE,
+				0,
+				nullptr,
+				nullptr,
+				&info,
+				&process_info) == 0)
+			{
+				std::cout << "Failed to start process elevated. Error: " << ::GetLastError() << std::endl;
+			}
+		}
 	}
 
 	PROCESS_INFORMATION process_info_additional_app = { 0 };
@@ -211,17 +230,41 @@ void CageManager::StartCage(SECURITY_ATTRIBUTES security_attributes, const CageD
 		if (::CreateProcessWithTokenW(token_handle, LOGON_WITH_PROFILE, cage_data.additional_app_path.value().c_str(), nullptr, 0, nullptr, nullptr, &info, &process_info_additional_app) == 0)
 		{
 			std::cout << "Failed to start additional process. Error: " << GetLastError() << std::endl;
+
+			if (::GetLastError() == ERROR_ELEVATION_REQUIRED
+				&& MessageBox(NULL, L"The process needs to run elevated, do you want to continue?", L"Shark Cage", MB_YESNO) == IDYES)
+			{
+				if (::CreateProcess(
+					cage_data.app_path.c_str(),
+					nullptr,
+					&security_attributes,
+					nullptr,
+					FALSE,
+					0,
+					nullptr,
+					nullptr,
+					&info,
+					&process_info) == 0)
+				{
+					std::cout << "Failed to start process elevated. Error: " << ::GetLastError() << std::endl;
+				}
+			}
 		}
 	}
 
 	bool keep_cage_running = true;
 
-	std::vector<HANDLE> handles = { labeler_thread.native_handle(), process_info.hProcess };
+	std::vector<HANDLE> handles = { labeler_thread.native_handle() };
+	if (process_info.hProcess)
+	{
+		handles.push_back(process_info.hProcess);
+	}
+
 	std::vector<HANDLE> wait_handles;
 
 	wait_handles.push_back(cage_data.activate_app);
 
-	if (cage_data.hasAdditionalAppInfo())
+	if (cage_data.hasAdditionalAppInfo() && process_info_additional_app.hProcess)
 	{
 		handles.push_back(process_info_additional_app.hProcess);
 		wait_handles.push_back(cage_data.activate_additional_app.value());
@@ -515,9 +558,28 @@ void CageManager::ActivateApp(
 		::CloseHandle(process_info.hProcess);
 		::CloseHandle(process_info.hThread);
 
-		if(::CreateProcessWithTokenW(token_handle, LOGON_WITH_PROFILE, path.c_str(), nullptr, 0, nullptr, nullptr, &info, &process_info) == 0)
+		if (::CreateProcessWithTokenW(token_handle, LOGON_WITH_PROFILE, path.c_str(), nullptr, 0, nullptr, nullptr, &info, &process_info) == 0)
 		{
 			std::cout << "Failed to start process. Error: " << ::GetLastError() << std::endl;
+
+			if (::GetLastError() == ERROR_ELEVATION_REQUIRED
+				&& MessageBox(NULL, L"The process needs to run elevated, do you want to continue?", L"Shark Cage", MB_YESNO) == IDYES)
+			{
+				if (::CreateProcess(
+					path.c_str(),
+					nullptr,
+					&security_attributes,
+					nullptr,
+					FALSE,
+					0,
+					nullptr,
+					nullptr,
+					&info,
+					&process_info) == 0)
+				{
+					std::cout << "Failed to start process elevated. Error: " << ::GetLastError() << std::endl;
+				}
+			}
 		}
 		else
 		{
@@ -526,7 +588,8 @@ void CageManager::ActivateApp(
 	}
 }
 
-std::optional<std::wstring> generateUuid() {
+std::optional<std::wstring> generateUuid()
+{
 	UUID uuid;
 	if (::UuidCreate(&uuid) != RPC_S_OK)
 	{
@@ -553,10 +616,10 @@ std::optional<std::wstring> generateUuid() {
 	return uuid_stl;
 }
 
-void quitChildProcesses(const std::wstring &process_binary_name) 
+void quitChildProcesses(const std::wstring &process_binary_name)
 {
 	DWORD my_pid = ::GetCurrentProcessId();
-	HANDLE snapshot_handle = ::CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS,0);
+	HANDLE snapshot_handle = ::CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
 	PROCESSENTRY32 process_entry;
 	process_entry.dwSize = sizeof(PROCESSENTRY32);
 
