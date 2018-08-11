@@ -8,6 +8,8 @@
 
 #pragma comment(lib, "netapi32.lib")
 
+auto free_sid_deleter = [&](PSID sid) { ::FreeSid(sid); };
+
 std::optional<SECURITY_ATTRIBUTES> SecuritySetup::GetSecurityAttributes(const std::wstring &group_name)
 {
 	auto group_sid = CreateSID(group_name);
@@ -58,7 +60,7 @@ std::optional<SECURITY_ATTRIBUTES> SecuritySetup::GetSecurityAttributes(const st
 	return security_attributes;
 }
 
-std::unique_ptr<PSID, decltype(local_free_deleter<PSID>)> SecuritySetup::CreateSID(const std::wstring &group_name)
+SidPointer<decltype(local_free_deleter<Sid>)> SecuritySetup::CreateSID(const std::wstring &group_name)
 {
 	LOCALGROUP_INFO_0 localgroup_info;
 	DWORD buffer_size = 0;
@@ -90,7 +92,7 @@ std::unique_ptr<PSID, decltype(local_free_deleter<PSID>)> SecuritySetup::CreateS
 	);
 
 	// Second call of the function in order to get the SID
-	std::unique_ptr<PSID, decltype(local_free_deleter<PSID>)> sid((PSID*)::LocalAlloc(LPTR, cb_sid), local_free_deleter<PSID>);
+	std::unique_ptr<Sid, decltype(local_free_deleter<Sid>)> sid((Sid*)::LocalAlloc(LPTR, cb_sid), local_free_deleter<Sid>);
 
 	::LookupAccountName(
 		NULL,
@@ -105,27 +107,29 @@ std::unique_ptr<PSID, decltype(local_free_deleter<PSID>)> SecuritySetup::CreateS
 	return sid;
 }
 
-std::optional<PACL> SecuritySetup::CreateACL(std::unique_ptr<PSID, decltype(local_free_deleter<PSID>)> group_sid)
+std::optional<PACL> SecuritySetup::CreateACL(SidPointer<decltype(local_free_deleter<Sid>)> group_sid)
 {
 	// create SID for BUILTIN\Administrators group
-	PSID sid_admin;
+	PSID sid_admin_raw;
 	SID_IDENTIFIER_AUTHORITY sid_authnt = SECURITY_NT_AUTHORITY;
-	if (!::AllocateAndInitializeSid(&sid_authnt, 2, SECURITY_BUILTIN_DOMAIN_RID, DOMAIN_ALIAS_RID_ADMINS, 0, 0, 0, 0, 0, 0, &sid_admin))
+	if (!::AllocateAndInitializeSid(&sid_authnt, 2, SECURITY_BUILTIN_DOMAIN_RID, DOMAIN_ALIAS_RID_ADMINS, 0, 0, 0, 0, 0, 0, &sid_admin_raw))
 	{
 		std::cout << "Obtain admin SID error: " << ::GetLastError() << std::endl;
 		return std::nullopt;
 	}
 
+	SidPointer<decltype(free_sid_deleter)> sid_admin(sid_admin_raw, free_sid_deleter);
+
 	// create SID for NT AUTHORITY\SYSTEM group
 	DWORD sid_size = SECURITY_MAX_SID_SIZE;
-	//PSID sid_system = (PSID) new BYTE[sid_size];
-	std::unique_ptr<PSID, decltype(local_free_deleter<PSID>)> sid_system((PSID*)::LocalAlloc(LPTR, sid_size), local_free_deleter<PSID>);
+
+	SidPointer<decltype(local_free_deleter<Sid>)> sid_system((Sid*)::LocalAlloc(LPTR, sid_size), local_free_deleter<Sid>);
 	if (!CreateWellKnownSid(WinLocalSystemSid, NULL, sid_system.get(), &sid_size)) {
-		FreeSid(sid_admin);
 		std::wcout << L"Cannot create system SID" << std::endl;
 		return std::nullopt;
 	}
 
+	
 	// create EXPLICIT_ACCESS structure for an ACE
 	EXPLICIT_ACCESS explicit_access_group = { 0 };
 	EXPLICIT_ACCESS explicit_access_admin = { 0 };
@@ -140,8 +144,7 @@ std::optional<PACL> SecuritySetup::CreateACL(std::unique_ptr<PSID, decltype(loca
 	explicit_access_group.Trustee.TrusteeForm = TRUSTEE_IS_SID;
 	explicit_access_group.Trustee.TrusteeType = TRUSTEE_IS_GROUP;
 	// if TrusteeForm is TRUSTEE_IS_SID, the ptstrName must point to the binary representation of the SID (do NOT convert to string!)
-	PSID group_sid_raw = group_sid.get();
-	explicit_access_group.Trustee.ptstrName = static_cast<LPWSTR>(group_sid_raw);
+	explicit_access_group.Trustee.ptstrName = static_cast<LPWSTR>(group_sid.get());
 
 	// EXPLICIT_ACCESS with second ACE for admin group
 	explicit_access_admin.grfAccessPermissions = DELETE | DESKTOP_ENUMERATE | READ_CONTROL | WRITE_DAC |
@@ -151,7 +154,7 @@ std::optional<PACL> SecuritySetup::CreateACL(std::unique_ptr<PSID, decltype(loca
 	explicit_access_admin.Trustee.TrusteeForm = TRUSTEE_IS_SID;
 	explicit_access_admin.Trustee.TrusteeType = TRUSTEE_IS_GROUP;
 	// if TrusteeForm is TRUSTEE_IS_SID, the ptstrName must point to the binary representation of the SID (do NOT convert to string!)
-	explicit_access_admin.Trustee.ptstrName = static_cast<LPWSTR>(sid_admin);
+	explicit_access_admin.Trustee.ptstrName = static_cast<LPWSTR>(sid_admin.get());
 
 	// EXPLICIT_ACCESS with third ACE for local system account
 	explicit_access_system.grfAccessPermissions = DELETE | DESKTOP_READOBJECTS | DESKTOP_CREATEWINDOW | DESKTOP_CREATEMENU |
@@ -172,12 +175,10 @@ std::optional<PACL> SecuritySetup::CreateACL(std::unique_ptr<PSID, decltype(loca
 	auto result = ::SetEntriesInAcl(3, ea, NULL, &acl);
 	if (result != ERROR_SUCCESS)
 	{
-		FreeSid(sid_admin);
 		std::cout << "SetEntriesInAcl error: " << ::GetLastError() << std::endl;
 		return std::nullopt;
 	}
 
-	FreeSid(sid_admin);
 	return acl;
 }
 
