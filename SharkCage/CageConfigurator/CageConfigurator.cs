@@ -190,6 +190,10 @@ namespace CageConfigurator
                 bool desktop_access_right_status = false;
 
                 var desktop = NativeMethods.GetThreadDesktop(NativeMethods.GetCurrentThreadId());
+                if (desktop == null)
+                {
+                    MessageBox.Show("Failed to get current desktop.");
+                }
 
                 IntPtr owner_sid = IntPtr.Zero;
                 IntPtr group_sid = IntPtr.Zero;
@@ -197,7 +201,7 @@ namespace CageConfigurator
                 IntPtr sacl = IntPtr.Zero;
                 IntPtr security_descriptor;
 
-                int val = NativeMethods.GetSecurityInfo(
+                if (NativeMethods.GetSecurityInfo(
                     desktop,
                     NativeMethods.SE_OBJECT_TYPE.SE_WINDOW_OBJECT,
                     NativeMethods.SECURITY_INFORMATION.DACL_SECURITY_INFORMATION,
@@ -205,14 +209,20 @@ namespace CageConfigurator
                     out group_sid,
                     out dacl,
                     out sacl,
-                    out security_descriptor);
+                    out security_descriptor) != 0)
+                {
+                    MessageBox.Show("Failed to retrieve security info.");
+                }
 
                 NativeMethods.LocalFree(security_descriptor);
 
                 ulong entry_count = 0;
                 IntPtr entries_pointer;
 
-                NativeMethods.GetExplicitEntriesFromAclW(dacl, ref entry_count, out entries_pointer);
+                if (NativeMethods.GetExplicitEntriesFromAclW(dacl, ref entry_count, out entries_pointer) != 0)
+                {
+                    MessageBox.Show("Failed to get acl entries.");
+                }
 
                 if (entry_count == 3)
                 {
@@ -260,7 +270,21 @@ namespace CageConfigurator
                         nt_authority.Value = new byte[] { 0, 0, 0, 0, 0, nt_security_authority };
 
                         IntPtr admin_sid = IntPtr.Zero;
-                        NativeMethods.AllocateAndInitializeSid(ref nt_authority, 2, security_builtin_domain_rid, domain_alias_rid_admins, 0, 0, 0, 0, 0, 0, out admin_sid);
+                        if (!NativeMethods.AllocateAndInitializeSid(
+                            ref nt_authority,
+                            2,
+                            security_builtin_domain_rid,
+                            domain_alias_rid_admins,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            out admin_sid))
+                        {
+                            MessageBox.Show("Failed to allocate or initiliaze admin security identifier");
+                        }
 
                         if (ea_admin.Trustee.ptstrName == IntPtr.Zero)
                         {
@@ -298,7 +322,20 @@ namespace CageConfigurator
                         nt_authority.Value = new byte[] { 0, 0, 0, 0, 0, nt_security_authority };
 
                         IntPtr system_sid = IntPtr.Zero;
-                        NativeMethods.AllocateAndInitializeSid(ref nt_authority, 1, security_local_system_rid, 0, 0, 0, 0, 0, 0, 0, out system_sid);
+                        if (!NativeMethods.AllocateAndInitializeSid(ref nt_authority,
+                            1,
+                            security_local_system_rid,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            out system_sid))
+                        {
+                            MessageBox.Show("Failed to allocate or initiliaze system security identifier");
+                        }
 
                         if (ea_system.Trustee.ptstrName == IntPtr.Zero)
                         {
