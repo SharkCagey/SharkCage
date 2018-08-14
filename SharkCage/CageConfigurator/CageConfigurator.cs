@@ -176,8 +176,7 @@ namespace CageConfigurator
 #if DEBUG
             isReleaseMode = false;
 #endif
-            // fixme comment back in
-            if (/*isReleaseMode &&*/!StartedInCage())
+            if (isReleaseMode && !StartedInCage())
             {
 
                 MessageBox.Show("CageConfigurator can only be run on a secure desktop. Please start the Configurator manually with the corresponding entry in the CageChooser.",
