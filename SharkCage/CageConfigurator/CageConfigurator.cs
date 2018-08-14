@@ -27,9 +27,9 @@ namespace CageConfigurator
 
             [DllImport("advapi32.dll", SetLastError = true)]
             public static extern uint GetExplicitEntriesFromAclW(
-              IntPtr pacl,
-              ref ulong pcCountOfExplicitEntries,
-              out IntPtr pListOfExplicitEntries
+                IntPtr pacl,
+                ref ulong pcCountOfExplicitEntries,
+                out IntPtr pListOfExplicitEntries
             );
 
             [DllImport("kernel32.dll")]
@@ -157,6 +157,14 @@ namespace CageConfigurator
             }
         }
 
+        public class NativeCallException : Exception
+        {
+            public NativeCallException(string message)
+               : base(message)
+            {
+            }
+        }
+
         /// <summary>
         /// The main entry point for the application.
         /// </summary>
@@ -185,21 +193,22 @@ namespace CageConfigurator
 
         static bool StartedInCage()
         {
+            IntPtr security_descriptor = IntPtr.Zero;
+            IntPtr entries_pointer = IntPtr.Zero;
+            bool desktop_access_right_status = false;
+
             try
             {
-                bool desktop_access_right_status = false;
-
                 var desktop = NativeMethods.GetThreadDesktop(NativeMethods.GetCurrentThreadId());
-                if (desktop == null)
+                if (desktop == IntPtr.Zero)
                 {
-                    MessageBox.Show("Failed to get current desktop.");
+                    throw new NativeCallException("Failed to retrieve desktop handle.");
                 }
 
                 IntPtr owner_sid = IntPtr.Zero;
                 IntPtr group_sid = IntPtr.Zero;
                 IntPtr dacl;
                 IntPtr sacl = IntPtr.Zero;
-                IntPtr security_descriptor;
 
                 if (NativeMethods.GetSecurityInfo(
                     desktop,
@@ -211,17 +220,13 @@ namespace CageConfigurator
                     out sacl,
                     out security_descriptor) != 0)
                 {
-                    MessageBox.Show("Failed to retrieve security info.");
+                    throw new NativeCallException("Failed to retrieve security info.");
                 }
 
-                NativeMethods.LocalFree(security_descriptor);
-
                 ulong entry_count = 0;
-                IntPtr entries_pointer;
-
                 if (NativeMethods.GetExplicitEntriesFromAclW(dacl, ref entry_count, out entries_pointer) != 0)
                 {
-                    MessageBox.Show("Failed to get acl entries.");
+                    throw new NativeCallException("Failed to retrieve acl entries.");
                 }
 
                 if (entry_count == 3)
@@ -283,12 +288,12 @@ namespace CageConfigurator
                             0,
                             out admin_sid))
                         {
-                            MessageBox.Show("Failed to allocate or initiliaze admin security identifier");
+                            throw new NativeCallException("Failed to allocate or initialize admin security identifier.");
                         }
 
                         if (ea_admin.Trustee.ptstrName == IntPtr.Zero)
                         {
-                            MessageBox.Show("admin sid null");
+                            throw new NativeCallException("Failed to retrieve admin sid.");
                         }
                         else if (NativeMethods.EqualSid(ea_admin.Trustee.ptstrName, admin_sid))
                         {
@@ -311,7 +316,6 @@ namespace CageConfigurator
                         {
                             NativeMethods.FreeSid(admin_sid);
                         }
-
                     }
 
                     if (ea_system.Trustee.TrusteeForm == NativeMethods.TRUSTEE_FORM.TRUSTEE_IS_SID)
@@ -334,12 +338,12 @@ namespace CageConfigurator
                             0,
                             out system_sid))
                         {
-                            MessageBox.Show("Failed to allocate or initiliaze system security identifier");
+                            throw new NativeCallException("Failed to allocate or initialize system security identifier.");
                         }
 
                         if (ea_system.Trustee.ptstrName == IntPtr.Zero)
                         {
-                            MessageBox.Show("system sid null");
+                            throw new NativeCallException("Failed to retrieve system sid.");
                         }
                         else if (NativeMethods.EqualSid(ea_system.Trustee.ptstrName, system_sid))
                         {
@@ -377,17 +381,19 @@ namespace CageConfigurator
                         desktop_access_right_status = true;
                     }
                 }
-                NativeMethods.LocalFree(entries_pointer);
-
-                return desktop_access_right_status;
             }
             catch (Exception e)
             {
                 MessageBox.Show("Could not determine on which desktop the process is running: " + e.ToString());
                 Environment.Exit(1);
             }
+            finally
+            {
+                NativeMethods.LocalFree(entries_pointer);
+                NativeMethods.LocalFree(security_descriptor);
+            }
 
-            return false;
+            return desktop_access_right_status;
         }
     }
 }

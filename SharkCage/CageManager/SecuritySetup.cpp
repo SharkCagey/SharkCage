@@ -128,7 +128,7 @@ std::optional<PACL> SecuritySetup::CreateACL(SidPointer<decltype(local_free_dele
 		std::wcout << L"Cannot create system SID" << std::endl;
 		return std::nullopt;
 	}
-	
+
 	// create EXPLICIT_ACCESS structure for an ACE
 	EXPLICIT_ACCESS explicit_access_group = { 0 };
 	EXPLICIT_ACCESS explicit_access_admin = { 0 };
@@ -164,12 +164,11 @@ std::optional<PACL> SecuritySetup::CreateACL(SidPointer<decltype(local_free_dele
 	explicit_access_system.Trustee.TrusteeForm = TRUSTEE_IS_SID;
 	explicit_access_system.Trustee.TrusteeType = TRUSTEE_IS_USER;
 	// if TrusteeForm is TRUSTEE_IS_SID, the ptstrName must point to the binary representation of the SID (do NOT convert to string!)
-	PSID system_sid_raw = sid_system.get();
-	explicit_access_system.Trustee.ptstrName = static_cast<LPWSTR>(system_sid_raw);
+	explicit_access_system.Trustee.ptstrName = static_cast<LPWSTR>(sid_system.get());
 
 	// Create a new ACL that contains the new ACEs.
 	PACL acl = nullptr;
-	EXPLICIT_ACCESS ea[3] = { explicit_access_group, explicit_access_admin, explicit_access_system};
+	EXPLICIT_ACCESS ea[3] = { explicit_access_group, explicit_access_admin, explicit_access_system };
 	auto result = ::SetEntriesInAcl(3, ea, NULL, &acl);
 	if (result != ERROR_SUCCESS)
 	{
