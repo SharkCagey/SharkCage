@@ -485,7 +485,7 @@ BOOL CALLBACK CageManager::ActivateProcess(_In_ HWND hwnd, _In_ LPARAM l_param)
 	DWORD process_id;
 	::GetWindowThreadProcessId(hwnd, &process_id);
 
-	if (process_id == current_process_id && ::IsWindowVisible(hwnd))
+	if (process_id == current_process_id)
 	{
 		if (::IsIconic(hwnd))
 		{
