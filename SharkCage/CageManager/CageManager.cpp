@@ -200,15 +200,19 @@ void CageManager::StartCage(SECURITY_ATTRIBUTES security_attributes, const CageD
 	// Create the process.
 	PROCESS_INFORMATION process_info = {};
 
-	if (::CreateProcessWithTokenW(token_handle, LOGON_WITH_PROFILE, cage_data.app_path.c_str(), nullptr, 0, nullptr, nullptr, &info, &process_info) == 0)
+	auto app_path = cage_data.app_path;
+	if (::CreateProcessWithTokenW(token_handle, LOGON_WITH_PROFILE, app_path.c_str(), nullptr, 0, nullptr, nullptr, &info, &process_info) == 0)
 	{
 		std::cout << "Failed to start process. Error: " << ::GetLastError() << std::endl;
 
+		std::wstringstream elevation_required_msg;
+		elevation_required_msg << L"The process '" << app_path << L"' needs to run elevated, do you want to continue?" << std::endl;
+
 		if (::GetLastError() == ERROR_ELEVATION_REQUIRED
-			&& MessageBox(NULL, L"The process needs to run elevated, do you want to continue?", L"Shark Cage", MB_YESNO) == IDYES)
+			&& MessageBox(NULL, elevation_required_msg.str().c_str(), L"Shark Cage", MB_YESNO | MB_ICONQUESTION) == IDYES)
 		{
 			if (::CreateProcess(
-				cage_data.app_path.c_str(),
+				app_path.c_str(),
 				nullptr,
 				&security_attributes,
 				nullptr,
@@ -227,15 +231,19 @@ void CageManager::StartCage(SECURITY_ATTRIBUTES security_attributes, const CageD
 	PROCESS_INFORMATION process_info_additional_app = { 0 };
 	if (cage_data.hasAdditionalAppInfo())
 	{
-		if (::CreateProcessWithTokenW(token_handle, LOGON_WITH_PROFILE, cage_data.additional_app_path.value().c_str(), nullptr, 0, nullptr, nullptr, &info, &process_info_additional_app) == 0)
+		auto additional_app_path = cage_data.additional_app_path.value();
+		if (::CreateProcessWithTokenW(token_handle, LOGON_WITH_PROFILE, additional_app_path.c_str(), nullptr, 0, nullptr, nullptr, &info, &process_info_additional_app) == 0)
 		{
 			std::cout << "Failed to start additional process. Error: " << GetLastError() << std::endl;
 
+			std::wstringstream elevation_required_msg;
+			elevation_required_msg << L"The process '" << additional_app_path << L"' needs to run elevated, do you want to continue?" << std::endl;
+
 			if (::GetLastError() == ERROR_ELEVATION_REQUIRED
-				&& MessageBox(NULL, L"The process needs to run elevated, do you want to continue?", L"Shark Cage", MB_YESNO) == IDYES)
+				&& MessageBox(NULL, elevation_required_msg.str().c_str(), L"Shark Cage", MB_YESNO | MB_ICONQUESTION) == IDYES)
 			{
 				if (::CreateProcess(
-					cage_data.app_path.c_str(),
+					additional_app_path.c_str(),
 					nullptr,
 					&security_attributes,
 					nullptr,
@@ -555,15 +563,26 @@ void CageManager::ActivateApp(
 	}
 	else
 	{
-		::CloseHandle(process_info.hProcess);
-		::CloseHandle(process_info.hThread);
+		if (process_info.hProcess)
+		{
+			::CloseHandle(process_info.hProcess);
+			process_info.hProcess = nullptr;
+		}
+		if (process_info.hThread)
+		{
+			::CloseHandle(process_info.hThread);
+			process_info.hThread = nullptr;
+		}
 
 		if (::CreateProcessWithTokenW(token_handle, LOGON_WITH_PROFILE, path.c_str(), nullptr, 0, nullptr, nullptr, &info, &process_info) == 0)
 		{
 			std::cout << "Failed to start process. Error: " << ::GetLastError() << std::endl;
 
+			std::wstringstream elevation_required_msg;
+			elevation_required_msg << L"The process '" << path << L"' needs to run elevated, do you want to continue?" << std::endl;
+
 			if (::GetLastError() == ERROR_ELEVATION_REQUIRED
-				&& MessageBox(NULL, L"The process needs to run elevated, do you want to continue?", L"Shark Cage", MB_YESNO) == IDYES)
+				&& MessageBox(NULL, elevation_required_msg.str().c_str(), L"Shark Cage", MB_YESNO | MB_ICONQUESTION) == IDYES)
 			{
 				if (::CreateProcess(
 					path.c_str(),
