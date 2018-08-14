@@ -77,3 +77,9 @@ The `SharkCageInstaller` is used to install all project applications, starting t
 1. Clone or download this repository
 1. Build the project
 1. If using **debug build** you can just start the `CageChooser` and a powershell script with on-screen instructions will correctly configure your system (__BEWARE: debug build disables some security checks and should not be used when working with sensitive data__). If you want to use the **release build** the easiest solution is to run the included (built) installer and follow the instructions.
+
+## Information about additional apps
+
+The following apps can currently be run in addition to the primary app:
+* Keepass
+  * __ATTENTION__: The option `Tools > Options > Security > ` __`Enter master key on secure desktop`__ needs to be disabled before attempting to start Keepass in SharkCage, otherwise there could be issues with displaying the secure desktop.
