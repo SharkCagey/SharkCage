@@ -1,13 +1,16 @@
+/*! \file CageManager.h
+ * \brief Manages CageConfigurator and CageLabeler, essentially the user control unit.
+ */
 #pragma once
 
 /*!
- * Strarts the sharkcage process in the new desktop, and starts the CageLabeler.
+ * \brief Starts the sharkcage process in the new desktop, and starts the CageLabeler.
  */
 class CageManager
 {
 public:
 	/*!
-	 * Starts the sharkcage process in the new desktop, with the chosen config and application
+	 * \brief Starts the sharkcage process in the new desktop, with the chosen config and application
 	 * to run inside the Cage.
 	 * @param security_attributes the security descriptor
 	 * @param &cage_data the adress of the struct containing the config path, and chosen

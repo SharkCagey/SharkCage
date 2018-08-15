@@ -19,7 +19,7 @@ std::optional<SECURITY_ATTRIBUTES> SecuritySetup::GetSecurityAttributes()
 		return std::nullopt;
 	}
 
-	// Initialize a security descriptor.  
+	// Initialize a security descriptor.
 	PSECURITY_DESCRIPTOR security_descriptor = const_cast<PSECURITY_DESCRIPTOR>(::LocalAlloc(LPTR, SECURITY_DESCRIPTOR_MIN_LENGTH));
 	if (security_descriptor == nullptr)
 	{
@@ -38,7 +38,7 @@ std::optional<SECURITY_ATTRIBUTES> SecuritySetup::GetSecurityAttributes()
 		return std::nullopt;
 	}
 
-	// Add the ACL to the security descriptor. 
+	// Add the ACL to the security descriptor.
 	auto acl = access_control_list.value();
 	if (!::SetSecurityDescriptorDacl(security_descriptor,
 		TRUE,     // bDaclPresent flag   

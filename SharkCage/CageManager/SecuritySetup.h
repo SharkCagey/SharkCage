@@ -1,3 +1,7 @@
+/*! \file SecuritySetup.h
+ * \brief Performs the Security Setup, including ACLs.
+ */
+
 #pragma once
 
 #include <memory>
@@ -6,9 +10,15 @@
 template<typename T>
 auto local_free_deleter = [&](T resource) { ::LocalFree(resource); };
 
+/*!
+ * \brief Perfoms the Security Setup of the Shark Cage.
+ */
 class SecuritySetup
 {
 public:
+	/*!
+	 * \brief Destructor calls the free method of the security descriptor if it exists.
+	 */
 	~SecuritySetup()
 	{
 		if (security_descriptor)
@@ -17,6 +27,10 @@ public:
 		}
 	}
 
+	/*!
+	 * \brief Gets the Security Attributes.
+	 * @return an optional either containing the security attributes, or std::nullopt
+	 */
 	std::optional<SECURITY_ATTRIBUTES> GetSecurityAttributes();
 
 private:
