@@ -58,3 +58,7 @@ Gets compiled as a `.lib` file and statically linked by the other sub-projects. 
 ## SharkCageInstaller
 
 Installer project which is able to configure target systems for usage of Shark Cage (either user guided or silently).
+
+# Sequence diagram of a typical invocation of Shark Cage
+
+![](sharkcage_sequence_diagramm.png)
