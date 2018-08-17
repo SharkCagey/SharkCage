@@ -195,7 +195,7 @@
             this.restrictExitCheckbox.Name = "restrictExitCheckbox";
             this.restrictExitCheckbox.Size = new System.Drawing.Size(173, 17);
             this.restrictExitCheckbox.TabIndex = 0;
-            this.restrictExitCheckbox.Text = "Restrict exiting to Cage Labeler";
+            this.restrictExitCheckbox.Text = "Restrict exiting to CageLabeler";
             this.restrictExitTooltip.SetToolTip(this.restrictExitCheckbox, resources.GetString("restrictExitCheckbox.ToolTip"));
             this.restrictExitCheckbox.UseVisualStyleBackColor = true;
             this.restrictExitCheckbox.CheckedChanged += new System.EventHandler(this.restrictExitButton_CheckedChanged);
