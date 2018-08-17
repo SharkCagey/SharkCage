@@ -61,6 +61,10 @@ The config contains json data and its access rights restrict anyone except the a
 
 The `SharkCageInstaller` is used to install all project applications, starting the `CageService` and setting some keys in the registry.
 
+### Further information
+
+You can find a more detailed list of all components in the Visual Studio solution in the [project overview](project_overview.md).
+
 ## Installation
 
 1. The `SharkCageInstaller` is used to install all programs for this project (`CageService`, `CageManager`, `CageChooser` and `CageConfigurator`) and is hosted on Github. Follow this link and download the latest version: [Github-Releases](https://github.com/SharkCagey/HTWG_shark_cage/releases).
