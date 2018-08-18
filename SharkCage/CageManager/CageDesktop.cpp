@@ -3,6 +3,7 @@
 #include <iostream>
 
 #include "CageDesktop.h"
+#include "Aclapi.h"
 
 CageDesktop::CageDesktop(
 	SECURITY_ATTRIBUTES security_attributes,

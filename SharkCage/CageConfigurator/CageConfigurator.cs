@@ -26,10 +26,10 @@ namespace CageConfigurator
                 out IntPtr securityDescriptor);
 
             [DllImport("advapi32.dll", SetLastError = true)]
-            public static extern int GetExplicitEntriesFromAclW(
-              IntPtr pacl,
-              ref ulong pcCountOfExplicitEntries,
-              out IntPtr pListOfExplicitEntries
+            public static extern uint GetExplicitEntriesFromAclW(
+                IntPtr pacl,
+                ref ulong pcCountOfExplicitEntries,
+                out IntPtr pListOfExplicitEntries
             );
 
             [DllImport("kernel32.dll")]
@@ -64,7 +64,7 @@ namespace CageConfigurator
             public struct EXPLICIT_ACCESS
             {
                 public uint grfAccessPermissions;
-                public uint grfAccessMode;
+                public int grfAccessMode;
                 public uint grfInheritance;
                 public TRUSTEE Trustee;
             };
@@ -115,6 +115,7 @@ namespace CageConfigurator
             }
 
             [DllImport("advapi32.dll", SetLastError = true)]
+            [return: MarshalAs(UnmanagedType.I1)]
             public static extern bool AllocateAndInitializeSid(
                 ref SidIdentifierAuthority pIdentifierAuthority,
                 byte nSubAuthorityCount,
@@ -128,7 +129,7 @@ namespace CageConfigurator
             public static extern IntPtr FreeSid(IntPtr pSid);
 
             [DllImport("advapi32.dll", SetLastError = true)]
-            [return: MarshalAs(UnmanagedType.Bool)]
+            [return: MarshalAs(UnmanagedType.I1)]
             public static extern bool EqualSid(IntPtr pSid1, IntPtr pSid2);
 
             [StructLayout(LayoutKind.Sequential)]
@@ -136,6 +137,31 @@ namespace CageConfigurator
             {
                 [MarshalAs(UnmanagedType.ByValArray, SizeConst = 6, ArraySubType = UnmanagedType.I1)]
                 public byte[] Value;
+            }
+
+            public enum DESKTOP_ACCESS_RIGHTS : uint
+            {
+                DESKTOP_READOBJECTS = 0x0001,
+                DESKTOP_CREATEWINDOW = 0x0002,
+                DESKTOP_CREATEMENU = 0x0004,
+                DESKTOP_HOOKCONTROL = 0x0008,
+                DESKTOP_JOURNALRECORD = 0x0010,
+                DESKTOP_JOURNALPLAYBACK = 0x0020,
+                DESKTOP_ENUMERATE = 0x0040,
+                DESKTOP_WRITEOBJECTS = 0x0080,
+                DESKTOP_SWITCHDESKTOP = 0x0100,
+                DELETE = 0x00010000,
+                READ_CONTROL = 0x00020000,
+                WRITE_DAC = 0x00040000,
+                WRITE_OWNER = 0x00080000
+            }
+        }
+
+        public class NativeCallException : Exception
+        {
+            public NativeCallException(string message)
+               : base(message)
+            {
             }
         }
 
@@ -150,7 +176,6 @@ namespace CageConfigurator
 #if DEBUG
             isReleaseMode = false;
 #endif
-
             if (isReleaseMode && !StartedInCage())
             {
 
@@ -167,17 +192,24 @@ namespace CageConfigurator
 
         static bool StartedInCage()
         {
+            IntPtr security_descriptor = IntPtr.Zero;
+            IntPtr entries_pointer = IntPtr.Zero;
+            bool desktop_access_right_status = false;
+
             try
             {
                 var desktop = NativeMethods.GetThreadDesktop(NativeMethods.GetCurrentThreadId());
+                if (desktop == IntPtr.Zero)
+                {
+                    throw new NativeCallException("Failed to retrieve desktop handle.");
+                }
 
                 IntPtr owner_sid = IntPtr.Zero;
                 IntPtr group_sid = IntPtr.Zero;
                 IntPtr dacl;
                 IntPtr sacl = IntPtr.Zero;
-                IntPtr security_descriptor;
 
-                int val = NativeMethods.GetSecurityInfo(
+                if (NativeMethods.GetSecurityInfo(
                     desktop,
                     NativeMethods.SE_OBJECT_TYPE.SE_WINDOW_OBJECT,
                     NativeMethods.SECURITY_INFORMATION.DACL_SECURITY_INFORMATION,
@@ -185,51 +217,97 @@ namespace CageConfigurator
                     out group_sid,
                     out dacl,
                     out sacl,
-                    out security_descriptor);
-
-                NativeMethods.LocalFree(security_descriptor);
+                    out security_descriptor) != 0)
+                {
+                    throw new NativeCallException("Failed to retrieve security info.");
+                }
 
                 ulong entry_count = 0;
-                IntPtr entries_pointer;
-
-                NativeMethods.GetExplicitEntriesFromAclW(dacl, ref entry_count, out entries_pointer);
-
-                if (entry_count == 2)
+                if (NativeMethods.GetExplicitEntriesFromAclW(dacl, ref entry_count, out entries_pointer) != 0)
                 {
-                    bool admin_sid_all_denied = false;
-                    bool shark_sid_all_granted = false;
+                    throw new NativeCallException("Failed to retrieve acl entries.");
+                }
+
+                if (entry_count == 3)
+                {
+                    bool system_sid_correct_access = false;
+                    bool admin_sid_correct_access = false;
+                    bool shark_sid_correct_access = false;
 
                     IntPtr shark_entry = entries_pointer;
-                    IntPtr admin_entry = IntPtr.Add(entries_pointer, Marshal.SizeOf(typeof(NativeMethods.EXPLICIT_ACCESS)));
+                    IntPtr admin_entry = IntPtr.Add(shark_entry, Marshal.SizeOf(typeof(NativeMethods.EXPLICIT_ACCESS)));
+                    IntPtr system_entry = IntPtr.Add(admin_entry, Marshal.SizeOf(typeof(NativeMethods.EXPLICIT_ACCESS)));
 
                     NativeMethods.EXPLICIT_ACCESS ea_shark = (NativeMethods.EXPLICIT_ACCESS)Marshal.PtrToStructure(shark_entry, typeof(NativeMethods.EXPLICIT_ACCESS));
                     NativeMethods.EXPLICIT_ACCESS ea_admin = (NativeMethods.EXPLICIT_ACCESS)Marshal.PtrToStructure(admin_entry, typeof(NativeMethods.EXPLICIT_ACCESS));
-
-                    const uint GENERIC_ALL = 0x10000000;
-                    const uint STANDARD_RIGHTS_REQUIRED = 0x000F0000;
-                    const uint SYNCHRONIZE = 0x00100000;
-                    const uint PROCESS_ALL_ACCESS = STANDARD_RIGHTS_REQUIRED | SYNCHRONIZE | 0xFFFF;
+                    NativeMethods.EXPLICIT_ACCESS ea_system = (NativeMethods.EXPLICIT_ACCESS)Marshal.PtrToStructure(system_entry, typeof(NativeMethods.EXPLICIT_ACCESS));
 
                     const int GRANT_ACCESS = 1;
                     const int NO_INHERITANCE = 0;
 
+                    if (ea_shark.Trustee.TrusteeForm == NativeMethods.TRUSTEE_FORM.TRUSTEE_IS_SID)
+                    {
+                        const NativeMethods.DESKTOP_ACCESS_RIGHTS desired_shark_permissions = NativeMethods.DESKTOP_ACCESS_RIGHTS.DESKTOP_READOBJECTS
+                            | NativeMethods.DESKTOP_ACCESS_RIGHTS.DESKTOP_CREATEWINDOW
+                            | NativeMethods.DESKTOP_ACCESS_RIGHTS.DESKTOP_CREATEMENU
+                            | NativeMethods.DESKTOP_ACCESS_RIGHTS.DESKTOP_HOOKCONTROL
+                            | NativeMethods.DESKTOP_ACCESS_RIGHTS.DESKTOP_JOURNALRECORD
+                            | NativeMethods.DESKTOP_ACCESS_RIGHTS.DESKTOP_JOURNALPLAYBACK
+                            | NativeMethods.DESKTOP_ACCESS_RIGHTS.DESKTOP_ENUMERATE
+                            | NativeMethods.DESKTOP_ACCESS_RIGHTS.DESKTOP_WRITEOBJECTS;
+
+                        if ((ea_shark.grfAccessPermissions & (uint)desired_shark_permissions) == (uint)desired_shark_permissions
+                                && (ea_shark.grfAccessPermissions & (~((uint)desired_shark_permissions))) == 0
+                                && ea_shark.grfAccessMode == GRANT_ACCESS
+                                && ea_shark.grfInheritance == NO_INHERITANCE)
+                        {
+                            shark_sid_correct_access = true;
+                        }
+                    }
+
                     if (ea_admin.Trustee.TrusteeForm == NativeMethods.TRUSTEE_FORM.TRUSTEE_IS_SID)
                     {
                         const int nt_security_authority = 5;
-                        const int built_in_domain_rid = 32;
+                        const int security_builtin_domain_rid = 32;
                         const int domain_alias_rid_admins = 544;
                         var nt_authority = new NativeMethods.SidIdentifierAuthority();
                         nt_authority.Value = new byte[] { 0, 0, 0, 0, 0, nt_security_authority };
 
                         IntPtr admin_sid = IntPtr.Zero;
-                        NativeMethods.AllocateAndInitializeSid(ref nt_authority, 2, built_in_domain_rid, domain_alias_rid_admins, 0, 0, 0, 0, 0, 0, out admin_sid);
-                        if (NativeMethods.EqualSid(ea_admin.Trustee.ptstrName, admin_sid))
+                        if (!NativeMethods.AllocateAndInitializeSid(
+                            ref nt_authority,
+                            2,
+                            security_builtin_domain_rid,
+                            domain_alias_rid_admins,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            out admin_sid))
                         {
-                            if ((ea_admin.grfAccessPermissions & (~PROCESS_ALL_ACCESS)) == 0
+                            throw new NativeCallException("Failed to allocate or initialize admin security identifier.");
+                        }
+
+                        if (ea_admin.Trustee.ptstrName == IntPtr.Zero)
+                        {
+                            throw new NativeCallException("Failed to retrieve admin sid.");
+                        }
+                        else if (NativeMethods.EqualSid(ea_admin.Trustee.ptstrName, admin_sid))
+                        {
+                            NativeMethods.DESKTOP_ACCESS_RIGHTS desired_admin_permissions = NativeMethods.DESKTOP_ACCESS_RIGHTS.DELETE
+                                | NativeMethods.DESKTOP_ACCESS_RIGHTS.DESKTOP_ENUMERATE
+                                | NativeMethods.DESKTOP_ACCESS_RIGHTS.READ_CONTROL
+                                | NativeMethods.DESKTOP_ACCESS_RIGHTS.WRITE_DAC
+                                | NativeMethods.DESKTOP_ACCESS_RIGHTS.WRITE_OWNER;
+
+                            if ((ea_admin.grfAccessPermissions & (uint)desired_admin_permissions) == (uint)desired_admin_permissions
+                                && (ea_admin.grfAccessPermissions & (~((uint)desired_admin_permissions))) == 0
                                 && ea_admin.grfAccessMode == GRANT_ACCESS
                                 && ea_admin.grfInheritance == NO_INHERITANCE)
                             {
-                                admin_sid_all_denied = true;
+                                admin_sid_correct_access = true;
                             }
                         }
 
@@ -239,30 +317,82 @@ namespace CageConfigurator
                         }
                     }
 
-                    if (ea_shark.Trustee.TrusteeForm == NativeMethods.TRUSTEE_FORM.TRUSTEE_IS_SID)
+                    if (ea_system.Trustee.TrusteeForm == NativeMethods.TRUSTEE_FORM.TRUSTEE_IS_SID)
                     {
-                        if ((ea_shark.grfAccessPermissions & GENERIC_ALL) == 0
-                                && ea_shark.grfAccessMode == GRANT_ACCESS
-                                && ea_shark.grfInheritance == NO_INHERITANCE)
+                        const int nt_security_authority = 5;
+                        const int security_local_system_rid = 18;
+                        var nt_authority = new NativeMethods.SidIdentifierAuthority();
+                        nt_authority.Value = new byte[] { 0, 0, 0, 0, 0, nt_security_authority };
+
+                        IntPtr system_sid = IntPtr.Zero;
+                        if (!NativeMethods.AllocateAndInitializeSid(ref nt_authority,
+                            1,
+                            security_local_system_rid,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            out system_sid))
                         {
-                            shark_sid_all_granted = true;
+                            throw new NativeCallException("Failed to allocate or initialize system security identifier.");
+                        }
+
+                        if (ea_system.Trustee.ptstrName == IntPtr.Zero)
+                        {
+                            throw new NativeCallException("Failed to retrieve system sid.");
+                        }
+                        else if (NativeMethods.EqualSid(ea_system.Trustee.ptstrName, system_sid))
+                        {
+                            const NativeMethods.DESKTOP_ACCESS_RIGHTS desired_system_permissions = NativeMethods.DESKTOP_ACCESS_RIGHTS.DELETE
+                                | NativeMethods.DESKTOP_ACCESS_RIGHTS.DESKTOP_READOBJECTS
+                                | NativeMethods.DESKTOP_ACCESS_RIGHTS.DESKTOP_CREATEWINDOW
+                                | NativeMethods.DESKTOP_ACCESS_RIGHTS.DESKTOP_CREATEMENU
+                                | NativeMethods.DESKTOP_ACCESS_RIGHTS.DESKTOP_HOOKCONTROL
+                                | NativeMethods.DESKTOP_ACCESS_RIGHTS.DESKTOP_JOURNALRECORD
+                                | NativeMethods.DESKTOP_ACCESS_RIGHTS.DESKTOP_JOURNALPLAYBACK
+                                | NativeMethods.DESKTOP_ACCESS_RIGHTS.DESKTOP_ENUMERATE
+                                | NativeMethods.DESKTOP_ACCESS_RIGHTS.DESKTOP_WRITEOBJECTS
+                                | NativeMethods.DESKTOP_ACCESS_RIGHTS.DESKTOP_SWITCHDESKTOP
+                                | NativeMethods.DESKTOP_ACCESS_RIGHTS.READ_CONTROL
+                                | NativeMethods.DESKTOP_ACCESS_RIGHTS.WRITE_DAC
+                                | NativeMethods.DESKTOP_ACCESS_RIGHTS.WRITE_OWNER;
+
+                            if ((ea_system.grfAccessPermissions & (uint)desired_system_permissions) == (uint)desired_system_permissions
+                                && (ea_system.grfAccessPermissions & (~((uint)desired_system_permissions))) == 0
+                                && ea_system.grfAccessMode == GRANT_ACCESS
+                                && ea_system.grfInheritance == NO_INHERITANCE)
+                            {
+                                system_sid_correct_access = true;
+                            }
+                        }
+
+                        if (system_sid != IntPtr.Zero)
+                        {
+                            NativeMethods.FreeSid(system_sid);
                         }
                     }
 
-                    if (admin_sid_all_denied && shark_sid_all_granted)
+                    if (system_sid_correct_access && admin_sid_correct_access && shark_sid_correct_access)
                     {
-                        return true;
+                        desktop_access_right_status = true;
                     }
                 }
-                NativeMethods.LocalFree(entries_pointer);
             }
             catch (Exception e)
             {
                 MessageBox.Show("Could not determine on which desktop the process is running: " + e.ToString());
                 Environment.Exit(1);
             }
+            finally
+            {
+                NativeMethods.LocalFree(entries_pointer);
+                NativeMethods.LocalFree(security_descriptor);
+            }
 
-            return false;
+            return desktop_access_right_status;
         }
     }
 }
