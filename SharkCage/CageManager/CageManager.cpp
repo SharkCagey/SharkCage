@@ -150,6 +150,13 @@ static bool ValidateBinary(const std::wstring &app_path, const std::wstring &app
 
 void CageManager::StartCage(SECURITY_ATTRIBUTES security_attributes, const CageData &cage_data, const std::wstring &group_name)
 {
+	HANDLE token_handle = nullptr;
+	if (!tokenLib::constructUserTokenWithGroup(const_cast<wchar_t*>((group_name.c_str())), token_handle))
+	{
+		std::cout << "Cannot create required token" << std::endl;
+		return;
+	}
+
 	// name should be unique every time -> create UUID
 	auto uuid_stl_opt = generateUuid();
 	if (!uuid_stl_opt.has_value())
@@ -157,12 +164,6 @@ void CageManager::StartCage(SECURITY_ATTRIBUTES security_attributes, const CageD
 		return;
 	}
 	auto uuid_stl = uuid_stl_opt.value();
-	HANDLE token_handle = nullptr;
-	if (!tokenLib::constructUserTokenWithGroup(const_cast<wchar_t*>((group_name.c_str())), token_handle))
-	{
-		std::cout << "Cannot create required token" << std::endl;
-		return;
-	}
 
 	const std::wstring DESKTOP_NAME = std::wstring(L"shark_cage_desktop_").append(uuid_stl);
 	const int work_area_width = 300;
