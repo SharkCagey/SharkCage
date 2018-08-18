@@ -13,8 +13,8 @@ This document mimics the structure of the Visual Studio Solution and gives a sho
 * __CageConfiguratorForm__: Lets the user configure applications to be run inside Shark Cage. The following options are available:
   * Application (mandatory): Path to the application to be started inside the Shark Cage.
   * Option to restrict returning from secure desktop to the exit button on the `CageLabeler` (if not checked the desktop will also close once all applications on it are closed). This option exists because there can be compatibility issues with some programs (e.g. Internet Explorer) where checking for the running program is not possible and the secure desktop would close immediately after opening.
-  * Secondary application: Sometimes it is useful to have an auxiliary program running besides the main application. This option currently only supports `Keepass`.
-  * Picture token (mandatory) for identifying the Shark Cage instance when run (picture is also displayed inside the secure desktop by the `CageLabeler`). This can either be from the users storage or directly captured by a connectec webcam.
+  * Secondary application: Sometimes it is useful to have an auxiliary program running besides the main application. This option currently supports `Keepass`.
+  * Picture token (mandatory) for identifying the Shark Cage instance when run (picture is also displayed inside the secure desktop by the `CageLabeler`). This can either be from the users storage or directly captured by a connected webcam.
   * Name of configuration (mandatory). This name is used for the name of the config file and displayed by the `CageChooser`.
 
 ## CageManager
@@ -23,7 +23,7 @@ This document mimics the structure of the Visual Studio Solution and gives a sho
 * __CageDesktop__: Responsible for creating and switching to a new desktop and reserving space for the `CageLabeler`. When the secure desktop is no longer needed, this class also switches back to the previous desktop.
 * __CageLabeler__: Displays information about the currently running configuration: picture token, application names and hashes, activation buttons for the applications (to bring them in focus or restart them), exit restriction information, exit button.
 * __CageManager__: Immediately after getting started the `CageManager` listens for a tcp message. If no message arrives it just exits without doing anything else. If there is an expected message it parses it and then validates (signature / hash) all binaries specified in the reveived configuration. After validation it creates the security attributes with the `SecuritySetup`, creates a new access token with the `tokenLib` and a new desktop with a unique name & the security attributes. After this, the `CageLabeler` is used to display information on this new desktop. Once all this preparation is done the actual processes get started on the secure desktop and the `CageManager` waits for the correct exit conditions before cleaning up and exiting itself.
-* __FullWorkArea__: Used by the `CageDesktop` class to initialize and reserve space for the `CageLabeler`.`
+* __FullWorkArea__: Used by the `CageDesktop` class to initialize and reserve space for the `CageLabeler`.
 * __SecuritySetup__: Sets up and populates a [SECURITY_ATTRIBUTES](https://msdn.microsoft.com/en-us/library/windows/desktop/aa379560%28v=vs.85%29.aspx?f=255&MSPPError=-2147217396) struct used for example to create the secure desktop.
 
 ## CageService
@@ -47,7 +47,7 @@ Gets compiled as a `.lib` file and statically linked by the other sub-projects. 
 
 ### Misc
 
-* __CageData__: Contains a struct which encapsulates all data used by various functions responsible for displaying data / creating processes in the secure desktop.
+* __CageData__: Contains a struct which encapsulates all data used by various functions responsible for displaying data / creating processes on the secure desktop.
 * __SharedFunctions__: Compilation of helper functions used by most of the other sub-projects.
 * __ValidateBinary__: Functions for validating binary certificates (by using the appropriate Windows Crypto-API (`CNG`) functions) and hashes (by comparing them).
 
@@ -61,4 +61,4 @@ Installer project which is able to configure target systems for usage of Shark C
 
 # Sequence diagram of a typical invocation of Shark Cage
 
-![](sharkcage_sequence_diagramm.png)
+![sharkcage_sequence_diagramm](https://user-images.githubusercontent.com/1786772/44297848-e5646e00-a2d8-11e8-9fbc-9a2cf502e608.png)
