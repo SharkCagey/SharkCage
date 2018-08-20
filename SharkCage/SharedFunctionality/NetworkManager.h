@@ -70,7 +70,7 @@ private:
 
 	std::vector<char> StringToVec(const std::wstring &string) const;
 
-	std::optional<const int> (ContextType type) const
+	std::optional<const int> GetPort(ContextType type) const
 	{
 		switch (type)
 		{

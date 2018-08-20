@@ -399,7 +399,7 @@ void CageManager::StartCage(SECURITY_ATTRIBUTES security_attributes, const CageD
 	// give users up to 5s to react to close prompt of process, maybe increase this?
 	if (::WaitForMultipleObjects(
 		process_handles_for_closing.size(),
-		std::vector(process_handles_for_closing.begin(), process_handles_for_closing.end()).data(),
+		std::vector<HANDLE>(process_handles_for_closing.begin(), process_handles_for_closing.end()).data(),
 		TRUE,
 		5000) != WAIT_OBJECT_0)
 	{

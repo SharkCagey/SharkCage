@@ -9,6 +9,7 @@
 #include <iostream>
 #include <optional>
 #include <vector>
+#include <memory>
 
 #pragma comment(lib, "netapi32.lib")
 #pragma comment(lib, "Wtsapi32.lib")

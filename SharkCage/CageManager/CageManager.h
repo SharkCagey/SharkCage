@@ -9,7 +9,6 @@
 class CageManager
 {
 public:
-<<<<<<< HEAD
 	/*!
 	 * \brief Starts the sharkcage process in the new desktop, with the chosen config and application
 	 * to run inside the Cage.
@@ -17,11 +16,8 @@ public:
 	 * @param &cage_data the adress of the struct containing the config path, and chosen
 	 * application info as well as the additional application, if any
 	 */
-	void CageManager::StartCage(SECURITY_ATTRIBUTES security_attributes, const CageData &cage_data);
-=======
 	void CageManager::StartCage(SECURITY_ATTRIBUTES security_attributes, const CageData &cage_data, const std::wstring &group_name);
 	bool CageManager::ProcessRunning(const std::wstring &process_path);
->>>>>>> develop
 
 private:
 	void StartCageLabeler(
