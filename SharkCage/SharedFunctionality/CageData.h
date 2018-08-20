@@ -23,6 +23,9 @@ struct CageData
 	bool restrict_closing; /*!< whether closing is restricted to the provided exit button */
 	/*@}*/
 
+	HANDLE activate_app;
+	std::optional<HANDLE> activate_additional_app;
+
 	/*@{*/
 	/*!
 	 * \brief Whether an additional application has been chosen.

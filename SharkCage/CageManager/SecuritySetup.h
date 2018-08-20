@@ -6,9 +6,15 @@
 
 #include <memory>
 #include <optional>
+#include <string>
 
 template<typename T>
-auto local_free_deleter = [&](T resource) { ::LocalFree(resource); };
+auto local_free_deleter = [&](T *resource) { ::LocalFree(resource); };
+
+typedef void Sid;
+
+template<typename D>
+using SidPointer = std::unique_ptr<Sid, D>;
 
 /*!
  * \brief Perfoms the Security Setup of the Shark Cage.
@@ -16,6 +22,13 @@ auto local_free_deleter = [&](T resource) { ::LocalFree(resource); };
 class SecuritySetup
 {
 public:
+	SecuritySetup() {};
+
+	// these need to be customized if needed so security_descriptor also gets copied
+	// (otherwise there could be use-after-frees in the destructor)
+	SecuritySetup(const SecuritySetup &) = delete;
+	SecuritySetup& operator= (const SecuritySetup &) = delete;
+
 	/*!
 	 * \brief Destructor calls the free method of the security descriptor if it exists.
 	 */
@@ -24,6 +37,7 @@ public:
 		if (security_descriptor)
 		{
 			::LocalFree(security_descriptor);
+			security_descriptor = nullptr;
 		}
 	}
 
@@ -31,11 +45,11 @@ public:
 	 * \brief Gets the Security Attributes.
 	 * @return an optional either containing the security attributes, or std::nullopt
 	 */
-	std::optional<SECURITY_ATTRIBUTES> GetSecurityAttributes();
+	std::optional<SECURITY_ATTRIBUTES> GetSecurityAttributes(const std::wstring &group_name);
 
 private:
-	std::unique_ptr<PSID, decltype(local_free_deleter<PSID>)> CreateSID();
-	std::optional<PACL> CreateACL(std::unique_ptr<PSID, decltype(local_free_deleter<PSID>)> group_sid);
+	SidPointer<decltype(local_free_deleter<Sid>)> CreateSID(const std::wstring &group_name);
+	std::optional<PACL> CreateACL(SidPointer<decltype(local_free_deleter<Sid>)> group_sid);
 
 	PSECURITY_DESCRIPTOR security_descriptor;
 };

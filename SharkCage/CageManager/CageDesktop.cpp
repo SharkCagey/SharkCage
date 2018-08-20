@@ -3,6 +3,7 @@
 #include <iostream>
 
 #include "CageDesktop.h"
+#include "Aclapi.h"
 
 CageDesktop::CageDesktop(
 	SECURITY_ATTRIBUTES security_attributes,
@@ -31,6 +32,8 @@ CageDesktop::~CageDesktop()
 	{
 		std::cout << "Failed to switch back to old desktop. Error " << ::GetLastError() << std::endl;
 	}
+
+	::CloseDesktop(new_desktop);
 }
 
 bool CageDesktop::Init(HDESK &desktop_handle)

@@ -1,4 +1,4 @@
-﻿/// \file ServiceIntaller.cs
+/// \file ServiceIntaller.cs
 /// \brief Graphical Installer for CageService, for user friendly installation. 
 ///
 
@@ -6,7 +6,7 @@
 /// \brief The namespace for the Installer, containing the ServiceInstaller class,
 /// as well as all other functionalities.
 ///
-namespace CageServiceInstaller
+namespace SharkCageInstallerHelper
 {
 
     using System;
@@ -18,7 +18,6 @@ namespace CageServiceInstaller
     ///
     public static class ServiceInstaller
     {
-        private const int STANDARD_RIGHTS_REQUIRED = 0xF0000;
         private const int SERVICE_WIN32_OWN_PROCESS = 0x00000010;
 
         [StructLayout(LayoutKind.Sequential)]

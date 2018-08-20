@@ -6,11 +6,13 @@
 #pragma once
 
 #include "CageData.h"
+#include "NetworkManager.h"
 #include "Messages.h"
 #include <optional>
 
 static bool BeginsWith(const std::wstring &string_to_search, const std::wstring &prefix);
-static void TrimMessage(std::wstring &msg);
+static void TrimString(std::wstring &msg);
+ContextType StringToContextType(const std::wstring &type);
 
 /*!
  * \brief The namespace containing shared functions for message parsing.
@@ -32,7 +34,7 @@ namespace SharedFunctions
 	 * @param &message_data output paramater to receive the message, trimmed
 	 * @return an optional containing the CageMessage type, or a nullopt
 	 */
-	DLLEXPORT std::optional<CageMessage> ParseMessage(const std::wstring &msg, std::wstring &message_data);
+	DLLEXPORT std::optional<CageMessage> ParseMessage(const std::wstring &msg, ContextType &sender, std::wstring &message_data);
 	
 	/*!
 	 * \brief A toString for CageMessage.
@@ -40,4 +42,7 @@ namespace SharedFunctions
 	 * @return a string representation of the CageMessage
 	 */
 	DLLEXPORT std::wstring MessageToString(CageMessage msg);
+	DLLEXPORT std::wstring ContextTypeToString(ContextType type);
+	DLLEXPORT bool ValidateCertificate(const std::wstring &app_path);
+	DLLEXPORT bool ValidateHash(const std::wstring &app_path, const std::wstring &app_hash);
 }

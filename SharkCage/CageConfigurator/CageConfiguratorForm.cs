@@ -14,18 +14,21 @@ using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Security.Principal;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace CageConfigurator
 {
     public partial class CageConfiguratorForm : Form
     {
-        const int CONFIG_VERSION = 1;
-        const string APPLICATION_PATH_PROPERTY = "application_path";
-        const string TOKEN_PROPERTY = "token";
-        const string ADDITIONAL_APP_NAME_PROPERTY = "additional_application";
-        const string ADDITIONAL_APP_PATH_PROPERTY = "additional_application_path";
-        const string CLOSING_POLICY_PROPERTY = "restrict_closing";
+        private const string REGISTRY_KEY = @"HKEY_LOCAL_MACHINE\SOFTWARE\SharkCage";
+        private const int CONFIG_VERSION = 1;
+        private const string APPLICATION_PATH_PROPERTY = "application_path";
+        private const string TOKEN_PROPERTY = "token";
+        private const string ADDITIONAL_APP_NAME_PROPERTY = "additional_application";
+        private const string ADDITIONAL_APP_PATH_PROPERTY = "additional_application_path";
+        private const string CLOSING_POLICY_PROPERTY = "restrict_closing";
 
 
         private FilterInfoCollection video_device_list;
@@ -55,6 +58,7 @@ namespace CageConfigurator
             secureSecondaryPrograms.SelectedIndex = 0;
             applicationPath.ResetText();
             tokenBox.Image = null;
+            configName.ResetText();
             SetUnsavedData(false);
 
             video_device_list = new FilterInfoCollection(FilterCategory.VideoInputDevice);
@@ -62,7 +66,10 @@ namespace CageConfigurator
             {
                 videoSources.Items.Add(device.Name);
             }
-            videoSources.SelectedIndex = 0;
+            if (videoSources.Items.Count > 0)
+            {
+                videoSources.SelectedIndex = 0;
+            }
         }
 
         private void CheckPath(string path, string file_type, Action<string> onSuccess)
@@ -120,24 +127,28 @@ namespace CageConfigurator
         {
             const string file_type = "*.exe";
 
-            var file_dialog = new OpenFileDialog();
-            file_dialog.CheckFileExists = true;
-            file_dialog.Filter = $"Application|{file_type}";
-            var result = file_dialog.ShowDialog();
-            if (result == DialogResult.OK)
+            using (var file_dialog = new OpenFileDialog())
             {
-                var chosen_file = file_dialog.FileName;
-                CheckPath(chosen_file, file_type, (string path) =>
+                file_dialog.CheckFileExists = true;
+                file_dialog.Filter = $"Application|{file_type}";
+                var install_dir = Registry.GetValue(REGISTRY_KEY, "InstallDir", "") as string;
+                file_dialog.InitialDirectory = install_dir;
+                var result = file_dialog.ShowDialog();
+                if (result == DialogResult.OK)
                 {
-                    if (applicationPath.Text != path)
+                    var chosen_file = file_dialog.FileName;
+                    CheckPath(chosen_file, file_type, (string path) =>
                     {
-                        applicationPath.Text = path;
-                        SetUnsavedData(true);
-                    }
+                        if (applicationPath.Text != path)
+                        {
+                            applicationPath.Text = path;
+                            SetUnsavedData(true);
+                        }
 
-                    applicationPath.SelectionStart = applicationPath.Text.Length;
-                    applicationPath.ScrollToCaret();
-                });
+                        applicationPath.SelectionStart = applicationPath.Text.Length;
+                        applicationPath.ScrollToCaret();
+                    });
+                }
             }
         }
 
@@ -164,7 +175,7 @@ namespace CageConfigurator
         {
             if (unsaved_data)
             {
-                var contine_unsaved = MessageBox.Show("There are unsaved changes. Do you want to continue?", "Sharc Cage", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+                var contine_unsaved = MessageBox.Show("There are unsaved changes. Do you want to continue?", "SharkCage", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
                 if (contine_unsaved == DialogResult.No)
                 {
                     return;
@@ -178,7 +189,7 @@ namespace CageConfigurator
         {
             if (unsaved_data)
             {
-                var contine_unsaved = MessageBox.Show("There are unsaved changes. Do you want to continue?", "Sharc Cage", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+                var contine_unsaved = MessageBox.Show("There are unsaved changes. Do you want to continue?", "SharkCage", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
                 if (contine_unsaved == DialogResult.No)
                 {
                     return;
@@ -187,19 +198,41 @@ namespace CageConfigurator
 
             const string file_type = ".sconfig";
 
-            var file_dialog = new OpenFileDialog();
-            file_dialog.CheckFileExists = true;
-            file_dialog.Filter = $"SharkCage configuration|*{file_type}";
-            var result = file_dialog.ShowDialog();
-            if (result == DialogResult.OK)
+            using (var file_dialog = new OpenFileDialog())
             {
-                var chosen_file = file_dialog.FileName;
-                CheckPath(chosen_file, file_type, LoadConfig);
+                file_dialog.CheckFileExists = true;
+                file_dialog.Filter = $"SharkCage configuration|*{file_type}";
+                var folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonDocuments), "SharkCage");
+                file_dialog.InitialDirectory = folder;
+                var result = file_dialog.ShowDialog();
+                if (result == DialogResult.OK)
+                {
+                    var chosen_file = file_dialog.FileName;
+                    CheckPath(chosen_file, file_type, LoadConfig);
+                }
             }
         }
 
         private void LoadConfig(string config_path)
         {
+#if !DEBUG
+            IdentityReference built_in_administrators = new SecurityIdentifier(WellKnownSidType.BuiltinAdministratorsSid, null);
+            var file_security = new FileSecurity(config_path, AccessControlSections.Access);
+
+            var access_rules = file_security.GetAccessRules(true, true, typeof(SecurityIdentifier));
+            var access_rules_okay = access_rules.Count == 1;
+            foreach (AuthorizationRule access_rule in access_rules)
+            {
+                access_rules_okay = access_rules_okay && access_rule.IdentityReference == built_in_administrators;
+            }
+
+            if (!access_rules_okay)
+            {
+                MessageBox.Show("The config you are trying to load does not have the correct access rights, " +
+                    "it might be corrupted or a potential attacker has modified it.", "SharkCage", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                return;
+            }
+#endif
             try
             {
                 var json = JObject.Parse(File.ReadAllText(config_path));
@@ -210,11 +243,13 @@ namespace CageConfigurator
                 var restrict_exit = json.GetValue(CLOSING_POLICY_PROPERTY)?.ToString().ToLower().Equals("true");
 
                 applicationPath.Text = application_path;
-                restrictExitButton.Checked = restrict_exit.GetValueOrDefault(false);
+                restrictExitCheckbox.Checked = restrict_exit.GetValueOrDefault(false);
                 tokenBox.Image = GetImageFromBase64(token);
                 LoadAdditionalApp(additional_app, additional_app_path);
-                current_config_name = config_path;
+                current_config_name = Path.GetFileNameWithoutExtension(config_path);
+                configName.Text = current_config_name;
                 Text = $"Cage Configurator - {current_config_name}";
+                SetUnsavedData(false);
             }
             catch (Exception e)
             {
@@ -227,8 +262,8 @@ namespace CageConfigurator
             switch (additional_app)
             {
                 case "Keepass":
+                    Settings.Default.PersistentKeepassPath = additional_app_path;
                     secureSecondaryPrograms.SelectedIndex = 1;
-                    Settings.Default.PeristentKeepassPath = additional_app_path;
                     break;
                 default:
                     secureSecondaryPrograms.SelectedIndex = 0;
@@ -246,8 +281,9 @@ namespace CageConfigurator
 
                 return Image.FromStream(ms, true);
             }
-            catch (Exception)
+            catch
             {
+                MessageBox.Show("Image could not be loaded. You have to specify a new one if you want to save the config.", "SharkCage", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return null;
             }
         }
@@ -264,16 +300,18 @@ namespace CageConfigurator
                 switch (secureSecondaryPrograms.SelectedItem.ToString())
                 {
                     case "Keepass":
-                        if (Settings.Default.PeristentKeepassPath.Length == 0)
+                        if (Settings.Default.PersistentKeepassPath == String.Empty)
                         {
                             MessageBox.Show("There is no path saved for this program, please select it now.", "Shark Cage", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                            var keepass_file_dialog = new OpenFileDialog();
-                            keepass_file_dialog.CheckFileExists = true;
-                            keepass_file_dialog.Filter = "Keepass|Keepass.exe";
-                            var result = keepass_file_dialog.ShowDialog();
-                            if (result == DialogResult.OK)
+                            using (var keepass_file_dialog = new OpenFileDialog())
                             {
-                                Settings.Default.PeristentKeepassPath = keepass_file_dialog.FileName;
+                                keepass_file_dialog.CheckFileExists = true;
+                                keepass_file_dialog.Filter = "Keepass|Keepass.exe";
+                                var result = keepass_file_dialog.ShowDialog();
+                                if (result == DialogResult.OK)
+                                {
+                                    Settings.Default.PersistentKeepassPath = keepass_file_dialog.FileName;
+                                }
                             }
                         }
                         break;
@@ -293,22 +331,27 @@ namespace CageConfigurator
         {
             string[] file_types = { "*.bmp", "*.png", "*.jpeg", "*.jpg" };
 
-            var file_dialog = new OpenFileDialog();
-            file_dialog.CheckFileExists = true;
-            file_dialog.Filter = $"Picture|{String.Join(";", file_types)}";
-            var result = file_dialog.ShowDialog();
-            if (result == DialogResult.OK)
+            using (var file_dialog = new OpenFileDialog())
             {
-                var chosen_file = file_dialog.FileName;
-                CheckPath(chosen_file, file_types, (string path) =>
+                file_dialog.CheckFileExists = true;
+                file_dialog.Filter = $"Picture|{String.Join(";", file_types)}";
+                file_dialog.Filter = $"Picture|{String.Join(";", file_types)}";
+                var install_dir = Registry.GetValue(REGISTRY_KEY, "InstallDir", "") as string;
+                file_dialog.InitialDirectory = install_dir;
+                var result = file_dialog.ShowDialog();
+                if (result == DialogResult.OK)
                 {
-                    if (tokenBox.ImageLocation != path)
+                    var chosen_file = file_dialog.FileName;
+                    CheckPath(chosen_file, file_types, (string path) =>
                     {
-                        tokenBox.ImageLocation = path;
-                        tokenBox.Load();
-                        SetUnsavedData(true);
-                    }
-                });
+                        if (tokenBox.ImageLocation != path)
+                        {
+                            tokenBox.ImageLocation = path;
+                            tokenBox.Load();
+                            SetUnsavedData(true);
+                        }
+                    });
+                }
             }
         }
 
@@ -328,16 +371,23 @@ namespace CageConfigurator
 
         private void InitializeWebcam()
         {
-            video_device = new VideoCaptureDevice(video_device_list[videoSources.SelectedIndex].MonikerString);
-            video_device.NewFrame += (s, args) =>
+            if (video_device_list.Count > 0)
             {
-                var frame = args.Frame.Clone() as Bitmap;
-                tokenBox.Image = frame;
-            };
-            video_device.Start();
+                video_device = new VideoCaptureDevice(video_device_list[videoSources.SelectedIndex].MonikerString);
+                video_device.NewFrame += (s, args) =>
+                {
+                    var frame = args.Frame.Clone() as Bitmap;
+                    tokenBox.Image = frame;
+                };
+                video_device.Start();
 
-            videoSources.Visible = true;
-            tokenWebcamButton.Text = "Capture Frame";
+                videoSources.Visible = true;
+                tokenWebcamButton.Text = "Capture Frame";
+            }
+            else
+            {
+                MessageBox.Show("No webcam found", "Shark Cage", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
         }
 
         private void StopWebcam()
@@ -353,22 +403,10 @@ namespace CageConfigurator
 
         #endregion
 
-        #region CageChooser
-
-        private void openCageChooserButton_Click(object sender, EventArgs e)
+        #region Config Name
+        private void configName_TextChanged(object sender, EventArgs e)
         {
-            const string registry_key = @"HKEY_LOCAL_MACHINE\SOFTWARE\SharkCage";
-            var install_dir = Registry.GetValue(registry_key, "InstallDir", "") as string;
-
-            if (install_dir.Length == 0)
-            {
-                MessageBox.Show("Could not read installation directory from registry, opening CageChooser not possible", "Shark Cage", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                return;
-            }
-
-            var p = new System.Diagnostics.Process();
-            p.StartInfo.FileName = $@"{install_dir}\CageChooser.exe";
-            p.Start();
+            SetUnsavedData(true);
         }
 
         #endregion
@@ -377,6 +415,13 @@ namespace CageConfigurator
 
         private void saveButton_Click(object sender, EventArgs e)
         {
+            if (configName.Text.Length == 0)
+            {
+                MessageBox.Show("You need to name the configuration in order to save it.", "SharkCage", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                configName.Focus();
+                return;
+            }
+
             if (applicationPath.Text.Length == 0 || tokenBox.Image == null)
             {
                 MessageBox.Show("You need to specify a application and a token to save the configuration.", "SharkCage", MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -384,78 +429,105 @@ namespace CageConfigurator
             }
 
             var secondary_path = GetSecondaryApplicationPath(secureSecondaryPrograms.Text);
-            if (secondary_path.Length == 0 && secureSecondaryPrograms.SelectedIndex != 0)
+            if (String.IsNullOrEmpty(secondary_path) && secureSecondaryPrograms.SelectedIndex != 0)
             {
                 MessageBox.Show("You specified a secondary program but did not provide a corresponding location. Please reselect the application, provide the location and try again.",
                     "SharkCage", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return;
             }
 
-            var file_dialog = new SaveFileDialog();
-            file_dialog.FileName = Path.GetFileNameWithoutExtension(applicationPath.Text);
-            file_dialog.Filter = "SharkCage configuration|*.sconfig";
-            file_dialog.DefaultExt = "sconfig";
-            file_dialog.AddExtension = true;
-            var result = file_dialog.ShowDialog();
-            if (result == DialogResult.OK)
+            var folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonDocuments), "SharkCage");
+            var file_name = Path.Combine(folder, configName.Text + ".sconfig");
+
+            StringBuilder sb = new StringBuilder();
+            StringWriter sw = new StringWriter(sb);
+            using (JsonWriter writer = new JsonTextWriter(sw))
             {
-                StringBuilder sb = new StringBuilder();
-                StringWriter sw = new StringWriter(sb);
+                writer.Formatting = Formatting.Indented;
 
-                using (JsonWriter writer = new JsonTextWriter(sw))
-                {
-                    writer.Formatting = Formatting.Indented;
-
-                    writer.WriteStartObject();
-                    writer.WritePropertyName("application_name");
-                    var app_name = FileVersionInfo.GetVersionInfo(applicationPath.Text)?.FileDescription;
-                    app_name = app_name ?? Path.GetFileName(applicationPath.Text);
-                    writer.WriteValue(app_name);
-                    writer.WritePropertyName(APPLICATION_PATH_PROPERTY);
-                    writer.WriteValue(applicationPath.Text);
-                    writer.WritePropertyName("has_signature");
-                    writer.WriteValue(IsFileSigned(applicationPath.Text));
-                    writer.WritePropertyName("binary_hash");
-                    writer.WriteValue(GetSha512Hash(applicationPath.Text));
-                    writer.WritePropertyName(TOKEN_PROPERTY);
-                    writer.WriteValue(GetBase64FromImage(tokenBox.Image));
-                    writer.WritePropertyName(ADDITIONAL_APP_NAME_PROPERTY);
-                    writer.WriteValue(secureSecondaryPrograms.Text);
-                    writer.WritePropertyName(ADDITIONAL_APP_PATH_PROPERTY);
-                    writer.WriteValue(secondary_path);
-                    writer.WritePropertyName(CLOSING_POLICY_PROPERTY);
-                    writer.WriteValue(bool.Parse(restrictExitButton.Checked.ToString()));
-                    writer.WritePropertyName("creation_date");
-                    writer.WriteValue((Int32)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds);
-                    writer.WritePropertyName("config_version");
-                    writer.WriteValue(CONFIG_VERSION);
-                    writer.WriteEndObject();
-                }
-
-                // generate acl for config (only admin group has access)
-                IdentityReference built_in_administrators = new SecurityIdentifier(WellKnownSidType.BuiltinAdministratorsSid, null);
-                var file_security = new FileSecurity();
-                file_security.SetOwner(built_in_administrators);
-                foreach (FileSystemAccessRule fs_access_rule in file_security.GetAccessRules(true, true, typeof(SecurityIdentifier)))
-                {
-                    file_security.RemoveAccessRule(fs_access_rule);
-                }
-                file_security.AddAccessRule(new FileSystemAccessRule(built_in_administrators, FileSystemRights.FullControl, AccessControlType.Allow));
-                file_security.SetAccessRuleProtection(true, false);
-
-                // create file with acl
-                using (var file_stream = File.Create(file_dialog.FileName, 1024, FileOptions.None, file_security))
-                {
-                    // write to file
-                    using (var stream_writer = new StreamWriter(file_stream))
-                    {
-                        stream_writer.Write(sb.ToString());
-                    }
-                }
-
-                current_config_name = file_dialog.FileName;
-                SetUnsavedData(false);
+                writer.WriteStartObject();
+                writer.WritePropertyName("application_name");
+                var app_name = FileVersionInfo.GetVersionInfo(applicationPath.Text)?.FileDescription;
+                app_name = app_name ?? Path.GetFileName(applicationPath.Text);
+                writer.WriteValue(app_name);
+                writer.WritePropertyName(APPLICATION_PATH_PROPERTY);
+                writer.WriteValue(applicationPath.Text);
+                writer.WritePropertyName("has_signature");
+                writer.WriteValue(IsFileSigned(applicationPath.Text));
+                writer.WritePropertyName("binary_hash");
+                writer.WriteValue(GetSha512Hash(applicationPath.Text));
+                writer.WritePropertyName(TOKEN_PROPERTY);
+                writer.WriteValue(GetBase64FromImage(tokenBox.Image));
+                writer.WritePropertyName(ADDITIONAL_APP_NAME_PROPERTY);
+                writer.WriteValue(secureSecondaryPrograms.Text);
+                writer.WritePropertyName(ADDITIONAL_APP_PATH_PROPERTY);
+                writer.WriteValue(secondary_path);
+                writer.WritePropertyName(CLOSING_POLICY_PROPERTY);
+                writer.WriteValue(bool.Parse(restrictExitCheckbox.Checked.ToString()));
+                writer.WritePropertyName("creation_date");
+                writer.WriteValue((Int32)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds);
+                writer.WritePropertyName("config_version");
+                writer.WriteValue(CONFIG_VERSION);
+                writer.WriteEndObject();
             }
+
+            // generate acl for config (only admin group has access)
+            IdentityReference built_in_administrators = new SecurityIdentifier(WellKnownSidType.BuiltinAdministratorsSid, null);
+            var file_security = new FileSecurity();
+
+            file_security.SetOwner(built_in_administrators);
+            foreach (FileSystemAccessRule fs_access_rule in file_security.GetAccessRules(true, true, typeof(SecurityIdentifier)))
+            {
+                file_security.RemoveAccessRule(fs_access_rule);
+            }
+            file_security.AddAccessRule(new FileSystemAccessRule(built_in_administrators, FileSystemRights.FullControl, AccessControlType.Allow));
+            file_security.SetAccessRuleProtection(true, false);
+
+            // create file with acl
+            if (!Directory.Exists(folder))
+            {
+                Directory.CreateDirectory(folder);
+            }
+
+            if (File.Exists(file_name))
+            {
+                var result = MessageBox.Show("A config with this name already exists, do you want to replace it?", "SharkCage", MessageBoxButtons.YesNo, MessageBoxIcon.Information);
+                if (result == DialogResult.No)
+                {
+                    return;
+                }
+            }
+
+            using (var file_stream = File.Create(file_name, 1024, FileOptions.None, file_security))
+            {
+                // write to file
+                using (var stream_writer = new StreamWriter(file_stream))
+                {
+                    stream_writer.Write(sb.ToString());
+                }
+            }
+
+            // make the save label appear and disappear again (async)
+            Task.Run(() =>
+            {
+                // invoke has to be used so the control property is changed
+                // on the same thread as the control was created from
+                saveLabel.Invoke((Action)(() =>
+                {
+                    saveLabel.Visible = true;
+                }));
+                Thread.Sleep(3000);
+                saveLabel.Invoke((Action)(() =>
+                {
+                    saveLabel.Visible = false;
+                }));
+            });
+
+            var config_registry_key = Path.Combine(REGISTRY_KEY, "Configs");
+            Registry.SetValue(config_registry_key, configName.Text, file_name);
+
+            current_config_name = configName.Text;
+            SetUnsavedData(false);
         }
 
         private string GetBase64FromImage(System.Drawing.Image image)
@@ -473,7 +545,8 @@ namespace CageConfigurator
 
         private static string GetSha512Hash(string file_path)
         {
-            using (var bs = new BufferedStream(File.OpenRead(file_path), 1048576))
+            const int buffer_size = 1048576; // ~ 1MB per read
+            using (var bs = new BufferedStream(File.OpenRead(file_path), buffer_size))
             {
                 var sha = new SHA512Managed();
                 byte[] hash = sha.ComputeHash(bs);
@@ -486,7 +559,7 @@ namespace CageConfigurator
             switch (name)
             {
                 case "Keepass":
-                    return Settings.Default.PeristentKeepassPath;
+                    return Settings.Default.PersistentKeepassPath;
                 default:
                     return String.Empty;
             }

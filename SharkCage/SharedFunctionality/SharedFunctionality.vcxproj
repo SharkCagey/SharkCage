@@ -103,7 +103,9 @@
     </Link>
     <PostBuildEvent>
       <Command>xcopy /y "$(OutDir)$(TargetName).lib" "$(ProjectDir)"
+
 xcopy /y "$(OutDir)$(TargetName).dll" "$(SolutionDir)CageChooser\bin\$(Configuration)\"
+
 xcopy /y "$(OutDir)$(TargetName).dll" "$(SolutionDir)post_build_output\"
 xcopy /y "$(OutDir)$(TargetName).pdb" "$(SolutionDir)post_build_output\"</Command>
     </PostBuildEvent>
@@ -156,6 +158,7 @@ xcopy /y "$(OutDir)$(TargetName).pdb" "$(SolutionDir)post_build_output\"</Comman
     </Link>
     <PostBuildEvent>
       <Command>xcopy /y "$(OutDir)$(TargetName).lib" "$(ProjectDir)"
+
 xcopy /y "$(OutDir)$(TargetName).dll" "$(SolutionDir)CageChooser\bin\$(Configuration)\"</Command>
     </PostBuildEvent>
     <PostBuildEvent>
@@ -197,6 +200,7 @@ xcopy /y "$(OutDir)$(TargetName).dll" "$(SolutionDir)CageChooser\bin\$(Configura
     <ClInclude Include="tokenLib\groupManipulation.h" />
     <ClInclude Include="tokenLib\stdafx.h" />
     <ClInclude Include="tokenLib\tokenManipulation.h" />
+    <ClInclude Include="ValidateBinary.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp" />
@@ -209,6 +213,7 @@ xcopy /y "$(OutDir)$(TargetName).dll" "$(SolutionDir)CageChooser\bin\$(Configura
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="tokenLib\tokenLib.cpp" />
+    <ClCompile Include="ValidateBinary.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="cpp.hint" />
