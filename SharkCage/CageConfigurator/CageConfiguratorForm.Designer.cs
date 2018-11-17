@@ -49,6 +49,8 @@
             this.configNameLabel = new System.Windows.Forms.Label();
             this.configName = new System.Windows.Forms.TextBox();
             this.saveLabel = new System.Windows.Forms.Label();
+            this.cmdLineParams = new System.Windows.Forms.TextBox();
+            this.cmdLineLabel = new System.Windows.Forms.Label();
             this.menuStrip.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.tokenBox)).BeginInit();
             this.SuspendLayout();
@@ -64,10 +66,10 @@
             // 
             // saveButton
             // 
-            this.saveButton.Location = new System.Drawing.Point(12, 485);
+            this.saveButton.Location = new System.Drawing.Point(12, 525);
             this.saveButton.Name = "saveButton";
             this.saveButton.Size = new System.Drawing.Size(460, 24);
-            this.saveButton.TabIndex = 11;
+            this.saveButton.TabIndex = 16;
             this.saveButton.Text = "Save configuration";
             this.saveButton.UseVisualStyleBackColor = true;
             this.saveButton.Click += new System.EventHandler(this.saveButton_Click);
@@ -119,10 +121,10 @@
             // secureSecondaryProgramLabel
             // 
             this.secureSecondaryProgramLabel.AutoSize = true;
-            this.secureSecondaryProgramLabel.Location = new System.Drawing.Point(12, 118);
+            this.secureSecondaryProgramLabel.Location = new System.Drawing.Point(12, 158);
             this.secureSecondaryProgramLabel.Name = "secureSecondaryProgramLabel";
             this.secureSecondaryProgramLabel.Size = new System.Drawing.Size(236, 13);
-            this.secureSecondaryProgramLabel.TabIndex = 4;
+            this.secureSecondaryProgramLabel.TabIndex = 7;
             this.secureSecondaryProgramLabel.Text = "Select (secure) application to be opened as well:";
             // 
             // secureSecondaryPrograms
@@ -132,37 +134,37 @@
             this.secureSecondaryPrograms.Items.AddRange(new object[] {
             "None",
             "Keepass"});
-            this.secureSecondaryPrograms.Location = new System.Drawing.Point(254, 115);
+            this.secureSecondaryPrograms.Location = new System.Drawing.Point(254, 155);
             this.secureSecondaryPrograms.Name = "secureSecondaryPrograms";
             this.secureSecondaryPrograms.Size = new System.Drawing.Size(218, 21);
-            this.secureSecondaryPrograms.TabIndex = 5;
+            this.secureSecondaryPrograms.TabIndex = 8;
             this.secureSecondaryPrograms.SelectedIndexChanged += new System.EventHandler(this.secureSecondaryPrograms_SelectedIndexChanged);
             // 
             // tokenLabel
             // 
             this.tokenLabel.AutoSize = true;
-            this.tokenLabel.Location = new System.Drawing.Point(12, 157);
+            this.tokenLabel.Location = new System.Drawing.Point(12, 197);
             this.tokenLabel.Name = "tokenLabel";
             this.tokenLabel.Size = new System.Drawing.Size(251, 13);
-            this.tokenLabel.TabIndex = 6;
+            this.tokenLabel.TabIndex = 9;
             this.tokenLabel.Text = "Select (picture) token associated with configuration:";
             // 
             // tokenBrowseButton
             // 
-            this.tokenBrowseButton.Location = new System.Drawing.Point(376, 397);
+            this.tokenBrowseButton.Location = new System.Drawing.Point(376, 437);
             this.tokenBrowseButton.Name = "tokenBrowseButton";
             this.tokenBrowseButton.Size = new System.Drawing.Size(96, 24);
-            this.tokenBrowseButton.TabIndex = 9;
+            this.tokenBrowseButton.TabIndex = 12;
             this.tokenBrowseButton.Text = "Browse ...";
             this.tokenBrowseButton.UseVisualStyleBackColor = true;
             this.tokenBrowseButton.Click += new System.EventHandler(this.tokenBrowseButton_Click);
             // 
             // tokenWebcamButton
             // 
-            this.tokenWebcamButton.Location = new System.Drawing.Point(274, 397);
+            this.tokenWebcamButton.Location = new System.Drawing.Point(274, 437);
             this.tokenWebcamButton.Name = "tokenWebcamButton";
             this.tokenWebcamButton.Size = new System.Drawing.Size(96, 24);
-            this.tokenWebcamButton.TabIndex = 8;
+            this.tokenWebcamButton.TabIndex = 11;
             this.tokenWebcamButton.Text = "Use webcam";
             this.tokenWebcamButton.UseVisualStyleBackColor = true;
             this.tokenWebcamButton.Click += new System.EventHandler(this.tokenWebcamButton_Click);
@@ -170,7 +172,7 @@
             // tokenBox
             // 
             this.tokenBox.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.tokenBox.Location = new System.Drawing.Point(12, 173);
+            this.tokenBox.Location = new System.Drawing.Point(12, 213);
             this.tokenBox.Name = "tokenBox";
             this.tokenBox.Size = new System.Drawing.Size(460, 218);
             this.tokenBox.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
@@ -182,19 +184,19 @@
             this.videoSources.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.videoSources.FormattingEnabled = true;
             this.videoSources.ItemHeight = 13;
-            this.videoSources.Location = new System.Drawing.Point(12, 398);
+            this.videoSources.Location = new System.Drawing.Point(12, 438);
             this.videoSources.Name = "videoSources";
             this.videoSources.Size = new System.Drawing.Size(256, 21);
-            this.videoSources.TabIndex = 7;
+            this.videoSources.TabIndex = 10;
             this.videoSources.TabStop = false;
             this.videoSources.Visible = false;
             // 
             // restrictExitCheckbox
             // 
-            this.restrictExitCheckbox.Location = new System.Drawing.Point(12, 82);
+            this.restrictExitCheckbox.Location = new System.Drawing.Point(12, 80);
             this.restrictExitCheckbox.Name = "restrictExitCheckbox";
             this.restrictExitCheckbox.Size = new System.Drawing.Size(173, 17);
-            this.restrictExitCheckbox.TabIndex = 0;
+            this.restrictExitCheckbox.TabIndex = 4;
             this.restrictExitCheckbox.Text = "Restrict exiting to CageLabeler";
             this.restrictExitTooltip.SetToolTip(this.restrictExitCheckbox, resources.GetString("restrictExitCheckbox.ToolTip"));
             this.restrictExitCheckbox.UseVisualStyleBackColor = true;
@@ -210,36 +212,54 @@
             // configNameLabel
             // 
             this.configNameLabel.AutoSize = true;
-            this.configNameLabel.Location = new System.Drawing.Point(13, 430);
+            this.configNameLabel.Location = new System.Drawing.Point(13, 470);
             this.configNameLabel.Name = "configNameLabel";
             this.configNameLabel.Size = new System.Drawing.Size(114, 13);
-            this.configNameLabel.TabIndex = 12;
+            this.configNameLabel.TabIndex = 13;
             this.configNameLabel.Text = "Name of configuration:";
             // 
             // configName
             // 
-            this.configName.Location = new System.Drawing.Point(12, 446);
+            this.configName.Location = new System.Drawing.Point(12, 486);
             this.configName.Name = "configName";
             this.configName.Size = new System.Drawing.Size(460, 20);
-            this.configName.TabIndex = 13;
+            this.configName.TabIndex = 14;
             this.configName.TextChanged += new System.EventHandler(this.configName_TextChanged);
             // 
             // saveLabel
             // 
             this.saveLabel.AutoSize = true;
             this.saveLabel.ForeColor = System.Drawing.Color.LimeGreen;
-            this.saveLabel.Location = new System.Drawing.Point(206, 469);
+            this.saveLabel.Location = new System.Drawing.Point(206, 509);
             this.saveLabel.Name = "saveLabel";
             this.saveLabel.Size = new System.Drawing.Size(72, 13);
-            this.saveLabel.TabIndex = 14;
+            this.saveLabel.TabIndex = 15;
             this.saveLabel.Text = "Config saved!";
             this.saveLabel.Visible = false;
+            // 
+            // cmdLineParams
+            // 
+            this.cmdLineParams.Location = new System.Drawing.Point(12, 120);
+            this.cmdLineParams.Name = "cmdLineParams";
+            this.cmdLineParams.Size = new System.Drawing.Size(460, 20);
+            this.cmdLineParams.TabIndex = 6;
+            // 
+            // cmdLineLabel
+            // 
+            this.cmdLineLabel.AutoSize = true;
+            this.cmdLineLabel.Location = new System.Drawing.Point(16, 104);
+            this.cmdLineLabel.Name = "cmdLineLabel";
+            this.cmdLineLabel.Size = new System.Drawing.Size(126, 13);
+            this.cmdLineLabel.TabIndex = 5;
+            this.cmdLineLabel.Text = "Command line parameter:";
             // 
             // CageConfiguratorForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(484, 521);
+            this.ClientSize = new System.Drawing.Size(484, 561);
+            this.Controls.Add(this.cmdLineLabel);
+            this.Controls.Add(this.cmdLineParams);
             this.Controls.Add(this.saveLabel);
             this.Controls.Add(this.configName);
             this.Controls.Add(this.configNameLabel);
@@ -291,6 +311,8 @@
         private System.Windows.Forms.Label configNameLabel;
         private System.Windows.Forms.TextBox configName;
         private System.Windows.Forms.Label saveLabel;
+        private System.Windows.Forms.TextBox cmdLineParams;
+        private System.Windows.Forms.Label cmdLineLabel;
     }
 }
 

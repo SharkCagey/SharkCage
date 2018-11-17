@@ -83,14 +83,14 @@ int main()
 	std::wstring result_data;
 	network_manager.Send(sender, CageMessage::RESPONSE_SUCCESS, L"", result_data);
 
-	SecuritySetup security_setup;
 	//randomize the group name
+	SecuritySetup security_setup;
 	auto uuid_stl_opt = generateUuid();
 	if (!uuid_stl_opt.has_value())
 	{
 		return 1;
 	}
-	auto uuid_stl = uuid_stl_opt.value();;
+	auto uuid_stl = uuid_stl_opt.value();
 
 	std::wstring group_name = std::wstring(L"shark_cage_group_").append(uuid_stl);
 	auto security_attributes = security_setup.GetSecurityAttributes(group_name);
@@ -202,7 +202,10 @@ void CageManager::StartCage(SECURITY_ATTRIBUTES security_attributes, const CageD
 	PROCESS_INFORMATION process_info = {};
 
 	auto app_path = cage_data.app_path;
-	if (::CreateProcessWithTokenW(token_handle, LOGON_WITH_PROFILE, app_path.c_str(), nullptr, 0, nullptr, nullptr, &info, &process_info) == 0)
+	std::wstringstream ss;
+	ss << L"\"" << app_path << L"\" " << cage_data.app_cmd_line;
+
+	if (::CreateProcessWithTokenW(token_handle, LOGON_WITH_PROFILE, app_path.c_str(), _wcsdup(ss.str().c_str()), 0, nullptr, nullptr, &info, &process_info) == 0)
 	{
 		std::cout << "Failed to start process. Error: " << ::GetLastError() << std::endl;
 
@@ -214,7 +217,7 @@ void CageManager::StartCage(SECURITY_ATTRIBUTES security_attributes, const CageD
 		{
 			if (::CreateProcess(
 				app_path.c_str(),
-				nullptr,
+				_wcsdup(ss.str().c_str()),
 				&security_attributes,
 				nullptr,
 				FALSE,
@@ -312,6 +315,7 @@ void CageManager::StartCage(SECURITY_ATTRIBUTES security_attributes, const CageD
 							CageManager::ActivateApp(
 								token_handle,
 								cage_data.app_path,
+								cage_data.app_cmd_line,
 								cage_data.activate_app,
 								desktop_handle,
 								process_info,
@@ -324,6 +328,7 @@ void CageManager::StartCage(SECURITY_ATTRIBUTES security_attributes, const CageD
 							CageManager::ActivateApp(
 								token_handle,
 								cage_data.additional_app_path.value(),
+								L"",
 								cage_data.activate_additional_app.value(),
 								desktop_handle,
 								process_info_additional_app,
@@ -540,6 +545,7 @@ bool CageManager::ProcessRunning(const std::wstring &process_path)
 void CageManager::ActivateApp(
 	const HANDLE token_handle,
 	const std::wstring &path,
+	const std::wstring &cmd_line,
 	const HANDLE &event,
 	const HDESK &desktop_handle,
 	PROCESS_INFORMATION &process_info,
@@ -575,7 +581,10 @@ void CageManager::ActivateApp(
 			process_info.hThread = nullptr;
 		}
 
-		if (::CreateProcessWithTokenW(token_handle, LOGON_WITH_PROFILE, path.c_str(), nullptr, 0, nullptr, nullptr, &info, &process_info) == 0)
+		std::wstringstream ss;
+		ss << L"\"" << path << L"\" " << cmd_line;
+		
+		if (::CreateProcessWithTokenW(token_handle, LOGON_WITH_PROFILE, path.c_str(), _wcsdup(ss.str().c_str()), 0, nullptr, nullptr, &info, &process_info) == 0)
 		{
 			std::cout << "Failed to start process. Error: " << ::GetLastError() << std::endl;
 
@@ -587,7 +596,7 @@ void CageManager::ActivateApp(
 			{
 				if (::CreateProcess(
 					path.c_str(),
-					nullptr,
+					_wcsdup(ss.str().c_str()),
 					&security_attributes,
 					nullptr,
 					FALSE,

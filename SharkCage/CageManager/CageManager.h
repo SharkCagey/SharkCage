@@ -15,6 +15,7 @@ private:
 	void CageManager::ActivateApp(
 		const HANDLE token_handle,
 		const std::wstring &path,
+		const std::wstring &cmd_line,
 		const HANDLE &event,
 		const HDESK &desktop_handle,
 		PROCESS_INFORMATION &process_info,
