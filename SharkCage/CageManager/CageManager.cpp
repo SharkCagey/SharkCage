@@ -203,7 +203,7 @@ void CageManager::StartCage(SECURITY_ATTRIBUTES security_attributes, const CageD
 
 	auto app_path = cage_data.app_path;
 	std::wstringstream ss;
-	ss << L"\"" << app_path << L"\" " << cage_data.app_cmd_line;
+	ss << L"\"" << app_path << L"\" " << cage_data.app_cmd_line_params;
 
 	if (::CreateProcessWithTokenW(token_handle, LOGON_WITH_PROFILE, app_path.c_str(), _wcsdup(ss.str().c_str()), 0, nullptr, nullptr, &info, &process_info) == 0)
 	{
@@ -315,7 +315,7 @@ void CageManager::StartCage(SECURITY_ATTRIBUTES security_attributes, const CageD
 							CageManager::ActivateApp(
 								token_handle,
 								cage_data.app_path,
-								cage_data.app_cmd_line,
+								cage_data.app_cmd_line_params,
 								cage_data.activate_app,
 								desktop_handle,
 								process_info,

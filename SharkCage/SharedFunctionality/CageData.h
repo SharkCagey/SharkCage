@@ -7,7 +7,7 @@ struct CageData
 {
 	const std::wstring config_path;
 	std::wstring app_path;
-	std::wstring app_cmd_line;
+	std::wstring app_cmd_line_params;
 	std::wstring app_name;
 	std::wstring app_token;
 	std::wstring app_hash;

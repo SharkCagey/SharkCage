@@ -39,10 +39,15 @@ namespace CageConfigurator
         private bool unsaved_data = false;
         private string current_config_name = "unsaved";
 
+        private const int advanced_width = 400;
+        private bool advanced_config_active = false;
+
         public CageConfiguratorForm(string config_to_load)
         {
             InitializeComponent();
             InitializeInputs();
+            this.Width -= advanced_width;
+
             if (config_to_load != null)
             {
                 CheckPath(config_to_load, ".sconfig", (string path) =>
@@ -57,6 +62,7 @@ namespace CageConfigurator
         private void InitializeInputs()
         {
             current_config_name = "unsaved";
+            cmdLineParamsDataGrid.Rows.Clear();
             secureSecondaryPrograms.SelectedIndex = 0;
             applicationPath.ResetText();
             tokenBox.Image = null;
@@ -253,8 +259,14 @@ namespace CageConfigurator
                 var restrict_exit = json.GetValue(CLOSING_POLICY_PROPERTY)?.ToString().ToLower().Equals("true");
 
                 applicationPath.Text = application_path;
+                foreach (string param in application_cmd_line_params.Split(' '))
+                {
+                    if (!String.IsNullOrEmpty(param))
+                    {
+                        cmdLineParamsDataGrid.Rows.Add(param.Trim('"'));
+                    }
+                }
                 restrictExitCheckbox.Checked = restrict_exit.GetValueOrDefault(false);
-                cmdLineParams.Text = application_cmd_line_params;
                 tokenBox.Image = GetImageFromBase64(token);
                 LoadAdditionalApp(additional_app, additional_app_path);
                 current_config_name = Path.GetFileNameWithoutExtension(config_path);
@@ -463,7 +475,16 @@ namespace CageConfigurator
                 writer.WritePropertyName(APPLICATION_PATH_PROPERTY);
                 writer.WriteValue(applicationPath.Text);
                 writer.WritePropertyName(APPLICATION_CMD_LINE_PROPERTY);
-                writer.WriteValue(cmdLineParams.Text);
+                var cmd_line_sb = new StringBuilder();
+                foreach (DataGridViewRow row in cmdLineParamsDataGrid.Rows)
+                {
+                    var cell_value = row.Cells[0].Value;
+                    if (cell_value != null && !String.IsNullOrEmpty(cell_value.ToString()))
+                    {
+                        cmd_line_sb.AppendFormat(" \"{0}\"", cell_value.ToString());
+                    }
+                }
+                writer.WriteValue(cmd_line_sb.ToString());
                 writer.WritePropertyName("has_signature");
                 writer.WriteValue(IsFileSigned(applicationPath.Text));
                 writer.WritePropertyName("binary_hash");
@@ -591,5 +612,32 @@ namespace CageConfigurator
         }
 
         #endregion
+
+        private void advancedConfigButton_Click(object sender, EventArgs e)
+        {
+            if (advanced_config_active)
+            {
+                this.Width -= advanced_width;
+                advancedConfigButton.Text = "Advanced >>";
+            }
+            else
+            {
+                this.Width += advanced_width;
+                advancedConfigButton.Text = "Advanced <<";
+            }
+
+            advanced_config_active = !advanced_config_active;
+        }
+
+        private void CageConfiguratorForm_Paint(object sender, PaintEventArgs e)
+        {
+            // draw a seperator line
+            if (advanced_config_active)
+            {
+                Pen pen = new Pen(Color.FromArgb(255, 0, 0, 0));
+                pen.Width = 1;
+                e.Graphics.DrawLine(pen, 485, 40, 485, 500);
+            }
+        }
     }
 }

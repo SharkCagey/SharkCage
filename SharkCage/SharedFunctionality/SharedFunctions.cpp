@@ -163,7 +163,7 @@ namespace SharedFunctions
 				std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
 
 				cage_data.app_path = converter.from_bytes(path);
-				cage_data.app_cmd_line = converter.from_bytes(cmd_line);
+				cage_data.app_cmd_line_params = converter.from_bytes(cmd_line);
 				cage_data.app_name = converter.from_bytes(application_name);
 				cage_data.app_token = converter.from_bytes(token);
 				cage_data.app_hash = converter.from_bytes(hash);

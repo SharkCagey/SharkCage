@@ -49,10 +49,14 @@
             this.configNameLabel = new System.Windows.Forms.Label();
             this.configName = new System.Windows.Forms.TextBox();
             this.saveLabel = new System.Windows.Forms.Label();
-            this.cmdLineParams = new System.Windows.Forms.TextBox();
-            this.cmdLineLabel = new System.Windows.Forms.Label();
+            this.advancedConfigButton = new System.Windows.Forms.Button();
+            this.cmdLineParamsDataGrid = new System.Windows.Forms.DataGridView();
+            this.cmd_line_params = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.cmdLineParamsLabel = new System.Windows.Forms.Label();
+            this.cmdLineParamsTooltip = new System.Windows.Forms.ToolTip(this.components);
             this.menuStrip.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.tokenBox)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.cmdLineParamsDataGrid)).BeginInit();
             this.SuspendLayout();
             // 
             // applicationLabel
@@ -66,9 +70,9 @@
             // 
             // saveButton
             // 
-            this.saveButton.Location = new System.Drawing.Point(12, 525);
+            this.saveButton.Location = new System.Drawing.Point(12, 485);
             this.saveButton.Name = "saveButton";
-            this.saveButton.Size = new System.Drawing.Size(460, 24);
+            this.saveButton.Size = new System.Drawing.Size(358, 24);
             this.saveButton.TabIndex = 16;
             this.saveButton.Text = "Save configuration";
             this.saveButton.UseVisualStyleBackColor = true;
@@ -81,7 +85,7 @@
             this.openToolStripMenuItem});
             this.menuStrip.Location = new System.Drawing.Point(0, 0);
             this.menuStrip.Name = "menuStrip";
-            this.menuStrip.Size = new System.Drawing.Size(484, 24);
+            this.menuStrip.Size = new System.Drawing.Size(884, 24);
             this.menuStrip.TabIndex = 0;
             this.menuStrip.Text = "menuStrip";
             // 
@@ -121,7 +125,7 @@
             // secureSecondaryProgramLabel
             // 
             this.secureSecondaryProgramLabel.AutoSize = true;
-            this.secureSecondaryProgramLabel.Location = new System.Drawing.Point(12, 158);
+            this.secureSecondaryProgramLabel.Location = new System.Drawing.Point(12, 118);
             this.secureSecondaryProgramLabel.Name = "secureSecondaryProgramLabel";
             this.secureSecondaryProgramLabel.Size = new System.Drawing.Size(236, 13);
             this.secureSecondaryProgramLabel.TabIndex = 7;
@@ -134,7 +138,7 @@
             this.secureSecondaryPrograms.Items.AddRange(new object[] {
             "None",
             "Keepass"});
-            this.secureSecondaryPrograms.Location = new System.Drawing.Point(254, 155);
+            this.secureSecondaryPrograms.Location = new System.Drawing.Point(254, 115);
             this.secureSecondaryPrograms.Name = "secureSecondaryPrograms";
             this.secureSecondaryPrograms.Size = new System.Drawing.Size(218, 21);
             this.secureSecondaryPrograms.TabIndex = 8;
@@ -143,7 +147,7 @@
             // tokenLabel
             // 
             this.tokenLabel.AutoSize = true;
-            this.tokenLabel.Location = new System.Drawing.Point(12, 197);
+            this.tokenLabel.Location = new System.Drawing.Point(12, 157);
             this.tokenLabel.Name = "tokenLabel";
             this.tokenLabel.Size = new System.Drawing.Size(251, 13);
             this.tokenLabel.TabIndex = 9;
@@ -151,7 +155,7 @@
             // 
             // tokenBrowseButton
             // 
-            this.tokenBrowseButton.Location = new System.Drawing.Point(376, 437);
+            this.tokenBrowseButton.Location = new System.Drawing.Point(376, 397);
             this.tokenBrowseButton.Name = "tokenBrowseButton";
             this.tokenBrowseButton.Size = new System.Drawing.Size(96, 24);
             this.tokenBrowseButton.TabIndex = 12;
@@ -161,7 +165,7 @@
             // 
             // tokenWebcamButton
             // 
-            this.tokenWebcamButton.Location = new System.Drawing.Point(274, 437);
+            this.tokenWebcamButton.Location = new System.Drawing.Point(274, 397);
             this.tokenWebcamButton.Name = "tokenWebcamButton";
             this.tokenWebcamButton.Size = new System.Drawing.Size(96, 24);
             this.tokenWebcamButton.TabIndex = 11;
@@ -172,7 +176,7 @@
             // tokenBox
             // 
             this.tokenBox.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.tokenBox.Location = new System.Drawing.Point(12, 213);
+            this.tokenBox.Location = new System.Drawing.Point(12, 173);
             this.tokenBox.Name = "tokenBox";
             this.tokenBox.Size = new System.Drawing.Size(460, 218);
             this.tokenBox.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
@@ -184,7 +188,7 @@
             this.videoSources.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.videoSources.FormattingEnabled = true;
             this.videoSources.ItemHeight = 13;
-            this.videoSources.Location = new System.Drawing.Point(12, 438);
+            this.videoSources.Location = new System.Drawing.Point(12, 398);
             this.videoSources.Name = "videoSources";
             this.videoSources.Size = new System.Drawing.Size(256, 21);
             this.videoSources.TabIndex = 10;
@@ -212,7 +216,7 @@
             // configNameLabel
             // 
             this.configNameLabel.AutoSize = true;
-            this.configNameLabel.Location = new System.Drawing.Point(13, 470);
+            this.configNameLabel.Location = new System.Drawing.Point(13, 430);
             this.configNameLabel.Name = "configNameLabel";
             this.configNameLabel.Size = new System.Drawing.Size(114, 13);
             this.configNameLabel.TabIndex = 13;
@@ -220,7 +224,7 @@
             // 
             // configName
             // 
-            this.configName.Location = new System.Drawing.Point(12, 486);
+            this.configName.Location = new System.Drawing.Point(12, 446);
             this.configName.Name = "configName";
             this.configName.Size = new System.Drawing.Size(460, 20);
             this.configName.TabIndex = 14;
@@ -230,36 +234,67 @@
             // 
             this.saveLabel.AutoSize = true;
             this.saveLabel.ForeColor = System.Drawing.Color.LimeGreen;
-            this.saveLabel.Location = new System.Drawing.Point(206, 509);
+            this.saveLabel.Location = new System.Drawing.Point(155, 469);
             this.saveLabel.Name = "saveLabel";
             this.saveLabel.Size = new System.Drawing.Size(72, 13);
             this.saveLabel.TabIndex = 15;
             this.saveLabel.Text = "Config saved!";
             this.saveLabel.Visible = false;
             // 
-            // cmdLineParams
+            // advancedConfigButton
             // 
-            this.cmdLineParams.Location = new System.Drawing.Point(12, 120);
-            this.cmdLineParams.Name = "cmdLineParams";
-            this.cmdLineParams.Size = new System.Drawing.Size(460, 20);
-            this.cmdLineParams.TabIndex = 6;
+            this.advancedConfigButton.Location = new System.Drawing.Point(376, 485);
+            this.advancedConfigButton.Name = "advancedConfigButton";
+            this.advancedConfigButton.Size = new System.Drawing.Size(96, 24);
+            this.advancedConfigButton.TabIndex = 17;
+            this.advancedConfigButton.Text = "Advanced >>";
+            this.advancedConfigButton.UseVisualStyleBackColor = true;
+            this.advancedConfigButton.Click += new System.EventHandler(this.advancedConfigButton_Click);
             // 
-            // cmdLineLabel
+            // cmdLineParamsDataGrid
             // 
-            this.cmdLineLabel.AutoSize = true;
-            this.cmdLineLabel.Location = new System.Drawing.Point(16, 104);
-            this.cmdLineLabel.Name = "cmdLineLabel";
-            this.cmdLineLabel.Size = new System.Drawing.Size(126, 13);
-            this.cmdLineLabel.TabIndex = 5;
-            this.cmdLineLabel.Text = "Command line parameter:";
+            this.cmdLineParamsDataGrid.BackgroundColor = System.Drawing.SystemColors.Window;
+            this.cmdLineParamsDataGrid.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.cmdLineParamsDataGrid.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
+            this.cmd_line_params});
+            this.cmdLineParamsDataGrid.Location = new System.Drawing.Point(498, 56);
+            this.cmdLineParamsDataGrid.Name = "cmdLineParamsDataGrid";
+            this.cmdLineParamsDataGrid.Size = new System.Drawing.Size(374, 150);
+            this.cmdLineParamsDataGrid.TabIndex = 18;
+            this.cmdLineParamsTooltip.SetToolTip(this.cmdLineParamsDataGrid, "Each parameter in the following table will be wrapped in quotes and forwarded to " +
+        "the application.");
+            // 
+            // cmd_line_params
+            // 
+            this.cmd_line_params.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
+            this.cmd_line_params.HeaderText = "Parameter";
+            this.cmd_line_params.Name = "cmd_line_params";
+            this.cmd_line_params.Resizable = System.Windows.Forms.DataGridViewTriState.False;
+            // 
+            // cmdLineParamsLabel
+            // 
+            this.cmdLineParamsLabel.AutoSize = true;
+            this.cmdLineParamsLabel.Location = new System.Drawing.Point(498, 39);
+            this.cmdLineParamsLabel.Name = "cmdLineParamsLabel";
+            this.cmdLineParamsLabel.Size = new System.Drawing.Size(126, 13);
+            this.cmdLineParamsLabel.TabIndex = 19;
+            this.cmdLineParamsLabel.Text = "Command line parameter:";
+            this.cmdLineParamsTooltip.SetToolTip(this.cmdLineParamsLabel, resources.GetString("cmdLineParamsLabel.ToolTip"));
+            // 
+            // cmdLineParamsTooltip
+            // 
+            this.cmdLineParamsTooltip.AutoPopDelay = 30000;
+            this.cmdLineParamsTooltip.InitialDelay = 500;
+            this.cmdLineParamsTooltip.ReshowDelay = 100;
             // 
             // CageConfiguratorForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(484, 561);
-            this.Controls.Add(this.cmdLineLabel);
-            this.Controls.Add(this.cmdLineParams);
+            this.ClientSize = new System.Drawing.Size(884, 521);
+            this.Controls.Add(this.cmdLineParamsLabel);
+            this.Controls.Add(this.cmdLineParamsDataGrid);
+            this.Controls.Add(this.advancedConfigButton);
             this.Controls.Add(this.saveLabel);
             this.Controls.Add(this.configName);
             this.Controls.Add(this.configNameLabel);
@@ -283,9 +318,11 @@
             this.ShowIcon = false;
             this.Text = "Cage Configurator";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.CageConfiguratorForm_FormClosing);
+            this.Paint += new System.Windows.Forms.PaintEventHandler(this.CageConfiguratorForm_Paint);
             this.menuStrip.ResumeLayout(false);
             this.menuStrip.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.tokenBox)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.cmdLineParamsDataGrid)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -311,8 +348,11 @@
         private System.Windows.Forms.Label configNameLabel;
         private System.Windows.Forms.TextBox configName;
         private System.Windows.Forms.Label saveLabel;
-        private System.Windows.Forms.TextBox cmdLineParams;
-        private System.Windows.Forms.Label cmdLineLabel;
+        private System.Windows.Forms.Button advancedConfigButton;
+        private System.Windows.Forms.DataGridView cmdLineParamsDataGrid;
+        private System.Windows.Forms.DataGridViewTextBoxColumn cmd_line_params;
+        private System.Windows.Forms.Label cmdLineParamsLabel;
+        private System.Windows.Forms.ToolTip cmdLineParamsTooltip;
     }
 }
 
