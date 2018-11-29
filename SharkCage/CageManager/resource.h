@@ -1,7 +1,6 @@
 //{{NO_DEPENDENCIES}}
 // Microsoft Visual C++ generated include file.
-// Used by CageService.rc
-//
+// Used by CageManager.rc
 
 // Next default values for new objects
 // 
