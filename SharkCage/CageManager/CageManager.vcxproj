@@ -199,6 +199,7 @@ xcopy /y "$(OutDir)$(TargetName).pdb" "$(SolutionDir)post_build_output\"</Comman
     <ClInclude Include="CageManager.h" />
     <ClInclude Include="base64.h" />
     <ClInclude Include="FullWorkArea.h" />
+    <ClInclude Include="resource.h" />
     <ClInclude Include="SecuritySetup.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
@@ -216,6 +217,9 @@ xcopy /y "$(OutDir)$(TargetName).pdb" "$(SolutionDir)post_build_output\"</Comman
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="CageManager.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

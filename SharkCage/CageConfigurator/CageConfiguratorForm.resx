@@ -131,4 +131,21 @@ the secure desktop.
 To avoid problems with the secure desktop closing unexpectedly
 check this box to only allow closing with the designated exit button.</value>
   </data>
+  <metadata name="cmd_line_params.UserAddedColumn" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>True</value>
+  </metadata>
+  <metadata name="cmdLineParamsTooltip.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+    <value>271, 17</value>
+  </metadata>
+  <metadata name="cmd_line_params.UserAddedColumn" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>True</value>
+  </metadata>
+  <data name="cmdLineParamsLabel.ToolTip" xml:space="preserve">
+    <value>Each parameter in the following table will be wrapped in quotes and forwarded to the application.
+An example use case for this is opening a specific website in a browser
+(i.e. [path-to-firefox]\firefox.exe "https://duckduckgo.com" will open Firefox with a new tab and load duckduckgo.com).</value>
+  </data>
+  <metadata name="cmdLineParamsTooltip.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+    <value>271, 17</value>
+  </metadata>
 </root>
